@@ -11,8 +11,8 @@ type Header struct {
 	Response map[string]string `json:"response,omitempty"`
 }
 
-// 获得中间件实例
-func Inst(config string) (*Header, error) {
+// 新建中间件实例
+func New(config string) (*Header, error) {
 	var mw Header
 	err := json.Unmarshal([]byte(config), &mw)
 	if err != nil {

@@ -21,8 +21,8 @@ type Health struct {
 	} `json:"passive,omitempty"`
 }
 
-// 获得中间件实例
-func Inst(config string) (*Health, error) {
+// 新建中间件实例
+func New(config string) (*Health, error) {
 	var mw Health
 	err := json.Unmarshal([]byte(config), &mw)
 	if err != nil {

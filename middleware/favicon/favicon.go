@@ -11,8 +11,8 @@ type Favicon struct {
 	ReCode int `json:"re_code"`
 }
 
-// 获得中间件实例
-func Inst(config string) (*Favicon, error) {
+// 新建中间件实例
+func New(config string) (*Favicon, error) {
 	var mw Favicon
 	err := json.Unmarshal([]byte(config), &mw)
 	if err != nil {
