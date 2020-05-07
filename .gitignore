@@ -11,3 +11,4 @@ go.sum
 *.cert
 *.http
 *.bak
+*.config.local.yml
