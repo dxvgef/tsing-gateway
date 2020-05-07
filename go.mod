@@ -1,4 +1,4 @@
-module tsing-gateway
+module github.com/dxvgef/tsing-gateway
 
 go 1.14
 

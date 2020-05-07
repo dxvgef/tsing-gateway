@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"strconv"
 
+	"github.com/dxvgef/tsing-gateway/middleware"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/net/http2"
 )
@@ -33,11 +34,9 @@ func main() {
 	start()
 }
 
-func start() {
-	var httpServer *http.Server
-	var httpsServer *http.Server
-	var endpoints []Endpoint
+func setRoute(proxy *Proxy) {
 	var err error
+	var endpoints []Endpoint
 	endpoints = append(endpoints, Endpoint{
 		Addr:   "127.0.0.1:10080",
 		Weight: 100,
@@ -46,12 +45,7 @@ func start() {
 		Addr:   "127.0.0.1:10082",
 		Weight: 100,
 	})
-	endpoints = append(endpoints, Endpoint{
-		Addr:   "127.0.0.1:10084",
-		Weight: 100,
-	})
 
-	proxy := New()
 	// 添加上游及端点
 	if err = proxy.setUpstream(Upstream{
 		ID:        "userLogin",
@@ -70,6 +64,9 @@ func start() {
 	if err = proxy.setUpstream(Upstream{
 		ID:        "user",
 		Endpoints: endpoints,
+		Middleware: middleware.GetInst(map[string]string{
+			"favicon": `{"re_code":204}`,
+		}),
 	}, false); err != nil {
 		log.Fatal().Caller().Msg(err.Error())
 		return
@@ -109,6 +106,15 @@ func start() {
 		log.Fatal().Caller().Msg(err.Error())
 		return
 	}
+}
+
+func start() {
+	var httpServer *http.Server
+	var httpsServer *http.Server
+	var err error
+
+	proxy := New()
+	setRoute(proxy)
 
 	if localConfig.Listener.HTTPPort > 0 {
 		httpServer = &http.Server{

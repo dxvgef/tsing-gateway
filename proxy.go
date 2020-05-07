@@ -27,17 +27,31 @@ func New() *Proxy {
 
 // 实现http.handler接口，同时也是下游的请求入口
 func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	var (
+		next bool
+		err  error
+	)
 	upstream, status := p.matchRoute(req)
 	if status != http.StatusOK {
 		resp.WriteHeader(status)
-		if _, err := resp.Write(strToBytes(http.StatusText(status))); err != nil {
+		if _, respErr := resp.Write(strToBytes(http.StatusText(status))); respErr != nil {
 			log.Error().Msg(err.Error())
 		}
 		return
 	}
+	for k := range upstream.Middleware {
+		next, err = upstream.Middleware[k].Action(resp, req)
+		if err != nil {
+			log.Error().Caller().Msg(err.Error())
+		}
+		if !next {
+			return
+		}
+	}
+
+	// 以下是反向代理的请求逻辑，暂时用200状态码替代
 	resp.WriteHeader(http.StatusOK)
 	if _, err := resp.Write(strToBytes(http.StatusText(http.StatusOK))); err != nil {
 		log.Error().Msg(err.Error())
 	}
-	log.Debug().Caller().Str("upstream id", upstream.ID).Send()
 }

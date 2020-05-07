@@ -3,29 +3,15 @@ package main
 import (
 	"errors"
 
-	"tsing-gateway/plugin"
+	"github.com/dxvgef/tsing-gateway/middleware"
 )
 
 // 上游信息
 type Upstream struct {
-	ID        string     `json:"id"`        // 上游ID
-	Endpoints []Endpoint `json:"endpoints"` // 端点列表
-	Plugins   struct {
-		Favicon plugin.Favicon `json:"favicon"` // /favicon请求处理
-	} `json:"plugins"`
-	// 健康检查
-	HealthCheck struct {
-		Active struct {
-			On         bool   `json:"on"`       // 打开健康检查
-			Interval   int    `json:"interval"` // 检查间隔的时间(秒)
-			URL        string `json:"url"`      // 主动检查地址
-			StatusCode []int  `json:"status_code"`
-		} `json:"active"` // 主动检查配置
-		Passive struct {
-			On  bool `json:"on"`  // 打开健康检查
-			TTL int  `json:"ttl"` // 端点的生命周期(秒)
-		} `json:"passive"` // 被动检查配置
-	} `json:"health_check"`
+	ID         string                  `json:"id"`                   // 上游ID
+	Endpoints  []Endpoint              `json:"endpoints"`            // 端点列表
+	LBPolicy   string                  `json:"lb_policy"`            // 负载均衡策略
+	Middleware []middleware.Middleware `json:"middleware,omitempty"` // 中间件列表
 }
 
 // 端点信息
