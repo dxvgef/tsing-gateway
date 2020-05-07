@@ -13,7 +13,7 @@ import (
 // 设置logger
 func setLogger() error {
 	// 设置级别
-	level := strings.ToLower(LocalConfig.Logger.Level)
+	level := strings.ToLower(localConfig.Logger.Level)
 	switch level {
 	case "info":
 		zerolog.SetGlobalLevel(zerolog.InfoLevel)
@@ -31,10 +31,10 @@ func setLogger() error {
 	}
 
 	// 设置时间格式
-	if LocalConfig.Logger.TimeFormat == "timestamp" {
+	if localConfig.Logger.TimeFormat == "timestamp" {
 		zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	} else {
-		zerolog.TimeFieldFormat = timeFormater(LocalConfig.Logger.TimeFormat)
+		zerolog.TimeFieldFormat = timeFormater(localConfig.Logger.TimeFormat)
 	}
 
 	// 设置日志输出方式
@@ -42,17 +42,17 @@ func setLogger() error {
 	var logFile *os.File
 	var err error
 	// 设置日志文件
-	if LocalConfig.Logger.FilePath != "" {
+	if localConfig.Logger.FilePath != "" {
 		// 输出到文件
-		if LocalConfig.Logger.FileMode == 0 {
-			LocalConfig.Logger.FileMode = os.FileMode(0600)
+		if localConfig.Logger.FileMode == 0 {
+			localConfig.Logger.FileMode = os.FileMode(0600)
 		}
-		logFile, err = os.OpenFile(LocalConfig.Logger.FilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, LocalConfig.Logger.FileMode)
+		logFile, err = os.OpenFile(localConfig.Logger.FilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, localConfig.Logger.FileMode)
 		if nil != err {
 			return err
 		}
 	}
-	switch LocalConfig.Logger.Encode {
+	switch localConfig.Logger.Encode {
 	// console编码
 	case "console":
 		if logFile != nil {

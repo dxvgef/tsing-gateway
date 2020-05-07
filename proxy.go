@@ -30,13 +30,13 @@ func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	upstream, status := p.matchRoute(req)
 	if status != http.StatusOK {
 		resp.WriteHeader(status)
-		if _, err := resp.Write(StrToBytes(http.StatusText(status))); err != nil {
+		if _, err := resp.Write(strToBytes(http.StatusText(status))); err != nil {
 			log.Error().Msg(err.Error())
 		}
 		return
 	}
 	resp.WriteHeader(http.StatusOK)
-	if _, err := resp.Write(StrToBytes(http.StatusText(http.StatusOK))); err != nil {
+	if _, err := resp.Write(strToBytes(http.StatusText(http.StatusOK))); err != nil {
 		log.Error().Msg(err.Error())
 	}
 	log.Debug().Caller().Str("upstream id", upstream.ID).Send()

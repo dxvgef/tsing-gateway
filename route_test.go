@@ -30,60 +30,60 @@ func BenchmarkEcho(b *testing.B) {
 	if err = proxy.setUpstream(Upstream{
 		ID:        "userLogin",
 		Endpoints: endpoints,
-	}); err != nil {
+	}, false); err != nil {
 		b.Fatal(err.Error())
 		return
 	}
 	if err = proxy.setUpstream(Upstream{
 		ID:        "userRegister",
 		Endpoints: endpoints,
-	}); err != nil {
+	}, false); err != nil {
 		b.Fatal(err.Error())
 		return
 	}
 	if err = proxy.setUpstream(Upstream{
 		ID:        "user",
 		Endpoints: endpoints,
-	}); err != nil {
+	}, false); err != nil {
 		b.Fatal(err.Error())
 		return
 	}
 	if err = proxy.setUpstream(Upstream{
 		ID:        "root",
 		Endpoints: endpoints,
-	}); err != nil {
+	}, false); err != nil {
 		b.Fatal(err.Error())
 		return
 	}
 	// 添加路由组
-	routeGroup, err := proxy.newRouteGroup("uam_v1_routes")
+	routeGroup, err := proxy.newRouteGroup("uam_v1_routes", false)
 	if err != nil {
 		b.Fatal(err.Error())
 		return
 	}
 	// 在路由组内写入路由规则
-	if err = routeGroup.setRoute("/user/login", "GET", "userLogin"); err != nil {
+	if err = routeGroup.setRoute("/user/login", "GET", "userLogin", false); err != nil {
 		b.Fatal(err.Error())
 		return
 	}
-	if err = routeGroup.setRoute("/user/register", "GET", "userRegister"); err != nil {
+	if err = routeGroup.setRoute("/user/register", "GET", "userRegister", false); err != nil {
 		b.Fatal(err.Error())
 		return
 	}
-	if err = routeGroup.setRoute("/user/*", "GET", "user"); err != nil {
+	if err = routeGroup.setRoute("/user/*", "GET", "user", false); err != nil {
 		b.Fatal(err.Error())
 		return
 	}
-	if err = routeGroup.setRoute("/", "GET", "root"); err != nil {
+	if err = routeGroup.setRoute("/", "GET", "root", false); err != nil {
 		b.Fatal(err.Error())
 		return
 	}
 	// 添加主机
-	if err = proxy.setHost("127.0.0.1", "uam_v1_routes"); err != nil {
+	if err = proxy.setHost("127.0.0.1", "uam_v1_routes", false); err != nil {
 		b.Fatal(err.Error())
 		return
 	}
-	if err = proxy.setHost("192.168.50.144", "uam_v1_routes"); err != nil {
+	if err = proxy.setHost("192.168.50.144", "uam_v1_routes", false); err != nil {
 		b.Fatal(err.Error())
 		return
 	}

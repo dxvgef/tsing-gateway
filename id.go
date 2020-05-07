@@ -10,8 +10,8 @@ import (
 // ID节点实例
 var idNode *snowflake.Node
 
-// 获得iD
-func GetID() string {
+// 获得ID
+func getID() string {
 	var err error
 	snowflake.Epoch = time.Now().Unix()
 	idNode, err = snowflake.NewNode(0)

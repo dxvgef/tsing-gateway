@@ -13,7 +13,7 @@ type RouteGroup struct {
 // 新建路由组
 func (p *Proxy) newRouteGroup(routeGroupID string, persistent bool) (routeGroup RouteGroup, err error) {
 	if routeGroupID == "" {
-		routeGroupID = GetID()
+		routeGroupID = getID()
 	}
 	if routeGroupID == "" {
 		err = errors.New("没有传入路由组ID,并且无法自动创建ID")
@@ -33,7 +33,7 @@ func (p *Proxy) newRouteGroup(routeGroupID string, persistent bool) (routeGroup 
 // 设置路由组，如果存在则更新，不存在则新建
 func (p *Proxy) setRouteGroup(routeGroupID string, persistent bool) (routeGroup RouteGroup, err error) {
 	if routeGroupID == "" {
-		routeGroupID = GetID()
+		routeGroupID = getID()
 	}
 	if routeGroupID == "" {
 		err = errors.New("没有传入路由组ID,并且无法自动创建ID")
@@ -58,7 +58,7 @@ func (g *RouteGroup) setRoute(path, method, upstreamID string, persistent bool) 
 		method = strings.ToUpper(method)
 	}
 	if g.ID == "" {
-		g.ID = GetID()
+		g.ID = getID()
 	}
 	if g.ID == "" {
 		return errors.New("没有设置路由组ID,并且无法自动创建ID")
