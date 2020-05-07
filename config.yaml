@@ -1,0 +1,61 @@
+# 监听
+listener:
+  # 监听地址，留空表示监听0.0.0.0
+  ip: ""
+  # HTTP监听端口，如果为0则禁用HTTP
+  httpPort: 8000
+  # HTTPS监听端口，如果为0则禁用HTTPS
+  httpsPort: 8443
+  # 启用HTTPS支持，必须先开启HTTPS
+  http2: true
+  # 读取超时
+  readTimeout: 10s
+  # 头信息读取超时
+  readHeaderTimeout: 10s
+  # 响应超时
+  writeTimeout: 10s
+  # 空闲超时
+  idleTimeout: 10s
+  # 退出等待超时时间
+  quitWaitTimeout: 5s
+  # 调试模式，会将详细的错误信息输出给客户端
+  debug: true
+
+# 服务中心
+service:
+  # 要注册的服务名称
+  name: "api-gateway"
+
+serviceCenter:
+  # 地址
+  ip: "192.168.50.212"
+  port: 18080
+  # 请求密钥
+  secret: ""
+
+# 日志记录器
+logger:
+  # 记录级别，支持以下值，留空则禁用logger
+  # empty(不显示级别) / debug / info / warn / error
+  level: "debug"
+  # 日志文件的路径，如果留空则不写文件
+  filePath: ""
+  # 日志文件的权限，例如0755|0700|0600
+  fileMode: 0600
+  # 日志输出编码，支持json,console
+  encode: "console"
+  # 时间格式，支持以下值
+  # y 年 / m 月 / d 日 / h 时 / i 分 / s 秒 / timestamp unix时间戳
+  timeFormat: "y-m-d h:i:s"
+
+etcd:
+  # 连接超时
+  dialTimeout: 3s
+  # 服务端点
+  endpoints: ["http://192.168.50.212:2379"]
+  # 头信息超时时间
+  headerTimeoutPerRequest: 5s
+  # etcd 账号
+  username: ""
+  # etcd 密码
+  password: ""

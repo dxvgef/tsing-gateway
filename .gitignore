@@ -1,0 +1,13 @@
+.DS_Store
+.idea
+bin
+*.iml
+*.test
+go.sum
+.vscode
+.history
+*.key
+*.pem
+*.cert
+*.http
+*.bak
