@@ -38,13 +38,12 @@ func start() {
 	var httpsServer *http.Server
 	var err error
 
-	// 创建一个代理引擎实例
-	proxy := newProxy()
+	proxy := inst()
+	setRoute(proxy)
 
-	// 启动HTTP服务
-	if localConfig.Listener.HTTP.Port > 0 {
+	if localConfig.Listener.HTTPPort > 0 {
 		httpServer = &http.Server{
-			Addr:              localConfig.Listener.IP + ":" + strconv.Itoa(localConfig.Listener.HTTP.Port),
+			Addr:              localConfig.Listener.IP + ":" + strconv.Itoa(localConfig.Listener.HTTPPort),
 			Handler:           proxy,
 			ReadTimeout:       localConfig.Listener.ReadTimeout,       // 读取超时
 			WriteTimeout:      localConfig.Listener.WriteTimeout,      // 响应超时
@@ -63,10 +62,9 @@ func start() {
 		}()
 	}
 
-	// 启动HTTPS服务
-	if localConfig.Listener.HTTPS.Port > 0 {
+	if localConfig.Listener.HTTPSPort > 0 {
 		httpsServer = &http.Server{
-			Addr:              localConfig.Listener.IP + ":" + strconv.Itoa(localConfig.Listener.HTTPS.Port),
+			Addr:              localConfig.Listener.IP + ":" + strconv.Itoa(localConfig.Listener.HTTPSPort),
 			Handler:           proxy,
 			ReadTimeout:       localConfig.Listener.ReadTimeout,       // 读取超时
 			WriteTimeout:      localConfig.Listener.WriteTimeout,      // 响应超时
@@ -75,7 +73,7 @@ func start() {
 		}
 		go func() {
 			log.Info().Msg("启动 HTTPS 代理服务 :8443")
-			if localConfig.Listener.HTTPS.HTTP2 {
+			if localConfig.Listener.HTTP2 {
 				log.Info().Msg("启用 HTTP/2 支持在 HTTPS 代理服务")
 				if err = http2.ConfigureServer(httpsServer, &http2.Server{}); err != nil {
 					log.Fatal().Caller().Msg(err.Error())
@@ -96,18 +94,18 @@ func start() {
 	signal.Notify(quit, os.Interrupt)
 	<-quit
 
-	// 设置退出等待超时
+	// 定义退出超时
 	ctx, cancel := context.WithTimeout(context.Background(), localConfig.Listener.QuitWaitTimeout)
 	defer cancel()
 
-	// 退出HTTP服务
-	if localConfig.Listener.HTTP.Port > 0 {
+	// 退出http服务
+	if localConfig.Listener.HTTPPort > 0 {
 		if err := httpServer.Shutdown(ctx); err != nil {
 			log.Fatal().Caller().Msg(err.Error())
 		}
 	}
-	// 退出HTTPS服务
-	if localConfig.Listener.HTTPS.Port > 0 {
+	// 退出https服务
+	if localConfig.Listener.HTTPSPort > 0 {
 		if err := httpsServer.Shutdown(ctx); err != nil {
 			log.Fatal().Caller().Msg(err.Error())
 		}

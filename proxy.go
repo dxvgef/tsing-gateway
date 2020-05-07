@@ -20,7 +20,7 @@ type Proxy struct {
 }
 
 // 获得代理引擎的实例
-func newProxy() *Proxy {
+func inst() *Proxy {
 	var proxy Proxy
 	proxy.hosts = make(map[string]string)
 	proxy.routeGroups = make(map[string]map[string]map[string]string)
@@ -39,7 +39,7 @@ func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	if status != http.StatusOK {
 		resp.WriteHeader(status)
 		if _, respErr := resp.Write(strToBytes(http.StatusText(status))); respErr != nil {
-			log.Err(err).Caller().Send()
+			log.Error().Msg(err.Error())
 		}
 		return
 	}

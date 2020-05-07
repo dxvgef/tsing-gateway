@@ -2,20 +2,12 @@
 listener:
   # 监听地址，留空表示监听0.0.0.0
   ip: ""
-  # HTTP配置
-  http:
-    # 监听端口，如果为0则禁用HTTP
-    port: 8000
-  # HTTPS配置
-  https:
-    # 端口号，如果为0则禁用HTTPS
-    port: 8443
-    # 服务端证书文件
-    certFile: "./server.cert"
-    # 服务端私钥文件
-    keyFile: "./server.key"
-    # 启用HTTPS支持，必须先启用HTTPS
-    http2: true
+  # HTTP监听端口，如果为0则禁用HTTP
+  httpPort: 8000
+  # HTTPS监听端口，如果为0则禁用HTTPS
+  httpsPort: 8443
+  # 启用HTTPS支持，必须先开启HTTPS
+  http2: true
   # 读取超时
   readTimeout: 10s
   # 头信息读取超时
@@ -48,7 +40,7 @@ etcd:
   # 连接超时
   dialTimeout: 3s
   # 服务端点
-  endpoints: ["http://127.0.0/1:2379"]
+  endpoints: ["http://192.168.50.212:2379"]
   # etcd 账号
   username: ""
   # etcd 密码
