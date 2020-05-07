@@ -10,7 +10,15 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// 设置logger
+func setDefaultLogger() {
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	zerolog.TimeFieldFormat = timeFormater("y-m-d h:i:s")
+	log.Logger = log.Output(zerolog.ConsoleWriter{
+		Out:        os.Stdout,
+		TimeFormat: zerolog.TimeFieldFormat,
+	})
+}
+
 func setLogger() error {
 	// 设置级别
 	level := strings.ToLower(localConfig.Logger.Level)
