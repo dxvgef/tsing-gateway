@@ -1,4 +1,4 @@
-package health_check
+package health
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 )
 
 // 健康检查
-type HealthCheck struct {
+type Health struct {
 	Active struct {
 		On               bool   `json:"on,omitempty"`       // 打开健康检查
 		Interval         int    `json:"interval,omitempty"` // 检查间隔的时间(秒)
@@ -22,17 +22,17 @@ type HealthCheck struct {
 }
 
 // 获得中间件实例
-func Inst(config string) (*HealthCheck, error) {
-	var filter HealthCheck
-	err := json.Unmarshal([]byte(config), &filter)
+func Inst(config string) (*Health, error) {
+	var mw Health
+	err := json.Unmarshal([]byte(config), &mw)
 	if err != nil {
 		return nil, err
 	}
-	return &filter, nil
+	return &mw, nil
 }
 
 // 中间件行为
-func (f *HealthCheck) Action(resp http.ResponseWriter, req *http.Request) (bool, error) {
-	log.Debug().Msg("执行了过滤器：health_check")
+func (mw *Health) Action(resp http.ResponseWriter, req *http.Request) (bool, error) {
+	log.Debug().Msg("执行了中间件：health")
 	return true, nil
 }

@@ -13,19 +13,19 @@ type Favicon struct {
 
 // 获得中间件实例
 func Inst(config string) (*Favicon, error) {
-	var filter Favicon
-	err := json.Unmarshal([]byte(config), &filter)
+	var mw Favicon
+	err := json.Unmarshal([]byte(config), &mw)
 	if err != nil {
 		return nil, err
 	}
-	return &filter, nil
+	return &mw, nil
 }
 
 // 中间件行为
-func (f *Favicon) Action(resp http.ResponseWriter, req *http.Request) (bool, error) {
+func (mw *Favicon) Action(resp http.ResponseWriter, req *http.Request) (bool, error) {
 	if req.RequestURI == "/favicon.ico" {
 		log.Println("favicon中间件触发了")
-		resp.WriteHeader(f.ReCode)
+		resp.WriteHeader(mw.ReCode)
 		return false, nil
 	}
 	return true, nil

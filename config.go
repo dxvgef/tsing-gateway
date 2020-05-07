@@ -12,15 +12,21 @@ import (
 // localConfig 全局配置
 var localConfig struct {
 	Listener struct {
-		IP                string        `yaml:"ip"`
-		HTTPPort          int           `yaml:"httpPort"`
-		HTTPSPort         int           `yaml:"httpsPort"`
+		IP   string `yaml:"ip"`
+		HTTP struct {
+			Port int `yaml:"port"`
+		} `yaml:"http"`
+		HTTPS struct {
+			Port     int    `yaml:"port"`
+			HTTP2    bool   `yaml:"http2"`
+			CertFile string `yaml:"certFile"`
+			KeyFile  string `yaml:"keyFile"`
+		} `yaml:"https"`
 		ReadTimeout       time.Duration `yaml:"readTimeout"`
 		ReadHeaderTimeout time.Duration `yaml:"readHeaderTimeout"`
 		WriteTimeout      time.Duration `yaml:"writeTimeout"`
 		IdleTimeout       time.Duration `yaml:"idleTimeout"`
 		QuitWaitTimeout   time.Duration `yaml:"quitWaitTimeout"`
-		HTTP2             bool          `yaml:"http2"`
 		Debug             bool          `yaml:"debug"`
 	} `yaml:"listener"`
 	Service struct {

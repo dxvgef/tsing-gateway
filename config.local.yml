@@ -2,12 +2,20 @@
 listener:
   # 监听地址，留空表示监听0.0.0.0
   ip: ""
-  # HTTP监听端口，如果为0则禁用HTTP
-  httpPort: 8000
-  # HTTPS监听端口，如果为0则禁用HTTPS
-  httpsPort: 8443
-  # 启用HTTPS支持，必须先开启HTTPS
-  http2: true
+  # HTTP配置
+  http:
+    # 监听端口，如果为0则禁用HTTP
+    port: 8000
+  # HTTPS配置
+  https:
+    # 端口号，如果为0则禁用HTTPS
+    port: 8443
+    # 服务端证书文件
+    certFile: "./server.cert"
+    # 服务端私钥文件
+    keyFile: "./server.key"
+    # 启用HTTPS支持，必须先启用HTTPS
+    http2: true
   # 读取超时
   readTimeout: 10s
   # 头信息读取超时
@@ -20,18 +28,6 @@ listener:
   quitWaitTimeout: 5s
   # 调试模式，会将详细的错误信息输出给客户端
   debug: true
-
-# 服务中心
-service:
-  # 要注册的服务名称
-  name: "api-gateway"
-
-serviceCenter:
-  # 地址
-  ip: "192.168.50.212"
-  port: 18080
-  # 请求密钥
-  secret: ""
 
 # 日志记录器
 logger:
@@ -53,9 +49,10 @@ etcd:
   dialTimeout: 3s
   # 服务端点
   endpoints: ["http://192.168.50.212:2379"]
-  # 头信息超时时间
-  headerTimeoutPerRequest: 5s
   # etcd 账号
   username: ""
   # etcd 密码
   password: ""
+  # 前缀
+  keyPrefix: "/tsing-gateway"
+  # 更多参数之后再补上
