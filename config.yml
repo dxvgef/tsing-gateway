@@ -21,18 +21,6 @@ listener:
   # 调试模式，会将详细的错误信息输出给客户端
   debug: true
 
-# 服务中心
-service:
-  # 要注册的服务名称
-  name: "api-gateway"
-
-serviceCenter:
-  # 地址
-  ip: "192.168.50.212"
-  port: 18080
-  # 请求密钥
-  secret: ""
-
 # 日志记录器
 logger:
   # 记录级别，支持以下值，留空则禁用logger
@@ -53,9 +41,10 @@ etcd:
   dialTimeout: 3s
   # 服务端点
   endpoints: ["http://192.168.50.212:2379"]
-  # 头信息超时时间
-  headerTimeoutPerRequest: 5s
   # etcd 账号
   username: ""
   # etcd 密码
   password: ""
+  # 前缀
+  keyPrefix: "/tsing-gateway"
+  # 更多参数之后再补上

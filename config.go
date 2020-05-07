@@ -9,8 +9,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// LocalConfig 全局配置
-var LocalConfig struct {
+// localConfig 全局配置
+var localConfig struct {
 	Listener struct {
 		IP                string        `yaml:"ip"`
 		HTTPPort          int           `yaml:"httpPort"`
@@ -35,25 +35,31 @@ var LocalConfig struct {
 		TimeFormat string      `yaml:"timeFormat"`
 	} `yaml:"logger"`
 	ETCD struct {
-		DialTimeout             time.Duration `yaml:"dialTimeout"`
-		Endpoints               []string      `yaml:"endpoints"`
-		Username                string        `yaml:"username"`
-		Password                string        `yaml:"password"`
-		HeaderTimeoutPerRequest time.Duration `yaml:"headerTimeoutPerRequest"`
-		KeyPrefix               string        `yaml:"keyPrefix"`
+		DialTimeout          time.Duration `yaml:"dialTimeout"`
+		Endpoints            []string      `yaml:"endpoints"`
+		Username             string        `yaml:"username"`
+		Password             string        `yaml:"password"`
+		KeyPrefix            string        `yaml:"keyPrefix"`
+		AutoSyncInterval     time.Duration `yaml:"autoSyncInterval"`
+		DialKeepAliveTime    time.Duration `yaml:"dialKeepAliveTime"`
+		DialKeepAliveTimeout time.Duration `yaml:"dialKeepAliveTimeout"`
+		MaxCallSendMsgSize   int           `yaml:"maxCallSendMsgSize"`
+		MaxCallRecvMsgSize   int           `yaml:"maxCallRecvMsgSize"`
+		RejectOldCluster     bool          `yaml:"rejectOldCluster"`
+		PermitWithoutStream  bool          `yaml:"permitWithoutStream"`
 	} `yaml:"etcd"`
 }
 
 // 加载配置文件
 func loadConfigFile() error {
 	var configPath string
-	flag.StringVar(&configPath, "c", "./config.yaml", "配置文件路径")
+	flag.StringVar(&configPath, "c", "./config.yml", "配置文件路径")
 	flag.Parse()
 	file, err := os.Open(filepath.Clean(configPath))
 	if err != nil {
 		return err
 	}
-	err = yaml.NewDecoder(file).Decode(&LocalConfig)
+	err = yaml.NewDecoder(file).Decode(&localConfig)
 	if err != nil {
 		return err
 	}
