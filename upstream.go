@@ -37,7 +37,7 @@ func (p *Proxy) newUpstream(upstream Upstream, persistent bool) error {
 // 设置上游，如果存在则更新，不存在则创建
 func (p *Proxy) setUpstream(upstream Upstream, persistent bool) error {
 	if upstream.ID == "" {
-		upstream.ID = getID()
+		upstream.ID = getIDStr()
 	}
 	if upstream.ID == "" {
 		return errors.New("上游ID不能为空")

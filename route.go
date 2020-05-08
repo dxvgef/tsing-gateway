@@ -10,7 +10,7 @@ import (
 // 新建路由组及路由
 func (p *Proxy) newRoute(routeGroupID, reqPath, reqMethod, upstreamID string, persistent bool) error {
 	if routeGroupID == "" {
-		routeGroupID = getID()
+		routeGroupID = getIDStr()
 	}
 	if routeGroupID == "" {
 		return errors.New("没有传入路由组ID,并且无法自动创建ID")
@@ -44,7 +44,7 @@ func (p *Proxy) newRoute(routeGroupID, reqPath, reqMethod, upstreamID string, pe
 // 设置路由组及路由，如果存在则更新，不存在则新建
 func (p *Proxy) setRoute(routeGroupID, reqPath, reqMethod, upstreamID string, persistent bool) error {
 	if routeGroupID == "" {
-		routeGroupID = getID()
+		routeGroupID = getIDStr()
 	}
 	if routeGroupID == "" {
 		return errors.New("没有传入路由组ID,并且无法自动创建ID")

@@ -12,7 +12,7 @@ import (
 
 func setDefaultLogger() {
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	zerolog.TimeFieldFormat = timeFormater("y-m-d h:i:s")
+	zerolog.TimeFieldFormat = formatTime("y-m-d h:i:s")
 	log.Logger = log.Output(zerolog.ConsoleWriter{
 		Out:        os.Stdout,
 		TimeFormat: zerolog.TimeFieldFormat,
@@ -42,7 +42,7 @@ func setLogger() error {
 	if localConfig.Logger.TimeFormat == "timestamp" {
 		zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	} else {
-		zerolog.TimeFieldFormat = timeFormater(localConfig.Logger.TimeFormat)
+		zerolog.TimeFieldFormat = formatTime(localConfig.Logger.TimeFormat)
 	}
 
 	// 设置日志输出方式
@@ -89,14 +89,4 @@ func setLogger() error {
 	log.Logger = log.Output(output)
 
 	return nil
-}
-
-func timeFormater(str string) string {
-	str = strings.Replace(str, "y", "2006", -1)
-	str = strings.Replace(str, "m", "01", -1)
-	str = strings.Replace(str, "d", "02", -1)
-	str = strings.Replace(str, "h", "15", -1)
-	str = strings.Replace(str, "i", "04", -1)
-	str = strings.Replace(str, "s", "05", -1)
-	return str
 }
