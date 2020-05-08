@@ -99,20 +99,18 @@ func (p *Proxy) start() {
 	var httpsProxy *http.Server
 	var err error
 
-	log.Info().Msg("listen IP: [" + localConfig.Proxy.IP + "]")
-	// listen HTTP request
-	if localConfig.Proxy.HTTP.Port > 0 {
-		httpPort := strconv.Itoa(localConfig.Proxy.HTTP.Port)
+	// start HTTP proxy
+	if localConfig.HTTP.Port > 0 {
 		httpProxy = &http.Server{
-			Addr:              localConfig.Proxy.IP + ":" + httpPort,
+			Addr:              localConfig.IP + ":" + strconv.Itoa(localConfig.HTTP.Port),
 			Handler:           p,
-			ReadTimeout:       localConfig.Proxy.ReadTimeout,
-			WriteTimeout:      localConfig.Proxy.WriteTimeout,
-			IdleTimeout:       localConfig.Proxy.IdleTimeout,
-			ReadHeaderTimeout: localConfig.Proxy.ReadHeaderTimeout,
+			ReadTimeout:       localConfig.HTTP.ReadTimeout,
+			WriteTimeout:      localConfig.HTTP.WriteTimeout,
+			IdleTimeout:       localConfig.HTTP.IdleTimeout,
+			ReadHeaderTimeout: localConfig.HTTP.ReadHeaderTimeout,
 		}
 		go func() {
-			log.Info().Msg("HTTP proxy port: [" + httpPort + "]")
+			log.Info().Msg("start HTTP proxy " + httpProxy.Addr)
 			if err = httpProxy.ListenAndServe(); err != nil {
 				if err == http.ErrServerClosed {
 					log.Info().Msg("HTTP proxy is down")
@@ -123,21 +121,20 @@ func (p *Proxy) start() {
 		}()
 	}
 
-	// listen HTTPS request
-	if localConfig.Proxy.HTTPS.Port > 0 {
-		httpsPort := strconv.Itoa(localConfig.Proxy.HTTPS.Port)
+	// start HTTPS proxy
+	if localConfig.HTTPS.Port > 0 {
 		httpsProxy = &http.Server{
-			Addr:              localConfig.Proxy.IP + ":" + httpsPort,
+			Addr:              localConfig.IP + ":" + strconv.Itoa(localConfig.HTTPS.Port),
 			Handler:           p,
-			ReadTimeout:       localConfig.Proxy.ReadTimeout,
-			WriteTimeout:      localConfig.Proxy.WriteTimeout,
-			IdleTimeout:       localConfig.Proxy.IdleTimeout,
-			ReadHeaderTimeout: localConfig.Proxy.ReadHeaderTimeout,
+			ReadTimeout:       localConfig.HTTPS.ReadTimeout,
+			WriteTimeout:      localConfig.HTTPS.WriteTimeout,
+			IdleTimeout:       localConfig.HTTPS.IdleTimeout,
+			ReadHeaderTimeout: localConfig.HTTPS.ReadHeaderTimeout,
 		}
 		go func() {
-			log.Info().Msg("HTTPS proxy port: [" + httpsPort + "]")
-			if localConfig.Proxy.HTTPS.HTTP2 {
-				log.Info().Msg("HTTP2 support is enabled")
+			log.Info().Msg("start HTTPS proxy " + httpsProxy.Addr)
+			if localConfig.HTTPS.HTTP2 {
+				log.Info().Msg("HTTP2 proxy support is enabled")
 				if err = http2.ConfigureServer(httpsProxy, &http2.Server{}); err != nil {
 					log.Fatal().Caller().Msg(err.Error())
 				}
@@ -157,17 +154,17 @@ func (p *Proxy) start() {
 	signal.Notify(quit, os.Interrupt)
 	<-quit
 
-	ctx, cancel := context.WithTimeout(context.Background(), localConfig.Proxy.QuitWaitTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), localConfig.QuitWaitTimeout)
 	defer cancel()
 
 	// shutdown the HTTP service
-	if localConfig.Proxy.HTTP.Port > 0 {
+	if localConfig.HTTP.Port > 0 {
 		if err := httpProxy.Shutdown(ctx); err != nil {
 			log.Fatal().Caller().Msg(err.Error())
 		}
 	}
 	// shutdown the HTTPS service
-	if localConfig.Proxy.HTTPS.Port > 0 {
+	if localConfig.HTTPS.Port > 0 {
 		if err := httpsProxy.Shutdown(ctx); err != nil {
 			log.Fatal().Caller().Msg(err.Error())
 		}

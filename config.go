@@ -11,28 +11,26 @@ import (
 
 // localConfig 全局配置
 var localConfig struct {
-	Proxy struct {
-		IP   string `yaml:"ip"`
-		HTTP struct {
-			Port int `yaml:"port"`
-		} `yaml:"http"`
-		HTTPS struct {
-			Port     int    `yaml:"port"`
-			HTTP2    bool   `yaml:"http2"`
-			CertFile string `yaml:"certFile"`
-			KeyFile  string `yaml:"keyFile"`
-		} `yaml:"https"`
+	IP              string        `yaml:"ip"`
+	Debug           bool          `yaml:"debug"`
+	QuitWaitTimeout time.Duration `yaml:"quitWaitTimeout"`
+	HTTP            struct {
+		Port              int           `yaml:"port"`
 		ReadTimeout       time.Duration `yaml:"readTimeout"`
 		ReadHeaderTimeout time.Duration `yaml:"readHeaderTimeout"`
 		WriteTimeout      time.Duration `yaml:"writeTimeout"`
 		IdleTimeout       time.Duration `yaml:"idleTimeout"`
-		QuitWaitTimeout   time.Duration `yaml:"quitWaitTimeout"`
-		Debug             bool          `yaml:"debug"`
-	} `yaml:"proxy"`
-	Service struct {
-		Name       string `yaml:"name"`
-		CenterAddr string `yaml:"centerAddr"`
-	} `yaml:"service"`
+	} `yaml:"http"`
+	HTTPS struct {
+		Port              int           `yaml:"port"`
+		HTTP2             bool          `yaml:"http2"`
+		CertFile          string        `yaml:"certFile"`
+		KeyFile           string        `yaml:"keyFile"`
+		ReadTimeout       time.Duration `yaml:"readTimeout"`
+		ReadHeaderTimeout time.Duration `yaml:"readHeaderTimeout"`
+		WriteTimeout      time.Duration `yaml:"writeTimeout"`
+		IdleTimeout       time.Duration `yaml:"idleTimeout"`
+	} `yaml:"https"`
 	Logger struct {
 		Level      string      `yaml:"level"`
 		FilePath   string      `yaml:"filePath"`
