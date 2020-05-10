@@ -1,16 +1,12 @@
-package main
+package global
 
 import (
-	"flag"
 	"os"
-	"path/filepath"
 	"time"
-
-	"gopkg.in/yaml.v2"
 )
 
 // localConfig 全局配置
-var localConfig struct {
+var LocalConfig struct {
 	IP              string        `yaml:"ip"`
 	Debug           bool          `yaml:"debug"`
 	QuitWaitTimeout time.Duration `yaml:"quitWaitTimeout"`
@@ -52,20 +48,4 @@ var localConfig struct {
 		RejectOldCluster     bool          `yaml:"rejectOldCluster"`
 		PermitWithoutStream  bool          `yaml:"permitWithoutStream"`
 	} `yaml:"etcd"`
-}
-
-// 加载配置文件
-func loadConfigFile() error {
-	var configPath string
-	flag.StringVar(&configPath, "c", "./config.yml", "配置文件路径")
-	flag.Parse()
-	file, err := os.Open(filepath.Clean(configPath))
-	if err != nil {
-		return err
-	}
-	err = yaml.NewDecoder(file).Decode(&localConfig)
-	if err != nil {
-		return err
-	}
-	return nil
 }

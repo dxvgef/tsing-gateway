@@ -23,16 +23,16 @@ type Health struct {
 
 // 新建中间件实例
 func New(config string) (*Health, error) {
-	var mw Health
-	err := json.Unmarshal([]byte(config), &mw)
+	var instance Health
+	err := json.Unmarshal([]byte(config), &instance)
 	if err != nil {
 		return nil, err
 	}
-	return &mw, nil
+	return &instance, nil
 }
 
 // 中间件行为
-func (mw *Health) Action(resp http.ResponseWriter, req *http.Request) (bool, error) {
+func (self *Health) Action(resp http.ResponseWriter, req *http.Request) (bool, error) {
 	log.Debug().Msg("执行了中间件：health")
 	return true, nil
 }

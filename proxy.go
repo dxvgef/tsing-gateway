@@ -7,30 +7,31 @@ import (
 	"os/signal"
 	"strconv"
 
+	"github.com/dxvgef/tsing-gateway/global"
+	"github.com/dxvgef/tsing-gateway/middleware"
+
 	"github.com/rs/zerolog/log"
 	"golang.org/x/net/http2"
-
-	"github.com/dxvgef/tsing-gateway/middleware"
 )
 
 // proxy engine
 type Proxy struct {
-	middleware      []middleware.Middleware                 // global middleware
-	hosts           map[string]string                       // [hostname]routeGroupID
-	routeGroups     map[string]map[string]map[string]string // [routeGroupID][reqPath][reqMethod]upstreamID
-	upstreams       map[string]Upstream                     // [upstreamID]Upstream
-	hostsUpdated    bool                                    // hosts map changed
-	routeUpdated    bool                                    // routeGroups map changed
-	UpstreamUpdated bool                                    // upstreams map changed
+	Middleware      []Configurator                          `json:"middleware,omitempty"`   // global Middleware
+	Hosts           map[string]string                       `json:"hosts,omitempty"`        // [hostname]routeGroupID
+	RouteGroups     map[string]map[string]map[string]string `json:"route_groups,omitempty"` // [routeGroupID][reqPath][reqMethod]upstreamID
+	Upstreams       map[string]Upstream                     `json:"upstreams,omitempty"`    // [upstreamID]Host
+	hostsUpdated    bool                                    // Hosts map changed
+	routeUpdated    bool                                    // RouteGroups map changed
+	upstreamUpdated bool                                    // Upstreams map changed
 }
 
 // get instance of proxy engine
-func newProxy() *Proxy {
-	var proxy Proxy
-	proxy.hosts = make(map[string]string)
-	proxy.routeGroups = make(map[string]map[string]map[string]string)
-	proxy.upstreams = make(map[string]Upstream)
-	return &proxy
+func NewProxy() *Proxy {
+	var p Proxy
+	p.Hosts = make(map[string]string)
+	p.RouteGroups = make(map[string]map[string]map[string]string)
+	p.Upstreams = make(map[string]Upstream)
+	return &p
 }
 
 // implement http.Handler interface
@@ -41,32 +42,44 @@ func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		err  error
 		// endpointURL *url.URL
 	)
-	upstream, status := p.matchRoute(req)
+	upstream, status := p.MatchRoute(req)
 	if status != http.StatusOK {
 		resp.WriteHeader(status)
-		if _, respErr := resp.Write(strToBytes(http.StatusText(status))); respErr != nil {
+		if _, respErr := resp.Write(global.StrToBytes(http.StatusText(status))); respErr != nil {
 			log.Err(err).Caller().Send()
 		}
 		return
 	}
 
-	// execute global middleware
-	log.Debug().Int("全局中间件数量", len(p.middleware)).Send()
-	for k := range p.middleware {
-		next, err = p.middleware[k].Action(resp, req)
+	// execute global Middleware
+	log.Debug().Int("全局中间件数量", len(p.Middleware)).Send()
+	for k := range p.Middleware {
+		mw, err := middleware.Build(p.Middleware[k].Name, p.Middleware[k].Config)
 		if err != nil {
 			log.Error().Caller().Msg(err.Error())
+			return
+		}
+		next, err = mw.Action(resp, req)
+		if err != nil {
+			log.Error().Caller().Msg(err.Error())
+			return
 		}
 		if !next {
 			return
 		}
 	}
 
-	// execute upstream middleware
+	// execute upstream Middleware
 	for k := range upstream.Middleware {
-		next, err = upstream.Middleware[k].Action(resp, req)
+		mw, err := middleware.Build(upstream.Middleware[k].Name, upstream.Middleware[k].Config)
 		if err != nil {
 			log.Error().Caller().Msg(err.Error())
+			return
+		}
+		next, err = mw.Action(resp, req)
+		if err != nil {
+			log.Error().Caller().Msg(err.Error())
+			return
 		}
 		if !next {
 			return
@@ -75,7 +88,7 @@ func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	// todo 以下是反向代理的请求逻辑，暂时用200状态码替代
 	resp.WriteHeader(http.StatusOK)
-	if _, err := resp.Write(strToBytes(http.StatusText(http.StatusOK))); err != nil {
+	if _, err := resp.Write(global.StrToBytes(http.StatusText(http.StatusOK))); err != nil {
 		log.Error().Msg(err.Error())
 	}
 
@@ -94,20 +107,20 @@ func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 }
 
 // start proxy engine
-func (p *Proxy) start() {
+func (p *Proxy) Start() {
 	var httpProxy *http.Server
 	var httpsProxy *http.Server
 	var err error
 
 	// start HTTP proxy
-	if localConfig.HTTP.Port > 0 {
+	if global.LocalConfig.HTTP.Port > 0 {
 		httpProxy = &http.Server{
-			Addr:              localConfig.IP + ":" + strconv.Itoa(localConfig.HTTP.Port),
+			Addr:              global.LocalConfig.IP + ":" + strconv.Itoa(global.LocalConfig.HTTP.Port),
 			Handler:           p,
-			ReadTimeout:       localConfig.HTTP.ReadTimeout,
-			WriteTimeout:      localConfig.HTTP.WriteTimeout,
-			IdleTimeout:       localConfig.HTTP.IdleTimeout,
-			ReadHeaderTimeout: localConfig.HTTP.ReadHeaderTimeout,
+			ReadTimeout:       global.LocalConfig.HTTP.ReadTimeout,
+			WriteTimeout:      global.LocalConfig.HTTP.WriteTimeout,
+			IdleTimeout:       global.LocalConfig.HTTP.IdleTimeout,
+			ReadHeaderTimeout: global.LocalConfig.HTTP.ReadHeaderTimeout,
 		}
 		go func() {
 			log.Info().Msg("start HTTP proxy " + httpProxy.Addr)
@@ -122,18 +135,18 @@ func (p *Proxy) start() {
 	}
 
 	// start HTTPS proxy
-	if localConfig.HTTPS.Port > 0 {
+	if global.LocalConfig.HTTPS.Port > 0 {
 		httpsProxy = &http.Server{
-			Addr:              localConfig.IP + ":" + strconv.Itoa(localConfig.HTTPS.Port),
+			Addr:              global.LocalConfig.IP + ":" + strconv.Itoa(global.LocalConfig.HTTPS.Port),
 			Handler:           p,
-			ReadTimeout:       localConfig.HTTPS.ReadTimeout,
-			WriteTimeout:      localConfig.HTTPS.WriteTimeout,
-			IdleTimeout:       localConfig.HTTPS.IdleTimeout,
-			ReadHeaderTimeout: localConfig.HTTPS.ReadHeaderTimeout,
+			ReadTimeout:       global.LocalConfig.HTTPS.ReadTimeout,
+			WriteTimeout:      global.LocalConfig.HTTPS.WriteTimeout,
+			IdleTimeout:       global.LocalConfig.HTTPS.IdleTimeout,
+			ReadHeaderTimeout: global.LocalConfig.HTTPS.ReadHeaderTimeout,
 		}
 		go func() {
 			log.Info().Msg("start HTTPS proxy " + httpsProxy.Addr)
-			if localConfig.HTTPS.HTTP2 {
+			if global.LocalConfig.HTTPS.HTTP2 {
 				log.Info().Msg("HTTP2 proxy support is enabled")
 				if err = http2.ConfigureServer(httpsProxy, &http2.Server{}); err != nil {
 					log.Fatal().Caller().Msg(err.Error())
@@ -154,17 +167,17 @@ func (p *Proxy) start() {
 	signal.Notify(quit, os.Interrupt)
 	<-quit
 
-	ctx, cancel := context.WithTimeout(context.Background(), localConfig.QuitWaitTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), global.LocalConfig.QuitWaitTimeout)
 	defer cancel()
 
 	// shutdown the HTTP service
-	if localConfig.HTTP.Port > 0 {
+	if global.LocalConfig.HTTP.Port > 0 {
 		if err := httpProxy.Shutdown(ctx); err != nil {
 			log.Fatal().Caller().Msg(err.Error())
 		}
 	}
 	// shutdown the HTTPS service
-	if localConfig.HTTPS.Port > 0 {
+	if global.LocalConfig.HTTPS.Port > 0 {
 		if err := httpsProxy.Shutdown(ctx); err != nil {
 			log.Fatal().Caller().Msg(err.Error())
 		}

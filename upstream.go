@@ -3,15 +3,12 @@ package main
 import (
 	"errors"
 
-	"github.com/dxvgef/tsing-gateway/middleware"
+	"github.com/dxvgef/tsing-gateway/global"
 )
 
-// 上游信息
-type Upstream struct {
-	ID         string                  `json:"id"`                   // 上游ID
-	Endpoints  []Endpoint              `json:"endpoints"`            // 端点列表
-	LBPolicy   string                  `json:"lb_policy"`            // 负载均衡策略
-	Middleware []middleware.Middleware `json:"middleware,omitempty"` // 中间件列表
+type Configurator struct {
+	Name   string `json:"name"`
+	Config string `json:"config"`
 }
 
 // 端点信息
@@ -22,38 +19,42 @@ type Endpoint struct {
 	UpdatedAt int64  `json:"updated_at"` // 最后更新时间
 }
 
-// 新建上游
-func (p *Proxy) newUpstream(upstream Upstream, persistent bool) error {
+type Upstream struct {
+	ID         string         `json:"id"`                   // 上游ID
+	Middleware []Configurator `json:"middleware,omitempty"` // 中间件配置
+	Explorer   Configurator   `json:"explorer"`             // 节点探索器配置
+}
+
+func (p *Proxy) NewUpstream(upstream Upstream, persistent bool) error {
 	if upstream.ID == "" {
-		return errors.New("没有传入上游ID")
+		return errors.New("must specify upstream ID")
 	}
-	if _, exist := p.upstreams[upstream.ID]; exist {
-		return errors.New("上游ID:" + upstream.ID + "已存在")
+	if _, exist := p.Upstreams[upstream.ID]; exist {
+		return errors.New("upstream ID:" + upstream.ID + " already exists")
 	}
-	p.upstreams[upstream.ID] = upstream
+	p.Upstreams[upstream.ID] = upstream
 	return nil
 }
 
-// 设置上游，如果存在则更新，不存在则创建
-func (p *Proxy) setUpstream(upstream Upstream, persistent bool) error {
+// set upstream,create if it doesn't exist
+func (p *Proxy) SetUpstream(upstream Upstream, persistent bool) error {
 	if upstream.ID == "" {
-		upstream.ID = getIDStr()
+		upstream.ID = global.GetIDStr()
 	}
 	if upstream.ID == "" {
-		return errors.New("上游ID不能为空")
+		return errors.New("must specify upstream ID")
 	}
-	p.upstreams[upstream.ID] = upstream
+	p.Upstreams[upstream.ID] = upstream
 	return nil
 }
 
-// 匹配上游
-func (p *Proxy) matchUpstream(upstreamID string) (upstream Upstream, exist bool) {
+func (p *Proxy) MatchUpstream(upstreamID string) (upstream Upstream, exist bool) {
 	if upstreamID == "" {
 		return
 	}
-	_, exist = p.upstreams[upstreamID]
+	_, exist = p.Upstreams[upstreamID]
 	if !exist {
 		return
 	}
-	return p.upstreams[upstreamID], true
+	return p.Upstreams[upstreamID], true
 }

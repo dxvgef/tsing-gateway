@@ -2,31 +2,63 @@ package favicon
 
 import (
 	"encoding/json"
-	"log"
+	"errors"
 	"net/http"
+	"net/url"
+	"os"
+
+	"github.com/dxvgef/tsing-gateway/global"
 )
 
-// 收藏夹图标处理
 type Favicon struct {
-	ReCode int `json:"re_code"`
+	Status int    `json:"status"`           // HTTP status code
+	Target string `json:"target,omitempty"` // favicon.ico file location
 }
 
-// 新建中间件实例
 func New(config string) (*Favicon, error) {
-	var mw Favicon
-	err := json.Unmarshal([]byte(config), &mw)
+	var instance Favicon
+	err := json.Unmarshal([]byte(config), &instance)
 	if err != nil {
 		return nil, err
 	}
-	return &mw, nil
+	return &instance, nil
 }
 
-// 中间件行为
-func (mw *Favicon) Action(resp http.ResponseWriter, req *http.Request) (bool, error) {
-	if req.RequestURI == "/favicon.ico" {
-		log.Println("favicon中间件触发了")
-		resp.WriteHeader(mw.ReCode)
+func (self *Favicon) Action(resp http.ResponseWriter, req *http.Request) (bool, error) {
+	if req.RequestURI != "/favicon.ico" {
 		return false, nil
 	}
-	return true, nil
+	// if Status is 301 or 302, Target is the URL of the favicon.ico file
+	if self.Status == http.StatusMovedPermanently || self.Status == http.StatusFound {
+		fileURL, err := url.Parse(self.Target)
+		if err != nil {
+			resp.WriteHeader(http.StatusInternalServerError)
+			// nolint
+			resp.Write(global.StrToBytes(http.StatusText(http.StatusInternalServerError)))
+			return false, err
+		}
+		resp.Header().Set("Location", fileURL.String())
+		resp.WriteHeader(self.Status)
+		return false, nil
+	}
+	// if Status is 200, Target is the absolute path of the favicon.ico file
+	if self.Status == http.StatusOK {
+		fileInfo, err := os.Stat(self.Target)
+		if err != nil {
+			resp.WriteHeader(http.StatusInternalServerError)
+			// nolint
+			resp.Write(global.StrToBytes(http.StatusText(http.StatusInternalServerError)))
+			return false, errors.New("Unable to find file '" + self.Target + "'")
+		}
+		if fileInfo.IsDir() {
+			resp.WriteHeader(http.StatusInternalServerError)
+			// nolint
+			resp.Write(global.StrToBytes(http.StatusText(http.StatusInternalServerError)))
+			return false, errors.New("`" + self.Target + "` must be a file and not a directory")
+		}
+		http.ServeFile(resp, req, self.Target)
+		return false, nil
+	}
+	resp.WriteHeader(self.Status)
+	return false, nil
 }

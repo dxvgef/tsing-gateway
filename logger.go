@@ -8,11 +8,13 @@ import (
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+
+	"github.com/dxvgef/tsing-gateway/global"
 )
 
 func setDefaultLogger() {
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	zerolog.TimeFieldFormat = formatTime("y-m-d h:i:s")
+	zerolog.TimeFieldFormat = global.FormatTime("y-m-d h:i:s")
 	log.Logger = log.Output(zerolog.ConsoleWriter{
 		Out:        os.Stdout,
 		TimeFormat: zerolog.TimeFieldFormat,
@@ -21,7 +23,7 @@ func setDefaultLogger() {
 
 func setLogger() error {
 	// 设置级别
-	level := strings.ToLower(localConfig.Logger.Level)
+	level := strings.ToLower(global.LocalConfig.Logger.Level)
 	switch level {
 	case "info":
 		zerolog.SetGlobalLevel(zerolog.InfoLevel)
@@ -39,10 +41,10 @@ func setLogger() error {
 	}
 
 	// 设置时间格式
-	if localConfig.Logger.TimeFormat == "timestamp" {
+	if global.LocalConfig.Logger.TimeFormat == "timestamp" {
 		zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	} else {
-		zerolog.TimeFieldFormat = formatTime(localConfig.Logger.TimeFormat)
+		zerolog.TimeFieldFormat = global.FormatTime(global.LocalConfig.Logger.TimeFormat)
 	}
 
 	// 设置日志输出方式
@@ -50,17 +52,17 @@ func setLogger() error {
 	var logFile *os.File
 	var err error
 	// 设置日志文件
-	if localConfig.Logger.FilePath != "" {
+	if global.LocalConfig.Logger.FilePath != "" {
 		// 输出到文件
-		if localConfig.Logger.FileMode == 0 {
-			localConfig.Logger.FileMode = os.FileMode(0600)
+		if global.LocalConfig.Logger.FileMode == 0 {
+			global.LocalConfig.Logger.FileMode = os.FileMode(0600)
 		}
-		logFile, err = os.OpenFile(localConfig.Logger.FilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, localConfig.Logger.FileMode)
+		logFile, err = os.OpenFile(global.LocalConfig.Logger.FilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, global.LocalConfig.Logger.FileMode)
 		if nil != err {
 			return err
 		}
 	}
-	switch localConfig.Logger.Encode {
+	switch global.LocalConfig.Logger.Encode {
 	// console编码
 	case "console":
 		if logFile != nil {

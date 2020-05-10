@@ -1,4 +1,4 @@
-package main
+package global
 
 import (
 	"time"
@@ -8,28 +8,28 @@ import (
 )
 
 // ID节点实例
-var idNode *snowflake.Node
+var IDNode *snowflake.Node
 
 // 获得ID string值
-func getIDStr() string {
+func GetIDStr() string {
 	var err error
 	snowflake.Epoch = time.Now().Unix()
-	idNode, err = snowflake.NewNode(0)
+	IDNode, err = snowflake.NewNode(0)
 	if err != nil {
 		log.Error().Msg(err.Error())
 		return ""
 	}
-	return idNode.Generate().String()
+	return IDNode.Generate().String()
 }
 
 // 获得ID int64值
-func getIDInt64() int64 {
+func GetIDInt64() int64 {
 	var err error
 	snowflake.Epoch = time.Now().Unix()
-	idNode, err = snowflake.NewNode(0)
+	IDNode, err = snowflake.NewNode(0)
 	if err != nil {
 		log.Error().Msg(err.Error())
 		return 0
 	}
-	return idNode.Generate().Int64()
+	return IDNode.Generate().Int64()
 }
