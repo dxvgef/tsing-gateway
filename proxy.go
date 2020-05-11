@@ -17,14 +17,14 @@ import (
 
 // 代理引擎的数据
 type Proxy struct {
-	id              int64                                   `json:"-"`
-	Middleware      []Configurator                          `json:"middleware,omitempty"`   // global Middleware
+	id              int64
+	Middleware      []Configurator                          `json:"middleware,omitempty"`   // 全局中间件
 	Hosts           map[string]string                       `json:"hosts,omitempty"`        // [hostname]routeGroupID
 	RouteGroups     map[string]map[string]map[string]string `json:"route_groups,omitempty"` // [routeGroupID][reqPath][reqMethod]upstreamID
 	Upstreams       map[string]Upstream                     `json:"upstreams,omitempty"`    // [upstreamID]Host
-	hostsUpdated    bool                                    // Hosts map changed
-	routeUpdated    bool                                    // RouteGroups map changed
-	upstreamUpdated bool                                    // Upstreams map changed
+	hostsUpdated    bool
+	routeUpdated    bool
+	upstreamUpdated bool
 }
 
 // 初始化一个新的代理引擎
