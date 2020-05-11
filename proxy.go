@@ -10,13 +10,14 @@ import (
 	"github.com/dxvgef/tsing-gateway/explorer"
 	"github.com/dxvgef/tsing-gateway/global"
 	"github.com/dxvgef/tsing-gateway/middleware"
-	"github.com/rs/zerolog/log"
 
+	"github.com/rs/zerolog/log"
 	"golang.org/x/net/http2"
 )
 
-// proxy engine
+// 代理引擎的数据
 type Proxy struct {
+	id              int64                                   `json:"-"`
 	Middleware      []Configurator                          `json:"middleware,omitempty"`   // global Middleware
 	Hosts           map[string]string                       `json:"hosts,omitempty"`        // [hostname]routeGroupID
 	RouteGroups     map[string]map[string]map[string]string `json:"route_groups,omitempty"` // [routeGroupID][reqPath][reqMethod]upstreamID
@@ -26,7 +27,7 @@ type Proxy struct {
 	upstreamUpdated bool                                    // Upstreams map changed
 }
 
-// get instance of proxy engine
+// 初始化一个新的代理引擎
 func NewProxy() *Proxy {
 	var p Proxy
 	p.Hosts = make(map[string]string)
@@ -35,8 +36,8 @@ func NewProxy() *Proxy {
 	return &p
 }
 
-// implement http.Handler interface
-// downstream request entry
+// 实现http.Handler接口的方法
+// 下游请求入口
 func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	upstream, status := p.MatchRoute(req)
 	if status != http.StatusOK {
@@ -46,8 +47,7 @@ func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// execute global Middleware
-	log.Debug().Int("全局中间件数量", len(p.Middleware)).Send()
+	// 执行全局中间件
 	for k := range p.Middleware {
 		mw, err := middleware.Build(p.Middleware[k].Name, p.Middleware[k].Config)
 		if err != nil {
@@ -66,8 +66,7 @@ func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	log.Debug().Int("上游中间件数量", len(upstream.Middleware)).Send()
-	// execute upstream Middleware
+	// 执行上游中间件
 	for k := range upstream.Middleware {
 		mw, err := middleware.Build(upstream.Middleware[k].Name, upstream.Middleware[k].Config)
 		if err != nil {
@@ -86,7 +85,7 @@ func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	// execute explorer to get endpoint
+	// 执行探测器获取端点
 	e, err := explorer.Build(upstream.Explorer.Name, upstream.Explorer.Config)
 	if err != nil {
 		log.Error().Caller().Msg(err.Error())
@@ -129,80 +128,91 @@ func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	// p.ServeHTTP(resp, req)
 }
 
-// start proxy engine
+// 启动代理服务
 func (p *Proxy) Start() {
 	var httpProxy *http.Server
 	var httpsProxy *http.Server
 	var err error
 
-	// start HTTP proxy
-	if global.LocalConfig.HTTP.Port > 0 {
+	p.id = global.GetIDInt64()
+	if p.id == 0 {
+		log.Fatal().Caller().Msg("无法自动生成ID标识")
+		return
+	}
+
+	// 启动HTTP代理
+	if global.Config.HTTP.Port > 0 {
 		httpProxy = &http.Server{
-			Addr:              global.LocalConfig.IP + ":" + strconv.Itoa(global.LocalConfig.HTTP.Port),
+			Addr:              global.Config.IP + ":" + strconv.FormatUint(uint64(global.Config.HTTP.Port), 10),
 			Handler:           p,
-			ReadTimeout:       global.LocalConfig.HTTP.ReadTimeout,
-			WriteTimeout:      global.LocalConfig.HTTP.WriteTimeout,
-			IdleTimeout:       global.LocalConfig.HTTP.IdleTimeout,
-			ReadHeaderTimeout: global.LocalConfig.HTTP.ReadHeaderTimeout,
+			ReadTimeout:       global.Config.HTTP.ReadTimeout,
+			WriteTimeout:      global.Config.HTTP.WriteTimeout,
+			IdleTimeout:       global.Config.HTTP.IdleTimeout,
+			ReadHeaderTimeout: global.Config.HTTP.ReadHeaderTimeout,
 		}
 		go func() {
-			log.Info().Msg("start HTTP proxy " + httpProxy.Addr)
+			log.Info().Msg("启动HTTP代理 " + httpProxy.Addr)
 			if err = httpProxy.ListenAndServe(); err != nil {
 				if err == http.ErrServerClosed {
-					log.Info().Msg("HTTP proxy is down")
+					log.Info().Msg("HTTP代理已关闭")
 					return
 				}
 				log.Fatal().Caller().Msg(err.Error())
+				return
 			}
 		}()
 	}
 
 	// start HTTPS proxy
-	if global.LocalConfig.HTTPS.Port > 0 {
+	if global.Config.HTTPS.Port > 0 {
 		httpsProxy = &http.Server{
-			Addr:              global.LocalConfig.IP + ":" + strconv.Itoa(global.LocalConfig.HTTPS.Port),
+			Addr:              global.Config.IP + ":" + strconv.FormatUint(uint64(global.Config.HTTPS.Port), 10),
 			Handler:           p,
-			ReadTimeout:       global.LocalConfig.HTTPS.ReadTimeout,
-			WriteTimeout:      global.LocalConfig.HTTPS.WriteTimeout,
-			IdleTimeout:       global.LocalConfig.HTTPS.IdleTimeout,
-			ReadHeaderTimeout: global.LocalConfig.HTTPS.ReadHeaderTimeout,
+			ReadTimeout:       global.Config.HTTPS.ReadTimeout,
+			WriteTimeout:      global.Config.HTTPS.WriteTimeout,
+			IdleTimeout:       global.Config.HTTPS.IdleTimeout,
+			ReadHeaderTimeout: global.Config.HTTPS.ReadHeaderTimeout,
 		}
 		go func() {
-			log.Info().Msg("start HTTPS proxy " + httpsProxy.Addr)
-			if global.LocalConfig.HTTPS.HTTP2 {
-				log.Info().Msg("HTTP2 proxy support is enabled")
+			log.Info().Msg("启动HTTPS代理 " + httpsProxy.Addr)
+			if global.Config.HTTPS.HTTP2 {
+				log.Info().Msg("启用HTTP2代理支持")
 				if err = http2.ConfigureServer(httpsProxy, &http2.Server{}); err != nil {
 					log.Fatal().Caller().Msg(err.Error())
+					return
 				}
 			}
 			if err = httpsProxy.ListenAndServeTLS("server.cert", "server.key"); err != nil {
 				if err == http.ErrServerClosed {
-					log.Info().Msg("HTTPS proxy is down")
+					log.Info().Msg("HTTPS代理已关闭")
 					return
 				}
 				log.Fatal().Caller().Msg(err.Error())
+				return
 			}
 		}()
 	}
 
-	// timeout for waiting to exit
+	// 等待退出超时
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
 
-	ctx, cancel := context.WithTimeout(context.Background(), global.LocalConfig.QuitWaitTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), global.Config.QuitWaitTimeout)
 	defer cancel()
 
-	// shutdown the HTTP service
-	if global.LocalConfig.HTTP.Port > 0 {
+	// 关闭HTTP服务
+	if global.Config.HTTP.Port > 0 {
 		if err := httpProxy.Shutdown(ctx); err != nil {
 			log.Fatal().Caller().Msg(err.Error())
+			return
 		}
 	}
-	// shutdown the HTTPS service
-	if global.LocalConfig.HTTPS.Port > 0 {
+	// 关闭HTTPS服务
+	if global.Config.HTTPS.Port > 0 {
 		if err := httpsProxy.Shutdown(ctx); err != nil {
 			log.Fatal().Caller().Msg(err.Error())
+			return
 		}
 	}
 }

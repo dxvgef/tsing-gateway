@@ -2,20 +2,49 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"testing"
-
-	"github.com/rs/zerolog/log"
 
 	"github.com/dxvgef/tsing-gateway/global"
 )
 
+// func TestLock(t *testing.T) {
+// 	go func() {
+// 		writerID := global.GetIDInt64()
+// 		for {
+// 			t.Log("尝试写值")
+// 			time.Sleep(2 * time.Second)
+// 			t.Log("写值成功")
+// 		}
+// 	}()
+// 	go func() {
+// 		readerID := global.GetIDInt64()
+// 		for {
+// 			t.Log("尝试取值")
+// 			time.Sleep(2 * time.Second)
+// 			t.Log("取值成功")
+// 		}
+// 	}()
+// 	select {}
+// }
+
 func TestRoute(t *testing.T) {
 	var err error
-	if err = global.LoadConfigFile(); err != nil {
-		log.Fatal().Msg(err.Error())
+	var configFile string
+	flag.StringVar(&configFile, "c", "./config.local.yml", "配置文件路径")
+	flag.Parse()
+	if err = global.LoadConfigFile(configFile); err != nil {
+		t.Error(err.Error())
+		return
 	}
 	if err = setLogger(); err != nil {
-		log.Fatal().Msg(err.Error())
+		t.Error(err.Error())
+		return
+	}
+
+	if err = global.SetEtcdCli(); err != nil {
+		t.Error(err.Error())
+		return
 	}
 
 	p := NewProxy()
@@ -34,6 +63,18 @@ func TestRoute(t *testing.T) {
 		t.Error(err.Error())
 		return
 	}
+
+	// 设置上游
+	upstream = Upstream{}
+	upstream.ID = "test2Upstream"
+	upstream.Explorer.Name = "coredns_etcd"
+	upstream.Explorer.Config = `{"host":"test2.uam.local"}`
+	err = p.NewUpstream(upstream, false)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+
 	// 设置路由组
 	routeGroup, err := p.SetRouteGroup("testGroup", false)
 	if err != nil {
@@ -60,22 +101,12 @@ func TestRoute(t *testing.T) {
 		return
 	}
 	t.Log(string(bb))
-}
 
-func TestParse(t *testing.T) {
-	var err error
-	p := NewProxy()
-	configStr := `{"hosts":{"127.0.0.1":"testGroup"},"route_groups":{"testGroup":{"/user/login":{"GET":"testUpstream"}}},"upstreams":{"testUpstream":{"id":"testUpstream","middleware":[{"name":"favicon","config":"{\"status\": 204}"}],"explorer":{"name":"coredns_etcd","config":"{\"host\":\"test.uam.local\"}"}}}}`
-	err = json.Unmarshal([]byte(configStr), &p)
+	// 将配置保存到etcd
+	err = p.SaveDataToEtcd()
 	if err != nil {
 		t.Error(err.Error())
 		return
 	}
-	t.Log(p)
-	bb, err := json.Marshal(&p)
-	if err != nil {
-		t.Error(err.Error())
-		return
-	}
-	t.Log(string(bb))
+
 }

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+
 	"github.com/rs/zerolog/log"
 
 	"github.com/dxvgef/tsing-gateway/global"
@@ -10,28 +12,31 @@ func main() {
 	var err error
 	setDefaultLogger()
 
-	if err = global.LoadConfigFile(); err != nil {
+	var configFile string
+	flag.StringVar(&configFile, "c", "./config.yml", "配置文件路径")
+	flag.Parse()
+	if err = global.LoadConfigFile(configFile); err != nil {
 		log.Fatal().Msg(err.Error())
+		return
 	}
 
-	// reset default logger with local configuration file
 	if err = setLogger(); err != nil {
 		log.Fatal().Msg(err.Error())
+		return
 	}
 
 	if err = global.SetEtcdCli(); err != nil {
 		log.Fatal().Caller().Msg(err.Error())
+		return
 	}
 
 	p := NewProxy()
-	err = p.LoadConfigFromEtcd()
+
+	err = p.LoadDataFromEtcd()
 	if err != nil {
 		log.Fatal().Caller().Msg(err.Error())
+		return
 	}
-	return
-	// err = p.LoadConfigFromJSON(`{"hosts":{"127.0.0.1":"testGroup"},"route_groups":{"testGroup":{"/user/login":{"GET":"testUpstream"}}},"upstreams":{"testUpstream":{"id":"testUpstream","middleware":[{"name":"favicon","config":"{\"status\": 204}"}],"explorer":{"name":"coredns_etcd","config":"{\"host\":\"test.uam.local\"}"}}}}`)
-	// if err != nil {
-	// 	log.Fatal().Caller().Msg(err.Error())
-	// }
+
 	p.Start()
 }
