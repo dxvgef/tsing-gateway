@@ -22,11 +22,11 @@ func (p *Proxy) NewRouteGroup(routeGroupID string, persistent bool) (routeGroup 
 		return
 	}
 
-	if _, exist := p.RouteGroups[routeGroupID]; exist {
+	if _, exist := p.Routes[routeGroupID]; exist {
 		err = errors.New("路由ID:" + routeGroupID + "已存在")
 		return
 	}
-	p.RouteGroups[routeGroupID] = make(map[string]map[string]string)
+	p.Routes[routeGroupID] = make(map[string]map[string]string)
 	routeGroup.ID = routeGroupID
 	routeGroup.proxy = p
 	return
@@ -41,8 +41,8 @@ func (p *Proxy) SetRouteGroup(routeGroupID string, persistent bool) (routeGroup 
 		err = errors.New("没有传入路由组ID,并且无法自动创建ID")
 		return
 	}
-	if _, exist := p.RouteGroups[routeGroupID]; !exist {
-		p.RouteGroups[routeGroupID] = make(map[string]map[string]string)
+	if _, exist := p.Routes[routeGroupID]; !exist {
+		p.Routes[routeGroupID] = make(map[string]map[string]string)
 	}
 	routeGroup.ID = routeGroupID
 	routeGroup.proxy = p
@@ -68,13 +68,13 @@ func (g *RouteGroup) SetRoute(path, method, upstreamID string, persistent bool) 
 	if _, exist := g.proxy.Upstreams[upstreamID]; !exist {
 		return errors.New("上游ID:" + upstreamID + "不存在")
 	}
-	if _, exist := g.proxy.RouteGroups[g.ID]; !exist {
-		g.proxy.RouteGroups[g.ID] = make(map[string]map[string]string)
+	if _, exist := g.proxy.Routes[g.ID]; !exist {
+		g.proxy.Routes[g.ID] = make(map[string]map[string]string)
 	}
-	if _, exist := g.proxy.RouteGroups[g.ID][path]; !exist {
-		g.proxy.RouteGroups[g.ID][path] = make(map[string]string)
+	if _, exist := g.proxy.Routes[g.ID][path]; !exist {
+		g.proxy.Routes[g.ID][path] = make(map[string]string)
 	}
-	g.proxy.RouteGroups[g.ID][path][method] = upstreamID
+	g.proxy.Routes[g.ID][path][method] = upstreamID
 
 	return nil
 }

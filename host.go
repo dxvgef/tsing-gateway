@@ -11,7 +11,7 @@ func (p *Proxy) NewHost(hostname, routeGroupID string, persistent bool) error {
 	if _, ok := p.Hosts[hostname]; ok {
 		return errors.New("主机名:" + hostname + "已存在")
 	}
-	if _, exist := p.RouteGroups[routeGroupID]; !exist {
+	if _, exist := p.Routes[routeGroupID]; !exist {
 		return errors.New("路由组ID:" + routeGroupID + "不存在")
 	}
 	p.Hosts[hostname] = routeGroupID
@@ -21,7 +21,7 @@ func (p *Proxy) NewHost(hostname, routeGroupID string, persistent bool) error {
 // 写入主机，如果存在则覆盖，不存在则创建
 func (p *Proxy) SetHost(hostname, routeGroupID string, persistent bool) error {
 	hostname = strings.ToLower(hostname)
-	if _, exist := p.RouteGroups[routeGroupID]; !exist {
+	if _, exist := p.Routes[routeGroupID]; !exist {
 		return errors.New("路由组ID:" + routeGroupID + "不存在")
 	}
 	p.Hosts[hostname] = routeGroupID

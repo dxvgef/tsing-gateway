@@ -18,10 +18,10 @@ import (
 // 代理引擎的数据
 type Proxy struct {
 	id              int64
-	Middleware      []Configurator                          `json:"middleware,omitempty"`   // 全局中间件
-	Hosts           map[string]string                       `json:"hosts,omitempty"`        // [hostname]routeGroupID
-	RouteGroups     map[string]map[string]map[string]string `json:"route_groups,omitempty"` // [routeGroupID][reqPath][reqMethod]upstreamID
-	Upstreams       map[string]Upstream                     `json:"upstreams,omitempty"`    // [upstreamID]Host
+	Middleware      []Configurator                          `json:"middleware,omitempty"` // 全局中间件
+	Hosts           map[string]string                       `json:"hosts,omitempty"`      // [hostname]routeGroupID
+	Routes          map[string]map[string]map[string]string `json:"routes,omitempty"`     // [routeGroupID][path][method]upstreamID
+	Upstreams       map[string]Upstream                     `json:"upstreams,omitempty"`  // [upstreamID]Upstream
 	hostsUpdated    bool
 	routeUpdated    bool
 	upstreamUpdated bool
@@ -31,7 +31,7 @@ type Proxy struct {
 func NewProxy() *Proxy {
 	var p Proxy
 	p.Hosts = make(map[string]string)
-	p.RouteGroups = make(map[string]map[string]map[string]string)
+	p.Routes = make(map[string]map[string]map[string]string)
 	p.Upstreams = make(map[string]Upstream)
 	return &p
 }

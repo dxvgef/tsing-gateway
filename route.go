@@ -25,21 +25,21 @@ func (p *Proxy) NewRoute(routeGroupID, reqPath, reqMethod, upstreamID string, pe
 	} else {
 		reqMethod = strings.ToUpper(reqMethod)
 	}
-	if _, exist := p.RouteGroups[routeGroupID]; exist {
+	if _, exist := p.Routes[routeGroupID]; exist {
 		return errors.New("路由组ID:" + routeGroupID + "已存在")
 	}
-	if _, exist := p.RouteGroups[routeGroupID][reqPath]; exist {
+	if _, exist := p.Routes[routeGroupID][reqPath]; exist {
 		return errors.New("路由组ID:" + routeGroupID + "的路径:" + reqPath + "已存在")
 	}
-	if _, exist := p.RouteGroups[routeGroupID][reqPath][reqMethod]; exist {
+	if _, exist := p.Routes[routeGroupID][reqPath][reqMethod]; exist {
 		return errors.New("路由组ID:" + routeGroupID + "/路径:" + reqPath + "/方法:" + reqMethod + "已存在")
 	}
 	if _, exist := p.Upstreams[upstreamID]; !exist {
 		return errors.New("上游ID:" + upstreamID + "不存在")
 	}
-	p.RouteGroups[routeGroupID] = make(map[string]map[string]string)
-	p.RouteGroups[routeGroupID][reqPath] = make(map[string]string)
-	p.RouteGroups[routeGroupID][reqPath][reqMethod] = upstreamID
+	p.Routes[routeGroupID] = make(map[string]map[string]string)
+	p.Routes[routeGroupID][reqPath] = make(map[string]string)
+	p.Routes[routeGroupID][reqPath][reqMethod] = upstreamID
 	return nil
 }
 
@@ -62,13 +62,13 @@ func (p *Proxy) SetRoute(routeGroupID, reqPath, reqMethod, upstreamID string, pe
 	} else {
 		reqMethod = strings.ToUpper(reqMethod)
 	}
-	if _, exist := p.RouteGroups[routeGroupID]; !exist {
-		p.RouteGroups[routeGroupID] = make(map[string]map[string]string)
+	if _, exist := p.Routes[routeGroupID]; !exist {
+		p.Routes[routeGroupID] = make(map[string]map[string]string)
 	}
-	if _, exist := p.RouteGroups[routeGroupID][reqPath]; !exist {
-		p.RouteGroups[routeGroupID][reqPath] = make(map[string]string)
+	if _, exist := p.Routes[routeGroupID][reqPath]; !exist {
+		p.Routes[routeGroupID][reqPath] = make(map[string]string)
 	}
-	p.RouteGroups[routeGroupID][reqPath][reqMethod] = upstreamID
+	p.Routes[routeGroupID][reqPath][reqMethod] = upstreamID
 	return nil
 }
 
@@ -98,7 +98,7 @@ func (p *Proxy) MatchRoute(req *http.Request) (upstream Upstream, status int) {
 		return
 	}
 	// 匹配上游
-	upstreamID := p.RouteGroups[routeGroupID][reqPath][reqMethod]
+	upstreamID := p.Routes[routeGroupID][reqPath][reqMethod]
 	upstream, matchResult = p.MatchUpstream(upstreamID)
 	if !matchResult {
 		status = http.StatusNotImplemented
@@ -114,7 +114,7 @@ func (p *Proxy) MatchPath(routeGroupID, reqPath string) (string, bool) {
 		reqPath = "/"
 	}
 	// 先尝试完全匹配路径
-	if _, exist := p.RouteGroups[routeGroupID][reqPath]; exist {
+	if _, exist := p.Routes[routeGroupID][reqPath]; exist {
 		return reqPath, true
 	}
 	// 尝试模糊匹配
@@ -124,7 +124,7 @@ func (p *Proxy) MatchPath(routeGroupID, reqPath string) (string, bool) {
 		reqPath = reqPath[:pos]
 	}
 	reqPath = reqPath + "*"
-	if _, exist := p.RouteGroups[routeGroupID][reqPath]; exist {
+	if _, exist := p.Routes[routeGroupID][reqPath]; exist {
 		return reqPath, true
 	}
 	return reqPath, false
@@ -132,11 +132,11 @@ func (p *Proxy) MatchPath(routeGroupID, reqPath string) (string, bool) {
 
 // 匹配方法，返回对应的集群ID
 func (p *Proxy) MatchMethod(routeGroupID, reqPath, reqMethod string) (string, bool) {
-	if _, exist := p.RouteGroups[routeGroupID][reqPath][reqMethod]; exist {
+	if _, exist := p.Routes[routeGroupID][reqPath][reqMethod]; exist {
 		return reqMethod, true
 	}
 	reqMethod = "*"
-	if _, exist := p.RouteGroups[routeGroupID][reqPath][reqMethod]; exist {
+	if _, exist := p.Routes[routeGroupID][reqPath][reqMethod]; exist {
 		return reqMethod, true
 	}
 	return reqMethod, false

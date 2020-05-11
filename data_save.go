@@ -71,7 +71,7 @@ func (p *Proxy) SaveRoutesToEtcd() error {
 
 	// 清空原来的配置
 	key.WriteString(global.Config.Etcd.KeyPrefix)
-	key.WriteString("/route_groups/")
+	key.WriteString("/routes/")
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
 	if _, err := global.EtcdCli.Delete(ctx, key.String(), clientv3.WithPrefix()); err != nil {
@@ -81,7 +81,7 @@ func (p *Proxy) SaveRoutesToEtcd() error {
 	key.Reset()
 
 	// 写入路由
-	for routeGroupID, v := range p.RouteGroups {
+	for routeGroupID, v := range p.Routes {
 		for routePath, vv := range v {
 			value, err := json.Marshal(vv)
 			if err != nil {
@@ -89,7 +89,7 @@ func (p *Proxy) SaveRoutesToEtcd() error {
 				return err
 			}
 			key.WriteString(global.Config.Etcd.KeyPrefix)
-			key.WriteString("/route_groups/")
+			key.WriteString("/routes/")
 			key.WriteString(routeGroupID)
 			key.WriteString(routePath)
 			ctx2, ctx2Cancel := context.WithTimeout(context.Background(), 5*time.Second)

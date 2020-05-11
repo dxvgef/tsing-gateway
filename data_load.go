@@ -31,13 +31,13 @@ func (p *Proxy) LoadDataFromEtcd() error {
 		return err
 	}
 
-	log.Debug().Interface("configure", p).Send()
+	log.Debug().Interface("加载配置", p).Send()
 	return nil
 }
 
 // 从etcd key里解析路由组信息
 func parseRouteGroup(key []byte) (routeGroupID, routePath string) {
-	keyStr := global.TrimPrefix(key, "/route_groups/")
+	keyStr := global.TrimPrefix(key, "/routes/")
 	pos := strings.Index(keyStr, "/")
 	if pos == -1 {
 		return
@@ -80,7 +80,7 @@ func (p *Proxy) LoadRoutesFromEtcd() error {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
 	key.WriteString(global.Config.Etcd.KeyPrefix)
-	key.WriteString("/route_groups/")
+	key.WriteString("/routes/")
 	resp, err := global.EtcdCli.Get(ctx, key.String(), clientv3.WithPrefix())
 	if err != nil {
 		log.Error().Caller().Msg(err.Error())
