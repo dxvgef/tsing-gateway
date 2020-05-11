@@ -7,10 +7,11 @@ import (
 	"os/signal"
 	"strconv"
 
+	"github.com/dxvgef/tsing-gateway/explorer"
 	"github.com/dxvgef/tsing-gateway/global"
 	"github.com/dxvgef/tsing-gateway/middleware"
-
 	"github.com/rs/zerolog/log"
+
 	"golang.org/x/net/http2"
 )
 
@@ -37,17 +38,11 @@ func NewProxy() *Proxy {
 // implement http.Handler interface
 // downstream request entry
 func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	var (
-		next bool
-		err  error
-		// endpointURL *url.URL
-	)
 	upstream, status := p.MatchRoute(req)
 	if status != http.StatusOK {
 		resp.WriteHeader(status)
-		if _, respErr := resp.Write(global.StrToBytes(http.StatusText(status))); respErr != nil {
-			log.Err(err).Caller().Send()
-		}
+		// nolint
+		_, _ = resp.Write(global.StrToBytes(http.StatusText(status)))
 		return
 	}
 
@@ -57,9 +52,11 @@ func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		mw, err := middleware.Build(p.Middleware[k].Name, p.Middleware[k].Config)
 		if err != nil {
 			log.Error().Caller().Msg(err.Error())
+			resp.WriteHeader(http.StatusInternalServerError)
+			_, _ = resp.Write(global.StrToBytes(http.StatusText(http.StatusInternalServerError))) // nolint
 			return
 		}
-		next, err = mw.Action(resp, req)
+		next, err := mw.Action(resp, req)
 		if err != nil {
 			log.Error().Caller().Msg(err.Error())
 			return
@@ -69,14 +66,17 @@ func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	log.Debug().Int("上游中间件数量", len(upstream.Middleware)).Send()
 	// execute upstream Middleware
 	for k := range upstream.Middleware {
 		mw, err := middleware.Build(upstream.Middleware[k].Name, upstream.Middleware[k].Config)
 		if err != nil {
 			log.Error().Caller().Msg(err.Error())
+			resp.WriteHeader(http.StatusInternalServerError)
+			_, _ = resp.Write(global.StrToBytes(http.StatusText(http.StatusInternalServerError))) // nolint
 			return
 		}
-		next, err = mw.Action(resp, req)
+		next, err := mw.Action(resp, req)
 		if err != nil {
 			log.Error().Caller().Msg(err.Error())
 			return
@@ -86,9 +86,32 @@ func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	// execute explorer to get endpoint
+	e, err := explorer.Build(upstream.Explorer.Name, upstream.Explorer.Config)
+	if err != nil {
+		log.Error().Caller().Msg(err.Error())
+		resp.WriteHeader(http.StatusInternalServerError)
+		_, _ = resp.Write(global.StrToBytes(http.StatusText(http.StatusInternalServerError))) // nolint
+		return
+	}
+	ip, port, weight, ttl, err := e.Action()
+	if err != nil {
+		log.Error().Caller().Msg(err.Error())
+		resp.WriteHeader(http.StatusInternalServerError)
+		_, _ = resp.Write(global.StrToBytes(http.StatusText(http.StatusInternalServerError))) // nolint
+	}
+	log.Error().Caller().Str("ip", ip).Int("port", port).Int("weight", weight).Int("ttl", ttl).Send()
+	if ip == "" || port == 0 || weight == 0 {
+		log.Error().Caller().Str("err", "invalid endpoint").
+			Str("ip", ip).Int("port", port).Int("weight", weight).Send()
+		resp.WriteHeader(http.StatusInternalServerError)
+		_, _ = resp.Write(global.StrToBytes(http.StatusText(http.StatusInternalServerError))) // nolint
+	}
+
 	// todo 以下是反向代理的请求逻辑，暂时用200状态码替代
+	respText := `{"ip": "` + ip + `", "port":` + strconv.Itoa(port) + `, "weight":` + strconv.Itoa(weight) + `, "ttl": ` + strconv.Itoa(ttl) + `}`
 	resp.WriteHeader(http.StatusOK)
-	if _, err := resp.Write(global.StrToBytes(http.StatusText(http.StatusOK))); err != nil {
+	if _, err := resp.Write(global.StrToBytes(respText)); err != nil {
 		log.Error().Msg(err.Error())
 	}
 

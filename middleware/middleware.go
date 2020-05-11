@@ -42,5 +42,5 @@ func Build(name, config string) (Middleware, error) {
 		}
 		return f, nil
 	}
-	return nil, errors.New("middleware not found by name")
+	return nil, errors.New("not found middleware by name")
 }

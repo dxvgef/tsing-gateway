@@ -1,8 +1,12 @@
 package global
 
 import (
+	"flag"
 	"os"
+	"path/filepath"
 	"time"
+
+	"gopkg.in/yaml.v2"
 )
 
 // localConfig 全局配置
@@ -34,7 +38,7 @@ var LocalConfig struct {
 		Encode     string      `yaml:"encode"`
 		TimeFormat string      `yaml:"timeFormat"`
 	} `yaml:"logger"`
-	ETCD struct {
+	Etcd struct {
 		DialTimeout          time.Duration `yaml:"dialTimeout"`
 		Endpoints            []string      `yaml:"endpoints"`
 		Username             string        `yaml:"username"`
@@ -48,4 +52,20 @@ var LocalConfig struct {
 		RejectOldCluster     bool          `yaml:"rejectOldCluster"`
 		PermitWithoutStream  bool          `yaml:"permitWithoutStream"`
 	} `yaml:"etcd"`
+}
+
+// 加载配置文件
+func LoadConfigFile() error {
+	var configPath string
+	flag.StringVar(&configPath, "c", "./config.yml", "配置文件路径")
+	flag.Parse()
+	file, err := os.Open(filepath.Clean(configPath))
+	if err != nil {
+		return err
+	}
+	err = yaml.NewDecoder(file).Decode(&LocalConfig)
+	if err != nil {
+		return err
+	}
+	return nil
 }

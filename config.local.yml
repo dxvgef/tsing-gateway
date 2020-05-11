@@ -53,7 +53,7 @@ etcd:
   # 连接超时
   dialTimeout: 3s
   # 服务端点
-  endpoints: ["http://127.0.0.1:2379"]
+  endpoints: ["http://192.168.50.212:2379"]
   # etcd 账号
   username: ""
   # etcd 密码

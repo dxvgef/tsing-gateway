@@ -5,11 +5,13 @@ import (
 	"testing"
 
 	"github.com/rs/zerolog/log"
+
+	"github.com/dxvgef/tsing-gateway/global"
 )
 
 func TestRoute(t *testing.T) {
 	var err error
-	if err = loadConfigFile(); err != nil {
+	if err = global.LoadConfigFile(); err != nil {
 		log.Fatal().Msg(err.Error())
 	}
 	if err = setLogger(); err != nil {

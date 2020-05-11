@@ -8,6 +8,8 @@ import (
 	"os"
 
 	"github.com/dxvgef/tsing-gateway/global"
+
+	"github.com/rs/zerolog/log"
 )
 
 type Favicon struct {
@@ -25,6 +27,7 @@ func New(config string) (*Favicon, error) {
 }
 
 func (self *Favicon) Action(resp http.ResponseWriter, req *http.Request) (bool, error) {
+	log.Debug().Msg("执行了favicon中间件")
 	if req.RequestURI != "/favicon.ico" {
 		return false, nil
 	}
