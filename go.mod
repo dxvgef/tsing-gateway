@@ -4,13 +4,14 @@ go 1.14
 
 replace (
 	github.com/coreos/bbolt => go.etcd.io/bbolt v1.3.3
+	//	go.etcd.io/etcd/clientv3 => github.com/coreos/etcd v3.3.18+incompatible
 	google.golang.org/grpc => google.golang.org/grpc v1.26.0
 )
 
 require (
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/coreos/bbolt v0.0.0-00010101000000-000000000000 // indirect
-	github.com/coreos/etcd v3.3.20+incompatible // indirect
+	github.com/coreos/etcd v3.3.20+incompatible
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
@@ -31,13 +32,12 @@ require (
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20200427203606-3cfed13b9966 // indirect
 	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
 	go.etcd.io/bbolt v1.3.4 // indirect
-	go.etcd.io/etcd v3.3.20+incompatible
 	go.uber.org/zap v1.15.0 // indirect
 	golang.org/x/net v0.0.0-20200506145744-7e3656a0809f
 	golang.org/x/sys v0.0.0-20200509044756-6aff5f38e54f // indirect
 	golang.org/x/text v0.3.2 // indirect
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1 // indirect
-	google.golang.org/genproto v0.0.0-20200507105951-43844f6eee31 // indirect
+	google.golang.org/genproto v0.0.0-20200511104702-f5ebc3bea380 // indirect
 	google.golang.org/grpc v1.29.1 // indirect
 	gopkg.in/yaml.v2 v2.2.8
 	sigs.k8s.io/yaml v1.2.0 // indirect

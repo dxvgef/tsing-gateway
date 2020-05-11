@@ -8,26 +8,6 @@ import (
 	"github.com/dxvgef/tsing-gateway/global"
 )
 
-// func TestLock(t *testing.T) {
-// 	go func() {
-// 		writerID := global.GetIDInt64()
-// 		for {
-// 			t.Log("尝试写值")
-// 			time.Sleep(2 * time.Second)
-// 			t.Log("写值成功")
-// 		}
-// 	}()
-// 	go func() {
-// 		readerID := global.GetIDInt64()
-// 		for {
-// 			t.Log("尝试取值")
-// 			time.Sleep(2 * time.Second)
-// 			t.Log("取值成功")
-// 		}
-// 	}()
-// 	select {}
-// }
-
 func TestRoute(t *testing.T) {
 	var err error
 	var configFile string
