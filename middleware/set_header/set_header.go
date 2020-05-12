@@ -1,8 +1,9 @@
 package set_header
 
 import (
-	"encoding/json"
 	"net/http"
+
+	"github.com/dxvgef/tsing-gateway/global"
 )
 
 // header数据处理
@@ -14,7 +15,7 @@ type SetHeader struct {
 // 新建中间件实例
 func New(config string) (*SetHeader, error) {
 	var instance SetHeader
-	err := json.Unmarshal([]byte(config), &instance)
+	err := instance.UnmarshalJSON(global.StrToBytes(config))
 	if err != nil {
 		return nil, err
 	}

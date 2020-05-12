@@ -1,4 +1,4 @@
-package main
+package engine
 
 import (
 	"errors"
@@ -25,7 +25,7 @@ type Upstream struct {
 	Explorer   Configurator   `json:"explorer"`             // 节点探索器配置
 }
 
-func (p *Proxy) NewUpstream(upstream Upstream, persistent bool) error {
+func (p *Engine) NewUpstream(upstream Upstream, persistent bool) error {
 	if upstream.ID == "" {
 		return errors.New("must specify upstream ID")
 	}
@@ -37,7 +37,7 @@ func (p *Proxy) NewUpstream(upstream Upstream, persistent bool) error {
 }
 
 // set upstream,create if it doesn't exist
-func (p *Proxy) SetUpstream(upstream Upstream, persistent bool) error {
+func (p *Engine) SetUpstream(upstream Upstream, persistent bool) error {
 	if upstream.ID == "" {
 		upstream.ID = global.GetIDStr()
 	}
@@ -48,7 +48,7 @@ func (p *Proxy) SetUpstream(upstream Upstream, persistent bool) error {
 	return nil
 }
 
-func (p *Proxy) MatchUpstream(upstreamID string) (upstream Upstream, exist bool) {
+func (p *Engine) MatchUpstream(upstreamID string) (upstream Upstream, exist bool) {
 	if upstreamID == "" {
 		return
 	}

@@ -1,4 +1,4 @@
-package main
+package engine
 
 import (
 	"errors"
@@ -10,7 +10,7 @@ import (
 )
 
 // 新建路由组及路由
-func (p *Proxy) NewRoute(routeGroupID, reqPath, reqMethod, upstreamID string, persistent bool) error {
+func (p *Engine) NewRoute(routeGroupID, reqPath, reqMethod, upstreamID string, persistent bool) error {
 	if routeGroupID == "" {
 		routeGroupID = global.GetIDStr()
 	}
@@ -44,7 +44,7 @@ func (p *Proxy) NewRoute(routeGroupID, reqPath, reqMethod, upstreamID string, pe
 }
 
 // 设置路由组及路由，如果存在则更新，不存在则新建
-func (p *Proxy) SetRoute(routeGroupID, reqPath, reqMethod, upstreamID string, persistent bool) error {
+func (p *Engine) SetRoute(routeGroupID, reqPath, reqMethod, upstreamID string, persistent bool) error {
 	if routeGroupID == "" {
 		routeGroupID = global.GetIDStr()
 	}
@@ -73,7 +73,7 @@ func (p *Proxy) SetRoute(routeGroupID, reqPath, reqMethod, upstreamID string, pe
 }
 
 // 匹配路由，返回集群ID和匹配结果的HTTP状态码
-func (p *Proxy) MatchRoute(req *http.Request) (upstream Upstream, status int) {
+func (p *Engine) MatchRoute(req *http.Request) (upstream Upstream, status int) {
 	routeGroupID := ""
 	reqPath := req.URL.Path
 	reqMethod := req.Method
@@ -109,7 +109,7 @@ func (p *Proxy) MatchRoute(req *http.Request) (upstream Upstream, status int) {
 }
 
 // 匹配路径，返回最终匹配到的路径
-func (p *Proxy) MatchPath(routeGroupID, reqPath string) (string, bool) {
+func (p *Engine) MatchPath(routeGroupID, reqPath string) (string, bool) {
 	if reqPath == "" {
 		reqPath = "/"
 	}
@@ -131,7 +131,7 @@ func (p *Proxy) MatchPath(routeGroupID, reqPath string) (string, bool) {
 }
 
 // 匹配方法，返回对应的集群ID
-func (p *Proxy) MatchMethod(routeGroupID, reqPath, reqMethod string) (string, bool) {
+func (p *Engine) MatchMethod(routeGroupID, reqPath, reqMethod string) (string, bool) {
 	if _, exist := p.Routes[routeGroupID][reqPath][reqMethod]; exist {
 		return reqMethod, true
 	}

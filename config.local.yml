@@ -49,15 +49,15 @@ logger:
   # y 年 / m 月 / d 日 / h 时 / i 分 / s 秒 / timestamp unix时间戳
   timeFormat: "y-m-d h:i:s"
 
-etcd:
-  # 连接超时
-  dialTimeout: 3s
-  # 服务端点
-  endpoints: ["http://192.168.50.212:2379"]
-  # etcd 账号
-  username: ""
-  # etcd 密码
-  password: ""
-  # 前缀
-  keyPrefix: "/tsing-gateway"
-  # 更多参数之后再补上
+# 数据源
+source:
+  # 名称
+  name: "etcd"
+  # 配置(json字符串)
+  config: '
+    {
+      "key_prefix": "/tsing-gateway",
+      "dial_timeout": 3,
+      "endpoints": ["http://192.168.50.212:2379"]
+    }
+  '

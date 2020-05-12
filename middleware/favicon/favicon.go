@@ -1,7 +1,6 @@
 package favicon
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"net/url"
@@ -19,7 +18,7 @@ type Favicon struct {
 
 func New(config string) (*Favicon, error) {
 	var instance Favicon
-	err := json.Unmarshal([]byte(config), &instance)
+	err := instance.UnmarshalJSON(global.StrToBytes(config))
 	if err != nil {
 		return nil, err
 	}

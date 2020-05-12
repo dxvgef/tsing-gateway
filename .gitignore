@@ -12,3 +12,4 @@ go.sum
 *.http
 *.bak
 *.config.local.yml
+temp_test.go

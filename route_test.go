@@ -5,6 +5,7 @@ import (
 	"flag"
 	"testing"
 
+	"github.com/dxvgef/tsing-gateway/engine"
 	"github.com/dxvgef/tsing-gateway/global"
 )
 
@@ -22,16 +23,11 @@ func TestRoute(t *testing.T) {
 		return
 	}
 
-	if err = global.SetEtcdCli(); err != nil {
-		t.Error(err.Error())
-		return
-	}
+	p := engine.NewEngine()
 
-	p := NewProxy()
-
-	var upstream Upstream
+	var upstream engine.Upstream
 	upstream.ID = "testUpstream"
-	upstream.Middleware = append(upstream.Middleware, Configurator{
+	upstream.Middleware = append(upstream.Middleware, engine.Configurator{
 		Name:   "favicon",
 		Config: `{"status": 204}`,
 	})
@@ -45,7 +41,7 @@ func TestRoute(t *testing.T) {
 	}
 
 	// 设置上游
-	upstream = Upstream{}
+	upstream = engine.Upstream{}
 	upstream.ID = "test2Upstream"
 	upstream.Explorer.Name = "coredns_etcd"
 	upstream.Explorer.Config = `{"host":"test2.uam.local"}`

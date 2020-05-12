@@ -1,4 +1,4 @@
-package main
+package engine
 
 import (
 	"errors"
@@ -8,12 +8,12 @@ import (
 )
 
 type RouteGroup struct {
-	ID    string
-	proxy *Proxy
+	ID string
+	p  *Engine
 }
 
 // 新建路由组
-func (p *Proxy) NewRouteGroup(routeGroupID string, persistent bool) (routeGroup RouteGroup, err error) {
+func (p *Engine) NewRouteGroup(routeGroupID string, persistent bool) (routeGroup RouteGroup, err error) {
 	if routeGroupID == "" {
 		routeGroupID = global.GetIDStr()
 	}
@@ -28,12 +28,12 @@ func (p *Proxy) NewRouteGroup(routeGroupID string, persistent bool) (routeGroup 
 	}
 	p.Routes[routeGroupID] = make(map[string]map[string]string)
 	routeGroup.ID = routeGroupID
-	routeGroup.proxy = p
+	routeGroup.p = p
 	return
 }
 
 // 设置路由组，如果存在则更新，不存在则新建
-func (p *Proxy) SetRouteGroup(routeGroupID string, persistent bool) (routeGroup RouteGroup, err error) {
+func (p *Engine) SetRouteGroup(routeGroupID string, persistent bool) (routeGroup RouteGroup, err error) {
 	if routeGroupID == "" {
 		routeGroupID = global.GetIDStr()
 	}
@@ -45,7 +45,7 @@ func (p *Proxy) SetRouteGroup(routeGroupID string, persistent bool) (routeGroup 
 		p.Routes[routeGroupID] = make(map[string]map[string]string)
 	}
 	routeGroup.ID = routeGroupID
-	routeGroup.proxy = p
+	routeGroup.p = p
 	return
 }
 
@@ -65,16 +65,16 @@ func (g *RouteGroup) SetRoute(path, method, upstreamID string, persistent bool) 
 	if g.ID == "" {
 		return errors.New("没有设置路由组ID,并且无法自动创建ID")
 	}
-	if _, exist := g.proxy.Upstreams[upstreamID]; !exist {
+	if _, exist := g.p.Upstreams[upstreamID]; !exist {
 		return errors.New("上游ID:" + upstreamID + "不存在")
 	}
-	if _, exist := g.proxy.Routes[g.ID]; !exist {
-		g.proxy.Routes[g.ID] = make(map[string]map[string]string)
+	if _, exist := g.p.Routes[g.ID]; !exist {
+		g.p.Routes[g.ID] = make(map[string]map[string]string)
 	}
-	if _, exist := g.proxy.Routes[g.ID][path]; !exist {
-		g.proxy.Routes[g.ID][path] = make(map[string]string)
+	if _, exist := g.p.Routes[g.ID][path]; !exist {
+		g.p.Routes[g.ID][path] = make(map[string]string)
 	}
-	g.proxy.Routes[g.ID][path][method] = upstreamID
+	g.p.Routes[g.ID][path][method] = upstreamID
 
 	return nil
 }

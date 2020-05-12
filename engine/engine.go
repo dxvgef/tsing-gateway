@@ -1,4 +1,4 @@
-package main
+package engine
 
 import (
 	"context"
@@ -15,8 +15,8 @@ import (
 	"golang.org/x/net/http2"
 )
 
-// 代理引擎的数据
-type Proxy struct {
+// 代理引擎
+type Engine struct {
 	id              int64
 	Middleware      []Configurator                          `json:"middleware,omitempty"` // 全局中间件
 	Hosts           map[string]string                       `json:"hosts,omitempty"`      // [hostname]routeGroupID
@@ -28,8 +28,8 @@ type Proxy struct {
 }
 
 // 初始化一个新的代理引擎
-func NewProxy() *Proxy {
-	var p Proxy
+func NewEngine() *Engine {
+	var p Engine
 	p.Hosts = make(map[string]string)
 	p.Routes = make(map[string]map[string]map[string]string)
 	p.Upstreams = make(map[string]Upstream)
@@ -38,7 +38,7 @@ func NewProxy() *Proxy {
 
 // 实现http.Handler接口的方法
 // 下游请求入口
-func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+func (p *Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	upstream, status := p.MatchRoute(req)
 	if status != http.StatusOK {
 		resp.WriteHeader(status)
@@ -129,7 +129,7 @@ func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 }
 
 // 启动代理服务
-func (p *Proxy) Start() {
+func (p *Engine) Start() {
 	var httpProxy *http.Server
 	var httpsProxy *http.Server
 	var err error

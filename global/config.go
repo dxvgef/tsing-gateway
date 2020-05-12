@@ -1,13 +1,12 @@
 package global
 
 import (
-	"errors"
-	"net/url"
 	"os"
 	"path/filepath"
 	"time"
 
 	_ "github.com/dxvgef/filter"
+	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 )
 
@@ -40,20 +39,10 @@ var Config struct {
 		Encode     string      `yaml:"encode"`
 		TimeFormat string      `yaml:"timeFormat"`
 	} `yaml:"logger"`
-	Etcd struct {
-		DialTimeout          time.Duration `yaml:"dialTimeout"`
-		Endpoints            []string      `yaml:"endpoints"`
-		Username             string        `yaml:"username"`
-		Password             string        `yaml:"password"`
-		KeyPrefix            string        `yaml:"keyPrefix"`
-		AutoSyncInterval     time.Duration `yaml:"autoSyncInterval"`
-		DialKeepAliveTime    time.Duration `yaml:"dialKeepAliveTime"`
-		DialKeepAliveTimeout time.Duration `yaml:"dialKeepAliveTimeout"`
-		MaxCallSendMsgSize   uint          `yaml:"maxCallSendMsgSize"`
-		MaxCallRecvMsgSize   uint          `yaml:"maxCallRecvMsgSize"`
-		RejectOldCluster     bool          `yaml:"rejectOldCluster"`
-		PermitWithoutStream  bool          `yaml:"permitWithoutStream"`
-	} `yaml:"etcd"`
+	Source struct {
+		Name   string `json:"name"`
+		Config string `json:"config"`
+	} `yaml:"source"`
 }
 
 // 加载配置文件
@@ -89,15 +78,16 @@ func LoadConfigFile(configPath string) error {
 	if Config.Logger.TimeFormat == "" {
 		Config.Logger.TimeFormat = "y-m-d h:i:s"
 	}
-	var endpoints []string
-	for k := range Config.Etcd.Endpoints {
-		if _, err = url.Parse(Config.Etcd.Endpoints[k]); err == nil {
-			endpoints = append(endpoints, Config.Etcd.Endpoints[k])
-		}
-	}
-	if len(endpoints) == 0 {
-		return errors.New("至少要配置一个有效的etcd的端点")
-	}
-	Config.Etcd.Endpoints = endpoints
+	log.Debug().Interface("config", Config.Source.Config)
+	// var endpoints []string
+	// for k := range Config.Etcd.Endpoints {
+	// 	if _, err = url.Parse(Config.Etcd.Endpoints[k]); err == nil {
+	// 		endpoints = append(endpoints, Config.Etcd.Endpoints[k])
+	// 	}
+	// }
+	// if len(endpoints) == 0 {
+	// 	return errors.New("至少要配置一个有效的etcd的端点")
+	// }
+	// Config.Etcd.Endpoints = endpoints
 	return nil
 }
