@@ -8,7 +8,7 @@ import (
 	"time"
 
 	_ "github.com/dxvgef/filter"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 // 全局配置
