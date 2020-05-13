@@ -5,6 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 
+	"github.com/dxvgef/tsing-gateway/api"
 	"github.com/dxvgef/tsing-gateway/engine"
 	"github.com/dxvgef/tsing-gateway/global"
 	"github.com/dxvgef/tsing-gateway/source"
@@ -27,20 +28,25 @@ func main() {
 	// 获得一个引擎实例
 	e := engine.NewEngine()
 
-	// 构建数据源实例
-	dataSource, err := source.Build(e, global.Config.Source.Name, global.Config.Source.Config)
-	if err != nil {
-		log.Fatal().Caller().Msg(err.Error())
-		return
-	}
-	// 加载所有数据
-	if err = dataSource.LoadAll(); err != nil {
-		log.Fatal().Caller().Msg(err.Error())
-		return
-	}
-	log.Debug().Interface("数据", e)
+	// // 构建数据源实例
+	// dataSource, err := source.Build(e, global.Config.Source.Name, global.Config.Source.Config)
+	// if err != nil {
+	// 	log.Fatal().Caller().Msg(err.Error())
+	// 	return
+	// }
+	// // 加载所有数据
+	// if err = dataSource.LoadAll(); err != nil {
+	// 	log.Fatal().Caller().Msg(err.Error())
+	// 	return
+	// }
+	// log.Debug().Interface("数据", e)
 
-	// 启动引擎
+	// 启动api服务
+	if global.Config.API.On {
+		go api.Start()
+	}
+
+	// 启动网关引擎
 	e.Start()
 }
 
