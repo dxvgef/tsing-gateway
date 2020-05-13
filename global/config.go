@@ -6,11 +6,10 @@ import (
 	"time"
 
 	_ "github.com/dxvgef/filter"
-	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 )
 
-// 全局配置
+// 引擎配置
 var Config struct {
 	IP              string        `yaml:"ip"`
 	Debug           bool          `yaml:"debug"`
@@ -40,8 +39,8 @@ var Config struct {
 		TimeFormat string      `yaml:"timeFormat"`
 	} `yaml:"logger"`
 	Source struct {
-		Name   string `json:"name"`
-		Config string `json:"config"`
+		Name   string `yaml:"name"`
+		Config string `yaml:"config"`
 	} `yaml:"source"`
 }
 
@@ -64,30 +63,5 @@ func LoadConfigFile(configPath string) error {
 		Config.HTTPS.Port == 0 {
 		Config.HTTPS.Port = 443
 	}
-	if Config.Logger.Level != "empty" &&
-		Config.Logger.Level != "debug" &&
-		Config.Logger.Level != "info" &&
-		Config.Logger.Level != "warn" &&
-		Config.Logger.Level != "error" {
-		Config.Logger.Level = "debug"
-	}
-	if Config.Logger.Encode != "console" &&
-		Config.Logger.Encode != "json" {
-		Config.Logger.Encode = "console"
-	}
-	if Config.Logger.TimeFormat == "" {
-		Config.Logger.TimeFormat = "y-m-d h:i:s"
-	}
-	log.Debug().Interface("config", Config.Source.Config)
-	// var endpoints []string
-	// for k := range Config.Etcd.Endpoints {
-	// 	if _, err = url.Parse(Config.Etcd.Endpoints[k]); err == nil {
-	// 		endpoints = append(endpoints, Config.Etcd.Endpoints[k])
-	// 	}
-	// }
-	// if len(endpoints) == 0 {
-	// 	return errors.New("至少要配置一个有效的etcd的端点")
-	// }
-	// Config.Etcd.Endpoints = endpoints
 	return nil
 }

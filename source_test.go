@@ -17,11 +17,11 @@ func TestRoute(t *testing.T) {
 	)
 	flag.StringVar(&configFile, "c", "./config.local.yml", "配置文件路径")
 	flag.Parse()
-	if err = global.LoadConfigFile(configFile); err != nil {
+	if err = engine.LoadConfigFile(configFile); err != nil {
 		t.Error(err.Error())
 		return
 	}
-	if err = setLogger(); err != nil {
+	if err = engine.setLogger(); err != nil {
 		t.Error(err.Error())
 		return
 	}

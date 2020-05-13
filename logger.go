@@ -21,6 +21,7 @@ func setDefaultLogger() {
 	})
 }
 
+// 根据配置文件设置logger
 func setLogger() error {
 	// 设置级别
 	level := strings.ToLower(global.Config.Logger.Level)

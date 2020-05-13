@@ -24,12 +24,6 @@ func main() {
 		return
 	}
 
-	// 根据配置文件设置logger
-	if err = setLogger(); err != nil {
-		log.Fatal().Caller().Msg(err.Error())
-		return
-	}
-
 	// 获得一个引擎实例
 	e := engine.NewEngine()
 

@@ -4,60 +4,59 @@ debug: true
 quitWaitTimeout: 5s
 # HTTP代理
 http:
-  # 监听地址，留空表示监听0.0.0.0
-  ip: ""
-  # 监听端口，如果为0则禁用HTTP
-  port: 8000
-  # 读取超时
-  readTimeout: 10s
-  # 头信息读取超时
-  readHeaderTimeout: 10s
-  # 响应超时
-  writeTimeout: 10s
-  # 空闲超时
-  idleTimeout: 10s
+    # 监听地址，留空表示监听0.0.0.0
+    ip: ""
+    # 监听端口，如果为0则禁用HTTP
+    port: 8000
+    # 读取超时
+    readTimeout: 10s
+    # 头信息读取超时
+    readHeaderTimeout: 10s
+    # 响应超时
+    writeTimeout: 10s
+    # 空闲超时
+    idleTimeout: 10s
 # HTTPS配置
 https:
-  # 端口号，如果为0则禁用HTTPS
-  port: 8443
-  # 服务端证书文件
-  certFile: "./server.cert"
-  # 服务端私钥文件
-  keyFile: "./server.key"
-  # 启用HTTPS支持，必须先启用HTTPS
-  http2: true
-  # 读取超时
-  readTimeout: 10s
-  # 头信息读取超时
-  readHeaderTimeout: 10s
-  # 响应超时
-  writeTimeout: 10s
-  # 空闲超时
-  idleTimeout: 10s
+    # 端口号，如果为0则禁用HTTPS
+    port: 8443
+    # 服务端证书文件
+    certFile: "./server.cert"
+    # 服务端私钥文件
+    keyFile: "./server.key"
+    # 启用HTTPS支持，必须先启用HTTPS
+    http2: true
+    # 读取超时
+    readTimeout: 10s
+    # 头信息读取超时
+    readHeaderTimeout: 10s
+    # 响应超时
+    writeTimeout: 10s
+    # 空闲超时
+    idleTimeout: 10s
 # 日志记录器
 logger:
-  # 记录级别，支持以下值，留空则禁用logger
-  # empty(不显示级别) / debug / info / warn / error
-  level: "debug"
-  # 日志文件的路径，如果留空则不写文件
-  filePath: ""
-  # 日志文件的权限，例如0755|0700|0600
-  fileMode: 0600
-  # 日志输出编码，支持json,console
-  encode: "console"
-  # 时间格式，支持以下值
-  # y 年 / m 月 / d 日 / h 时 / i 分 / s 秒 / timestamp unix时间戳
-  timeFormat: "y-m-d h:i:s"
-
+    # 记录级别，支持以下值，留空则禁用logger
+    # empty(不显示级别) / debug / info / warn / error
+    level: "debug"
+    # 日志文件的路径，如果留空则不写文件
+    filePath: ""
+    # 日志文件的权限，例如0755|0700|0600
+    fileMode: 0600
+    # 日志输出编码，支持json,console
+    encode: "console"
+    # 时间格式，支持以下值
+    # y 年 / m 月 / d 日 / h 时 / i 分 / s 秒 / timestamp unix时间戳
+    timeFormat: "y-m-d h:i:s"
 # 数据源
 source:
-  # 名称
-  name: "etcd"
-  # 配置(json字符串)
-  config: '
-    {
-      "key_prefix": "/tsing-gateway",
-      "dial_timeout": 3,
-      "endpoints": ["http://192.168.50.212:2379"]
-    }
-  '
+    # 名称
+    name: "etcd"
+    # 配置(json字符串)
+    config: '
+        {
+          "key_prefix": "/tsing-gateway",
+          "dial_timeout": 3,
+          "endpoints": ["http://192.168.50.212:2379"]
+        }
+    '
