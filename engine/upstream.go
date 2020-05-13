@@ -22,7 +22,7 @@ type Endpoint struct {
 type Upstream struct {
 	ID         string         `json:"ID"`                   // 上游ID
 	Middleware []Configurator `json:"middleware,omitempty"` // 中间件配置
-	Explorer   Configurator   `json:"explorer"`             // 节点探索器配置
+	Discover   Configurator   `json:"discover"`             // 节点发现配置
 }
 
 func (p *Engine) NewUpstream(upstream Upstream, persistent bool) error {

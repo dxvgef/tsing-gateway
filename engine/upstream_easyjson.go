@@ -4,6 +4,7 @@ package engine
 
 import (
 	json "encoding/json"
+
 	easyjson "github.com/mailru/easyjson"
 	jlexer "github.com/mailru/easyjson/jlexer"
 	jwriter "github.com/mailru/easyjson/jwriter"
@@ -62,7 +63,7 @@ func easyjson370d5093DecodeGithubComDxvgefTsingGatewayEngine(in *jlexer.Lexer, o
 				in.Delim(']')
 			}
 		case "explorer":
-			(out.Explorer).UnmarshalEasyJSON(in)
+			(out.Discover).UnmarshalEasyJSON(in)
 		default:
 			in.SkipRecursive()
 		}
@@ -99,7 +100,7 @@ func easyjson370d5093EncodeGithubComDxvgefTsingGatewayEngine(out *jwriter.Writer
 	{
 		const prefix string = ",\"explorer\":"
 		out.RawString(prefix)
-		(in.Explorer).MarshalEasyJSON(out)
+		(in.Discover).MarshalEasyJSON(out)
 	}
 	out.RawByte('}')
 }

@@ -55,8 +55,8 @@ func initData(e *engine.Engine, dataSource source.Source) (err error) {
 		Name:   "favicon",
 		Config: `{"status": 204}`,
 	})
-	upstream.Explorer.Name = "coredns_etcd"
-	upstream.Explorer.Config = `{"host":"test.uam.local"}`
+	upstream.Discover.Name = "coredns_etcd"
+	upstream.Discover.Config = `{"host":"test.uam.local"}`
 	// 设置上游
 	err = e.NewUpstream(upstream, false)
 	if err != nil {
@@ -67,8 +67,8 @@ func initData(e *engine.Engine, dataSource source.Source) (err error) {
 	// 设置上游
 	upstream = engine.Upstream{}
 	upstream.ID = "test2Upstream"
-	upstream.Explorer.Name = "coredns_etcd"
-	upstream.Explorer.Config = `{"host":"test2.uam.local"}`
+	upstream.Discover.Name = "coredns_etcd"
+	upstream.Discover.Config = `{"host":"test2.uam.local"}`
 	err = e.NewUpstream(upstream, false)
 	if err != nil {
 		log.Err(err).Caller().Send()

@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"strconv"
 
-	"github.com/dxvgef/tsing-gateway/explorer"
+	"github.com/dxvgef/tsing-gateway/discover"
 	"github.com/dxvgef/tsing-gateway/global"
 	"github.com/dxvgef/tsing-gateway/middleware"
 
@@ -86,7 +86,7 @@ func (p *Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	// 执行探测器获取端点
-	e, err := explorer.Build(upstream.Explorer.Name, upstream.Explorer.Config)
+	e, err := discover.Build(upstream.Discover.Name, upstream.Discover.Config)
 	if err != nil {
 		log.Error().Caller().Msg(err.Error())
 		resp.WriteHeader(http.StatusInternalServerError)
