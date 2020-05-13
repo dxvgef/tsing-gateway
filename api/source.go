@@ -1,6 +1,8 @@
 package api
 
 import (
+	"context"
+
 	"github.com/dxvgef/filter"
 	"github.com/dxvgef/tsing"
 	"github.com/rs/zerolog/log"
@@ -9,10 +11,17 @@ import (
 )
 
 // 数据源
-type Source struct{}
+type SourceHandler struct {
+	UnimplementedAPIServer
+}
+
+func (*SourceHandler) SetSource(_ context.Context, req *Source) (*Null, error) {
+	log.Debug().Interface("req", req).Send()
+	return &Null{}, nil
+}
 
 // 加载所有数据
-func (self *Source) LoadAll(ctx *tsing.Context) error {
+func (self *SourceHandler) LoadAll(ctx *tsing.Context) error {
 	var (
 		err        error
 		dataSource source.Source

@@ -20,13 +20,13 @@ require (
 	github.com/dxvgef/tsing v1.1.1
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
-	github.com/golang/protobuf v1.4.1 // indirect
+	github.com/golang/protobuf v1.4.1
 	github.com/google/btree v1.0.0 // indirect
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
-	github.com/grpc-ecosystem/grpc-gateway v1.14.5 // indirect
+	github.com/grpc-ecosystem/grpc-gateway v1.14.5
 	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
@@ -48,8 +48,8 @@ require (
 	golang.org/x/sys v0.0.0-20200511232937-7e40ca221e25 // indirect
 	golang.org/x/text v0.3.2 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
-	google.golang.org/genproto v0.0.0-20200511104702-f5ebc3bea380 // indirect
-	google.golang.org/grpc v1.29.1 // indirect
+	google.golang.org/genproto v0.0.0-20200511104702-f5ebc3bea380
+	google.golang.org/grpc v1.29.1
 	gopkg.in/yaml.v3 v3.0.0-20200506231410-2ff61e1afc86
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
