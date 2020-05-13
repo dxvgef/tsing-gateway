@@ -38,10 +38,13 @@ var Config struct {
 		Encode     string      `yaml:"encode"`
 		TimeFormat string      `yaml:"timeFormat"`
 	} `yaml:"logger"`
-	Source struct {
-		Name   string `yaml:"name"`
-		Config string `yaml:"config"`
-	} `yaml:"source"`
+	API struct {
+		On     bool   `yaml:"on"`
+		IP     string `yaml:"ip"`
+		Port   int    `yaml:"port"`
+		Path   string `yaml:"path"`
+		Secret string `yaml:"secret"`
+	} `yaml:"api"`
 }
 
 // 加载配置文件
