@@ -8,8 +8,8 @@ import (
 
 	"github.com/coreos/etcd/clientv3"
 
-	"github.com/dxvgef/tsing-gateway/engine"
 	"github.com/dxvgef/tsing-gateway/global"
+	"github.com/dxvgef/tsing-gateway/proxy"
 )
 
 // 加载所有数据
@@ -39,7 +39,7 @@ func (self *Etcd) LoadAllUpstreams() error {
 		return err
 	}
 	for k := range resp.Kvs {
-		var upstream engine.Upstream
+		var upstream proxy.Upstream
 		err = upstream.UnmarshalJSON(resp.Kvs[k].Value)
 		if err != nil {
 			return err

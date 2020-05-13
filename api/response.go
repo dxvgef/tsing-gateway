@@ -1,4 +1,4 @@
-package handler
+package api
 
 import (
 	"encoding/json"
@@ -15,6 +15,14 @@ func JSON(ctx *tsing.Context, status int, data interface{}) error {
 	ctx.ResponseWriter.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	ctx.ResponseWriter.WriteHeader(status)
 	_, err = ctx.ResponseWriter.Write(dataBytes)
+	return err
+}
+
+// 输出JSON数据给客户端
+func JSONBytes(ctx *tsing.Context, status int, data []byte) error {
+	ctx.ResponseWriter.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	ctx.ResponseWriter.WriteHeader(status)
+	_, err := ctx.ResponseWriter.Write(data)
 	return err
 }
 

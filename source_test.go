@@ -4,7 +4,6 @@ import (
 	"flag"
 	"testing"
 
-	"github.com/dxvgef/tsing-gateway/engine"
 	"github.com/dxvgef/tsing-gateway/global"
 	"github.com/dxvgef/tsing-gateway/source"
 )
@@ -17,17 +16,17 @@ func TestRoute(t *testing.T) {
 	)
 	flag.StringVar(&configFile, "c", "./config.local.yml", "配置文件路径")
 	flag.Parse()
-	if err = engine.LoadConfigFile(configFile); err != nil {
+	if err = proxy.LoadConfigFile(configFile); err != nil {
 		t.Error(err.Error())
 		return
 	}
-	if err = engine.setLogger(); err != nil {
+	if err = proxy.setLogger(); err != nil {
 		t.Error(err.Error())
 		return
 	}
 
 	// 获得一个引擎实例
-	e := engine.NewEngine()
+	e := proxy.NewEngine()
 
 	// 构建数据源实例
 	dataSource, err = source.Build(e, global.Config.Source.Name, global.Config.Source.Config)

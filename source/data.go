@@ -3,7 +3,7 @@ package source
 import (
 	"errors"
 
-	"github.com/dxvgef/tsing-gateway/engine"
+	"github.com/dxvgef/tsing-gateway/proxy"
 	"github.com/dxvgef/tsing-gateway/source/etcd"
 )
 
@@ -21,7 +21,7 @@ type Source interface {
 
 // 构建数据源实例
 // key为数据源的名称，value为数据源的参数json字符串
-func Build(e *engine.Engine, name, config string) (Source, error) {
+func Build(e *proxy.Engine, name, config string) (Source, error) {
 	switch name {
 	case "etcd":
 		f, err := etcd.New(e, config)

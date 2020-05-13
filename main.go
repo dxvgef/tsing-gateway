@@ -5,9 +5,9 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/dxvgef/tsing-gateway/api"
-	"github.com/dxvgef/tsing-gateway/engine"
+	apiEngine "github.com/dxvgef/tsing-gateway/api"
 	"github.com/dxvgef/tsing-gateway/global"
+	"github.com/dxvgef/tsing-gateway/proxy"
 	"github.com/dxvgef/tsing-gateway/source"
 )
 
@@ -25,39 +25,26 @@ func main() {
 		return
 	}
 
-	// 获得一个引擎实例
-	e := engine.NewEngine()
-
-	// // 构建数据源实例
-	// dataSource, err := source.Build(e, global.Config.Source.Name, global.Config.Source.Config)
-	// if err != nil {
-	// 	log.Fatal().Caller().Msg(err.Error())
-	// 	return
-	// }
-	// // 加载所有数据
-	// if err = dataSource.LoadAll(); err != nil {
-	// 	log.Fatal().Caller().Msg(err.Error())
-	// 	return
-	// }
-	// log.Debug().Interface("数据", e)
+	// 获得一个代理引擎实例
+	proxyEngine := proxy.New()
 
 	// 启动api服务
 	if global.Config.API.On {
-		go api.Start()
+		go apiEngine.Start(proxyEngine)
 	}
 
 	// 启动网关引擎
-	e.Start()
+	proxyEngine.Start()
 }
 
 // 初始化数据，目前仅开发调试用途
-func initData(e *engine.Engine, dataSource source.Source) (err error) {
+func initData(e *proxy.Engine, dataSource source.Source) (err error) {
 	var (
-		upstream   engine.Upstream
-		routeGroup engine.RouteGroup
+		upstream   proxy.Upstream
+		routeGroup proxy.RouteGroup
 	)
 	upstream.ID = "testUpstream"
-	upstream.Middleware = append(upstream.Middleware, engine.Configurator{
+	upstream.Middleware = append(upstream.Middleware, proxy.Configurator{
 		Name:   "favicon",
 		Config: `{"status": 204}`,
 	})
@@ -71,7 +58,7 @@ func initData(e *engine.Engine, dataSource source.Source) (err error) {
 	}
 
 	// 设置上游
-	upstream = engine.Upstream{}
+	upstream = proxy.Upstream{}
 	upstream.ID = "test2Upstream"
 	upstream.Discover.Name = "coredns_etcd"
 	upstream.Discover.Config = `{"host":"test2.uam.local"}`

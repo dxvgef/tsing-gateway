@@ -1,4 +1,4 @@
-package engine
+package proxy
 
 import (
 	"errors"

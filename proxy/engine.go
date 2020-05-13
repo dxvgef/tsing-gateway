@@ -1,4 +1,4 @@
-package engine
+package proxy
 
 import (
 	"context"
@@ -28,7 +28,7 @@ type Engine struct {
 }
 
 // 初始化一个新的代理引擎
-func NewEngine() *Engine {
+func New() *Engine {
 	var p Engine
 	p.Hosts = make(map[string]string)
 	p.Routes = make(map[string]map[string]map[string]string)
@@ -141,14 +141,14 @@ func (p *Engine) Start() {
 	}
 
 	// 启动HTTP代理
-	if global.Config.HTTP.Port > 0 {
+	if global.Config.Proxy.HTTP.Port > 0 {
 		httpProxy = &http.Server{
-			Addr:              global.Config.IP + ":" + strconv.FormatUint(uint64(global.Config.HTTP.Port), 10),
+			Addr:              global.Config.Proxy.IP + ":" + strconv.FormatUint(uint64(global.Config.Proxy.HTTP.Port), 10),
 			Handler:           p,
-			ReadTimeout:       global.Config.HTTP.ReadTimeout,
-			WriteTimeout:      global.Config.HTTP.WriteTimeout,
-			IdleTimeout:       global.Config.HTTP.IdleTimeout,
-			ReadHeaderTimeout: global.Config.HTTP.ReadHeaderTimeout,
+			ReadTimeout:       global.Config.Proxy.ReadTimeout,
+			WriteTimeout:      global.Config.Proxy.WriteTimeout,
+			IdleTimeout:       global.Config.Proxy.IdleTimeout,
+			ReadHeaderTimeout: global.Config.Proxy.ReadHeaderTimeout,
 		}
 		go func() {
 			log.Info().Msg("启动HTTP代理 " + httpProxy.Addr)
@@ -164,18 +164,18 @@ func (p *Engine) Start() {
 	}
 
 	// start HTTPS proxy
-	if global.Config.HTTPS.Port > 0 {
+	if global.Config.Proxy.HTTPS.Port > 0 {
 		httpsProxy = &http.Server{
-			Addr:              global.Config.IP + ":" + strconv.FormatUint(uint64(global.Config.HTTPS.Port), 10),
+			Addr:              global.Config.Proxy.IP + ":" + strconv.FormatUint(uint64(global.Config.Proxy.HTTPS.Port), 10),
 			Handler:           p,
-			ReadTimeout:       global.Config.HTTPS.ReadTimeout,
-			WriteTimeout:      global.Config.HTTPS.WriteTimeout,
-			IdleTimeout:       global.Config.HTTPS.IdleTimeout,
-			ReadHeaderTimeout: global.Config.HTTPS.ReadHeaderTimeout,
+			ReadTimeout:       global.Config.Proxy.ReadTimeout,
+			WriteTimeout:      global.Config.Proxy.WriteTimeout,
+			IdleTimeout:       global.Config.Proxy.IdleTimeout,
+			ReadHeaderTimeout: global.Config.Proxy.ReadHeaderTimeout,
 		}
 		go func() {
 			log.Info().Msg("启动HTTPS代理 " + httpsProxy.Addr)
-			if global.Config.HTTPS.HTTP2 {
+			if global.Config.Proxy.HTTPS.HTTP2 {
 				log.Info().Msg("启用HTTP2代理支持")
 				if err = http2.ConfigureServer(httpsProxy, &http2.Server{}); err != nil {
 					log.Fatal().Caller().Msg(err.Error())
@@ -198,18 +198,18 @@ func (p *Engine) Start() {
 	signal.Notify(quit, os.Interrupt)
 	<-quit
 
-	ctx, cancel := context.WithTimeout(context.Background(), global.Config.QuitWaitTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), global.Config.Proxy.QuitWaitTimeout)
 	defer cancel()
 
 	// 关闭HTTP服务
-	if global.Config.HTTP.Port > 0 {
+	if global.Config.Proxy.HTTP.Port > 0 {
 		if err := httpProxy.Shutdown(ctx); err != nil {
 			log.Fatal().Caller().Msg(err.Error())
 			return
 		}
 	}
 	// 关闭HTTPS服务
-	if global.Config.HTTPS.Port > 0 {
+	if global.Config.Proxy.HTTPS.Port > 0 {
 		if err := httpsProxy.Shutdown(ctx); err != nil {
 			log.Fatal().Caller().Msg(err.Error())
 			return
