@@ -20,7 +20,7 @@ type Endpoint struct {
 }
 
 type Upstream struct {
-	ID         string         `json:"id"`                   // 上游ID
+	ID         string         `json:"ID"`                   // 上游ID
 	Middleware []Configurator `json:"middleware,omitempty"` // 中间件配置
 	Explorer   Configurator   `json:"explorer"`             // 节点探索器配置
 }

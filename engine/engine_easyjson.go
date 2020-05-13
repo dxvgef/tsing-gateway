@@ -53,7 +53,7 @@ func easyjson42c839f2DecodeGithubComDxvgefTsingGatewayEngine(in *jlexer.Lexer, o
 				}
 				for !in.IsDelim(']') {
 					var v1 Configurator
-					easyjson42c839f2DecodeGithubComDxvgefTsingGatewayEngine1(in, &v1)
+					(v1).UnmarshalEasyJSON(in)
 					out.Middleware = append(out.Middleware, v1)
 					in.WantComma()
 				}
@@ -149,7 +149,7 @@ func easyjson42c839f2DecodeGithubComDxvgefTsingGatewayEngine(in *jlexer.Lexer, o
 					key := string(in.String())
 					in.WantColon()
 					var v6 Upstream
-					easyjson42c839f2DecodeGithubComDxvgefTsingGatewayEngine2(in, &v6)
+					(v6).UnmarshalEasyJSON(in)
 					(out.Upstreams)[key] = v6
 					in.WantComma()
 				}
@@ -171,15 +171,19 @@ func easyjson42c839f2EncodeGithubComDxvgefTsingGatewayEngine(out *jwriter.Writer
 	_ = first
 	if len(in.Middleware) != 0 {
 		const prefix string = ",\"middleware\":"
-		first = false
-		out.RawString(prefix[1:])
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
 		{
 			out.RawByte('[')
 			for v7, v8 := range in.Middleware {
 				if v7 > 0 {
 					out.RawByte(',')
 				}
-				easyjson42c839f2EncodeGithubComDxvgefTsingGatewayEngine1(out, v8)
+				(v8).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -283,7 +287,7 @@ func easyjson42c839f2EncodeGithubComDxvgefTsingGatewayEngine(out *jwriter.Writer
 				}
 				out.String(string(v13Name))
 				out.RawByte(':')
-				easyjson42c839f2EncodeGithubComDxvgefTsingGatewayEngine2(out, v13Value)
+				(v13Value).MarshalEasyJSON(out)
 			}
 			out.RawByte('}')
 		}
@@ -313,139 +317,4 @@ func (v *Engine) UnmarshalJSON(data []byte) error {
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Engine) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson42c839f2DecodeGithubComDxvgefTsingGatewayEngine(l, v)
-}
-func easyjson42c839f2DecodeGithubComDxvgefTsingGatewayEngine2(in *jlexer.Lexer, out *Upstream) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeString()
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "id":
-			out.ID = string(in.String())
-		case "middleware":
-			if in.IsNull() {
-				in.Skip()
-				out.Middleware = nil
-			} else {
-				in.Delim('[')
-				if out.Middleware == nil {
-					if !in.IsDelim(']') {
-						out.Middleware = make([]Configurator, 0, 2)
-					} else {
-						out.Middleware = []Configurator{}
-					}
-				} else {
-					out.Middleware = (out.Middleware)[:0]
-				}
-				for !in.IsDelim(']') {
-					var v14 Configurator
-					easyjson42c839f2DecodeGithubComDxvgefTsingGatewayEngine1(in, &v14)
-					out.Middleware = append(out.Middleware, v14)
-					in.WantComma()
-				}
-				in.Delim(']')
-			}
-		case "explorer":
-			easyjson42c839f2DecodeGithubComDxvgefTsingGatewayEngine1(in, &out.Explorer)
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson42c839f2EncodeGithubComDxvgefTsingGatewayEngine2(out *jwriter.Writer, in Upstream) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"id\":"
-		out.RawString(prefix[1:])
-		out.String(string(in.ID))
-	}
-	if len(in.Middleware) != 0 {
-		const prefix string = ",\"middleware\":"
-		out.RawString(prefix)
-		{
-			out.RawByte('[')
-			for v15, v16 := range in.Middleware {
-				if v15 > 0 {
-					out.RawByte(',')
-				}
-				easyjson42c839f2EncodeGithubComDxvgefTsingGatewayEngine1(out, v16)
-			}
-			out.RawByte(']')
-		}
-	}
-	{
-		const prefix string = ",\"explorer\":"
-		out.RawString(prefix)
-		easyjson42c839f2EncodeGithubComDxvgefTsingGatewayEngine1(out, in.Explorer)
-	}
-	out.RawByte('}')
-}
-func easyjson42c839f2DecodeGithubComDxvgefTsingGatewayEngine1(in *jlexer.Lexer, out *Configurator) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeString()
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "name":
-			out.Name = string(in.String())
-		case "config":
-			out.Config = string(in.String())
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson42c839f2EncodeGithubComDxvgefTsingGatewayEngine1(out *jwriter.Writer, in Configurator) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"name\":"
-		out.RawString(prefix[1:])
-		out.String(string(in.Name))
-	}
-	{
-		const prefix string = ",\"config\":"
-		out.RawString(prefix)
-		out.String(string(in.Config))
-	}
-	out.RawByte('}')
 }

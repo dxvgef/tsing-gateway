@@ -17,7 +17,7 @@ import (
 
 // 代理引擎
 type Engine struct {
-	id              int64
+	ID              int64                                   `json:"-"`
 	Middleware      []Configurator                          `json:"middleware,omitempty"` // 全局中间件
 	Hosts           map[string]string                       `json:"hosts,omitempty"`      // [hostname]routeGroupID
 	Routes          map[string]map[string]map[string]string `json:"routes,omitempty"`     // [routeGroupID][path][method]upstreamID
@@ -134,8 +134,8 @@ func (p *Engine) Start() {
 	var httpsProxy *http.Server
 	var err error
 
-	p.id = global.GetIDInt64()
-	if p.id == 0 {
+	p.ID = global.GetIDInt64()
+	if p.ID == 0 {
 		log.Fatal().Caller().Msg("无法自动生成ID标识")
 		return
 	}

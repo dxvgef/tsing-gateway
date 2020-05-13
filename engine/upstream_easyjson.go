@@ -36,7 +36,7 @@ func easyjson370d5093DecodeGithubComDxvgefTsingGatewayEngine(in *jlexer.Lexer, o
 			continue
 		}
 		switch key {
-		case "id":
+		case "ID":
 			out.ID = string(in.String())
 		case "middleware":
 			if in.IsNull() {
@@ -78,7 +78,7 @@ func easyjson370d5093EncodeGithubComDxvgefTsingGatewayEngine(out *jwriter.Writer
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"id\":"
+		const prefix string = ",\"ID\":"
 		out.RawString(prefix[1:])
 		out.String(string(in.ID))
 	}
