@@ -20,7 +20,7 @@ type Endpoint struct {
 }
 
 type Upstream struct {
-	ID         string         `json:"ID"`                   // 上游ID
+	ID         string         `json:"id"`                   // 上游ID
 	Middleware []Configurator `json:"middleware,omitempty"` // 中间件配置
 	Discover   Configurator   `json:"discover"`             // 节点发现配置
 }
@@ -42,7 +42,7 @@ func (p *Engine) SetUpstream(upstream Upstream, persistent bool) error {
 		upstream.ID = global.GetIDStr()
 	}
 	if upstream.ID == "" {
-		return errors.New("must specify upstream ID")
+		return errors.New("必须设置Upstream的ID")
 	}
 	p.Upstreams[upstream.ID] = upstream
 	return nil
