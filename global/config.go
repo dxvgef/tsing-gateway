@@ -36,11 +36,23 @@ var Config struct {
 		} `yaml:"https"`
 	} `yaml:"proxy"`
 	API struct {
-		On     bool   `yaml:"on"`
-		IP     string `yaml:"ip"`
-		Port   int    `yaml:"port"`
-		Path   string `yaml:"path"`
-		Secret string `yaml:"secret"`
+		On                bool          `yaml:"on"`
+		IP                string        `yaml:"ip"`
+		Secret            string        `yaml:"secret"`
+		QuitWaitTimeout   time.Duration `yaml:"quitWaitTimeout"`
+		ReadTimeout       time.Duration `yaml:"readTimeout"`
+		ReadHeaderTimeout time.Duration `yaml:"readHeaderTimeout"`
+		WriteTimeout      time.Duration `yaml:"writeTimeout"`
+		IdleTimeout       time.Duration `yaml:"idleTimeout"`
+		HTTP              struct {
+			Port uint `yaml:"port"`
+		} `yaml:"http"`
+		HTTPS struct {
+			Port     uint   `yaml:"port"`
+			HTTP2    bool   `yaml:"http2"`
+			CertFile string `yaml:"certFile"`
+			KeyFile  string `yaml:"keyFile"`
+		} `yaml:"https"`
 	} `yaml:"api"`
 }
 

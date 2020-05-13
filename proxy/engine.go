@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 
 	"github.com/dxvgef/tsing-gateway/discover"
 	"github.com/dxvgef/tsing-gateway/global"
@@ -130,8 +131,8 @@ func (p *Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 // 启动代理服务
 func (p *Engine) Start() {
-	var httpProxy *http.Server
-	var httpsProxy *http.Server
+	var httpServer *http.Server
+	var httpsServer *http.Server
 	var err error
 
 	p.ID = global.GetIDInt64()
@@ -142,7 +143,7 @@ func (p *Engine) Start() {
 
 	// 启动HTTP代理
 	if global.Config.Proxy.HTTP.Port > 0 {
-		httpProxy = &http.Server{
+		httpServer = &http.Server{
 			Addr:              global.Config.Proxy.IP + ":" + strconv.FormatUint(uint64(global.Config.Proxy.HTTP.Port), 10),
 			Handler:           p,
 			ReadTimeout:       global.Config.Proxy.ReadTimeout,
@@ -151,10 +152,9 @@ func (p *Engine) Start() {
 			ReadHeaderTimeout: global.Config.Proxy.ReadHeaderTimeout,
 		}
 		go func() {
-			log.Info().Msg("启动HTTP代理 " + httpProxy.Addr)
-			if err = httpProxy.ListenAndServe(); err != nil {
+			if err = httpServer.ListenAndServe(); err != nil {
 				if err == http.ErrServerClosed {
-					log.Info().Msg("HTTP代理已关闭")
+					log.Info().Msg("HTTP代理服务已关闭")
 					return
 				}
 				log.Fatal().Caller().Msg(err.Error())
@@ -165,7 +165,7 @@ func (p *Engine) Start() {
 
 	// start HTTPS proxy
 	if global.Config.Proxy.HTTPS.Port > 0 {
-		httpsProxy = &http.Server{
+		httpsServer = &http.Server{
 			Addr:              global.Config.Proxy.IP + ":" + strconv.FormatUint(uint64(global.Config.Proxy.HTTPS.Port), 10),
 			Handler:           p,
 			ReadTimeout:       global.Config.Proxy.ReadTimeout,
@@ -174,17 +174,15 @@ func (p *Engine) Start() {
 			ReadHeaderTimeout: global.Config.Proxy.ReadHeaderTimeout,
 		}
 		go func() {
-			log.Info().Msg("启动HTTPS代理 " + httpsProxy.Addr)
 			if global.Config.Proxy.HTTPS.HTTP2 {
-				log.Info().Msg("启用HTTP2代理支持")
-				if err = http2.ConfigureServer(httpsProxy, &http2.Server{}); err != nil {
+				if err = http2.ConfigureServer(httpsServer, &http2.Server{}); err != nil {
 					log.Fatal().Caller().Msg(err.Error())
 					return
 				}
 			}
-			if err = httpsProxy.ListenAndServeTLS("server.cert", "server.key"); err != nil {
+			if err = httpsServer.ListenAndServeTLS("server.cert", "server.key"); err != nil {
 				if err == http.ErrServerClosed {
-					log.Info().Msg("HTTPS代理已关闭")
+					log.Info().Msg("HTTPS代理服务已关闭")
 					return
 				}
 				log.Fatal().Caller().Msg(err.Error())
@@ -192,6 +190,21 @@ func (p *Engine) Start() {
 			}
 		}()
 	}
+
+	var serverStatus strings.Builder
+	serverStatus.WriteString("启动代理服务")
+	if global.Config.Proxy.HTTP.Port > 0 {
+		serverStatus.WriteString(" http://")
+		serverStatus.WriteString(httpServer.Addr)
+	}
+	if global.Config.Proxy.HTTPS.Port > 0 {
+		serverStatus.WriteString(" 和 https://")
+		serverStatus.WriteString(httpsServer.Addr)
+	}
+	if global.Config.Proxy.HTTPS.HTTP2 {
+		serverStatus.WriteString(" 已启用HTTP2")
+	}
+	log.Info().Msg(serverStatus.String())
 
 	// 等待退出超时
 	quit := make(chan os.Signal, 1)
@@ -203,14 +216,14 @@ func (p *Engine) Start() {
 
 	// 关闭HTTP服务
 	if global.Config.Proxy.HTTP.Port > 0 {
-		if err := httpProxy.Shutdown(ctx); err != nil {
+		if err := httpServer.Shutdown(ctx); err != nil {
 			log.Fatal().Caller().Msg(err.Error())
 			return
 		}
 	}
 	// 关闭HTTPS服务
 	if global.Config.Proxy.HTTPS.Port > 0 {
-		if err := httpsProxy.Shutdown(ctx); err != nil {
+		if err := httpsServer.Shutdown(ctx); err != nil {
 			log.Fatal().Caller().Msg(err.Error())
 			return
 		}

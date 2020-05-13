@@ -6,10 +6,11 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
-	"time"
+	"strings"
 
 	"github.com/dxvgef/tsing"
 	"github.com/rs/zerolog/log"
+	"golang.org/x/net/http2"
 
 	"github.com/dxvgef/tsing-gateway/global"
 	"github.com/dxvgef/tsing-gateway/proxy"
@@ -23,10 +24,11 @@ func Start(p *proxy.Engine) {
 	proxyEngine = p
 
 	var (
-		err        error
-		httpServer *http.Server
-		rootPath   string
-		apiConfig  tsing.Config
+		err         error
+		httpServer  *http.Server
+		httpsServer *http.Server
+		rootPath    string
+		apiConfig   tsing.Config
 	)
 
 	apiConfig.EventHandler = EventHandler
@@ -44,39 +46,91 @@ func Start(p *proxy.Engine) {
 	// 设置路由
 	setRouter()
 
-	// 定义HTTP服务
-	httpServer = &http.Server{
-		Addr:    global.Config.API.IP + ":" + strconv.Itoa(global.Config.API.Port),
-		Handler: apiEngine,
-		// ErrorLog:          global.Logger.StdError,                                                    // 日志记录器
-		// ReadTimeout:       time.Duration(global.Config.Service.ReadTimeout) * time.Second,       // 读取超时
-		// WriteTimeout:      time.Duration(global.Config.Service.WriteTimeout) * time.Second,      // 响应超时
-		// IdleTimeout:       time.Duration(global.Config.Service.IdleTimeout) * time.Second,       // 连接空闲超时
-		// ReadHeaderTimeout: time.Duration(global.Config.Service.ReadHeaderTimeout) * time.Second, // http header读取超时
-	}
-	// 在新协程中启动服务，方便实现退出等待
-	go func() {
-		log.Info().Msg("启动API服务 " + global.Config.API.Path + " => " + httpServer.Addr)
-		if err := httpServer.ListenAndServe(); err != nil {
-			if err == http.ErrServerClosed {
-				log.Info().Msg("API服务已关闭")
+	// 启动HTTP服务
+	if global.Config.API.HTTP.Port > 0 {
+		httpServer = &http.Server{
+			Addr:              global.Config.API.IP + ":" + strconv.FormatUint(uint64(global.Config.API.HTTP.Port), 10),
+			Handler:           p,
+			ReadTimeout:       global.Config.API.ReadTimeout,
+			WriteTimeout:      global.Config.API.WriteTimeout,
+			IdleTimeout:       global.Config.API.IdleTimeout,
+			ReadHeaderTimeout: global.Config.API.ReadHeaderTimeout,
+		}
+		go func() {
+			if err = httpServer.ListenAndServe(); err != nil {
+				if err == http.ErrServerClosed {
+					log.Info().Msg("HTTP API服务已关闭")
+					return
+				}
+				log.Fatal().Caller().Msg(err.Error())
 				return
 			}
-			log.Fatal().Msg(err.Error())
-		}
-	}()
+		}()
+	}
 
-	// 退出进程时等待
+	// 启动HTTPS API服务
+	if global.Config.API.HTTPS.Port > 0 {
+		httpsServer = &http.Server{
+			Addr:              global.Config.API.IP + ":" + strconv.FormatUint(uint64(global.Config.API.HTTPS.Port), 10),
+			Handler:           p,
+			ReadTimeout:       global.Config.API.ReadTimeout,
+			WriteTimeout:      global.Config.API.WriteTimeout,
+			IdleTimeout:       global.Config.API.IdleTimeout,
+			ReadHeaderTimeout: global.Config.API.ReadHeaderTimeout,
+		}
+		go func() {
+			if global.Config.API.HTTPS.HTTP2 {
+				if err = http2.ConfigureServer(httpsServer, &http2.Server{}); err != nil {
+					log.Fatal().Caller().Msg(err.Error())
+					return
+				}
+			}
+			if err = httpsServer.ListenAndServeTLS("server.cert", "server.key"); err != nil {
+				if err == http.ErrServerClosed {
+					log.Info().Msg("HTTPS API服务已关闭")
+					return
+				}
+				log.Fatal().Caller().Msg(err.Error())
+				return
+			}
+		}()
+	}
+
+	var serverStatus strings.Builder
+	serverStatus.WriteString("启动API服务")
+	if global.Config.Proxy.HTTP.Port > 0 {
+		serverStatus.WriteString(" http://")
+		serverStatus.WriteString(httpServer.Addr)
+	}
+	if global.Config.Proxy.HTTPS.Port > 0 {
+		serverStatus.WriteString(" 和 https://")
+		serverStatus.WriteString(httpsServer.Addr)
+	}
+	if global.Config.Proxy.HTTPS.HTTP2 {
+		serverStatus.WriteString(" 已启用HTTP2")
+	}
+	log.Info().Msg(serverStatus.String())
+
+	// 等待退出超时
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
 
-	// 指定退出超时时间
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(global.Config.Proxy.QuitWaitTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), global.Config.API.QuitWaitTimeout)
 	defer cancel()
-	if err := httpServer.Shutdown(ctx); err != nil {
-		log.Fatal().Caller().Msg(err.Error())
-	}
 
-	log.Info().Msg("API服务已退出")
+	// 关闭HTTP API服务
+	if global.Config.API.HTTP.Port > 0 {
+		if err := httpServer.Shutdown(ctx); err != nil {
+			log.Fatal().Caller().Msg(err.Error())
+			return
+		}
+	}
+	// 关闭HTTPS API服务
+	if global.Config.API.HTTPS.Port > 0 {
+		if err := httpsServer.Shutdown(ctx); err != nil {
+			log.Fatal().Caller().Msg(err.Error())
+			return
+		}
+	}
 }

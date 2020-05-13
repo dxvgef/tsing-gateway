@@ -43,9 +43,31 @@ proxy:
 api:
     # 启用API服务
     on: true
-    # 监听IP
-    ip:
-    # 监听端口
-    port: 18000
     # 访问密钥
     secret: "123456"
+    # 监听地址，留空表示监听0.0.0.0
+    ip:
+    # 退出等待超时时间
+    quitWaitTimeout: 5s
+    # 读取超时
+    readTimeout: 10s
+    # 头信息读取超时
+    readHeaderTimeout: 10s
+    # 响应超时
+    writeTimeout: 10s
+    # 空闲超时
+    idleTimeout: 10s
+    # HTTP配置
+    http:
+        # 监听端口，如果为0则禁用HTTP
+        port: 18000
+    # HTTPS配置
+    https:
+        # 端口号，如果为0则禁用HTTPS
+        port: 18443
+        # 服务端证书文件
+        certFile: "./server.cert"
+        # 服务端私钥文件
+        keyFile: "./server.key"
+        # 启用HTTPS支持，必须先启用HTTPS
+        http2: true

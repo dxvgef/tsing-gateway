@@ -8,11 +8,11 @@ import (
 	"github.com/dxvgef/tsing-gateway/source"
 )
 
-// 数据
-type Data struct{}
+// 数据源
+type Source struct{}
 
 // 加载所有数据
-func (self *Data) LoadAll(ctx *tsing.Context) error {
+func (self *Source) LoadAll(ctx *tsing.Context) error {
 	var (
 		err        error
 		dataSource source.Source
