@@ -19,7 +19,7 @@ storage:
     # 存储器配置json字符串
     config: '{
         "endpoints": ["http://192.168.50.212:2379"],
-        "key_prefix": "tsing-gateway"
+        "key_prefix": "/tsing-gateway"
     }
     '
     # 日志文件的权限，例如0755|0700|0600
