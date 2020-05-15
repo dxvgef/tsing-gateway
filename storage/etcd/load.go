@@ -44,7 +44,7 @@ func (self *Etcd) LoadAllUpstreams() error {
 		if err != nil {
 			return err
 		}
-		err = self.e.SetUpstream(upstream, false)
+		err = self.e.SetUpstream(upstream)
 		if err != nil {
 			return err
 		}
@@ -72,7 +72,7 @@ func (self *Etcd) LoadAllRoutes() error {
 			return err
 		}
 		for routeMethod, upstreamID := range methods {
-			err = self.e.SetRoute(routeGroupID, routePath, routeMethod, upstreamID, false)
+			err = self.e.SetRoute(routeGroupID, routePath, routeMethod, upstreamID)
 			if err != nil {
 				return err
 			}
@@ -96,7 +96,6 @@ func (self *Etcd) LoadAllHosts() error {
 		err = self.e.SetHost(
 			global.TrimPrefix(resp.Kvs[k].Key, "/hosts/"),
 			global.BytesToStr(resp.Kvs[k].Value),
-			false,
 		)
 		if err != nil {
 			return err
