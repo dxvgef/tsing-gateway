@@ -17,6 +17,7 @@ type Storage interface {
 	SaveAllUpstreams() error // 存储所有upstream数据
 	SaveAllRoutes() error    // 存储所有route数据
 	SaveAllHosts() error     // 存储所有host数据
+	Watch() error            // 监听数据变更
 }
 
 // 构建存储器实例
