@@ -10,7 +10,7 @@ import (
 )
 
 // 新建路由组及路由
-func (p *Engine) NewRoute(routeGroupID, reqPath, reqMethod, upstreamID string, persistent bool) error {
+func (p *Engine) NewRoute(routeGroupID, reqPath, reqMethod, upstreamID string) error {
 	if routeGroupID == "" {
 		routeGroupID = global.GetIDStr()
 	}
@@ -34,9 +34,9 @@ func (p *Engine) NewRoute(routeGroupID, reqPath, reqMethod, upstreamID string, p
 	if _, exist := p.Routes[routeGroupID][reqPath][reqMethod]; exist {
 		return errors.New("路由组ID:" + routeGroupID + "/路径:" + reqPath + "/方法:" + reqMethod + "已存在")
 	}
-	if _, exist := p.Upstreams[upstreamID]; !exist {
-		return errors.New("上游ID:" + upstreamID + "不存在")
-	}
+	// if _, exist := p.Upstreams[upstreamID]; !exist {
+	// 	return errors.New("上游ID:" + upstreamID + "不存在")
+	// }
 	p.Routes[routeGroupID] = make(map[string]map[string]string)
 	p.Routes[routeGroupID][reqPath] = make(map[string]string)
 	p.Routes[routeGroupID][reqPath][reqMethod] = upstreamID
@@ -44,16 +44,16 @@ func (p *Engine) NewRoute(routeGroupID, reqPath, reqMethod, upstreamID string, p
 }
 
 // 设置路由组及路由，如果存在则更新，不存在则新建
-func (p *Engine) SetRoute(routeGroupID, reqPath, reqMethod, upstreamID string, persistent bool) error {
+func (p *Engine) SetRoute(routeGroupID, reqPath, reqMethod, upstreamID string) error {
 	if routeGroupID == "" {
 		routeGroupID = global.GetIDStr()
 	}
 	if routeGroupID == "" {
 		return errors.New("没有传入路由组ID,并且无法自动创建ID")
 	}
-	if _, exist := p.Upstreams[upstreamID]; !exist {
-		return errors.New("上游ID:" + upstreamID + "不存在")
-	}
+	// if _, exist := p.Upstreams[upstreamID]; !exist {
+	// 	return errors.New("上游ID:" + upstreamID + "不存在")
+	// }
 	if reqPath == "" {
 		reqPath = "/"
 	}

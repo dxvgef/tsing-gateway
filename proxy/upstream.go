@@ -25,24 +25,27 @@ type Upstream struct {
 	Discover   Configurator   `json:"discover"`             // 节点发现配置
 }
 
-func (p *Engine) NewUpstream(upstream Upstream, persistent bool) error {
+func (p *Engine) NewUpstream(upstream Upstream) error {
 	if upstream.ID == "" {
-		return errors.New("must specify upstream ID")
+		upstream.ID = global.GetIDStr()
+	}
+	if upstream.ID == "" {
+		return errors.New("没有传入upstream.ID,并且无法自动创建ID")
 	}
 	if _, exist := p.Upstreams[upstream.ID]; exist {
-		return errors.New("upstream ID:" + upstream.ID + " already exists")
+		return errors.New("upstream.ID:" + upstream.ID + " 已存在")
 	}
 	p.Upstreams[upstream.ID] = upstream
 	return nil
 }
 
 // set upstream,create if it doesn't exist
-func (p *Engine) SetUpstream(upstream Upstream, persistent bool) error {
+func (p *Engine) SetUpstream(upstream Upstream) error {
 	if upstream.ID == "" {
 		upstream.ID = global.GetIDStr()
 	}
 	if upstream.ID == "" {
-		return errors.New("必须设置Upstream的ID")
+		return errors.New("没有传入upstream.ID,并且无法自动创建ID")
 	}
 	p.Upstreams[upstream.ID] = upstream
 	return nil
