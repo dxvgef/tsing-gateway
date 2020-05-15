@@ -13,3 +13,4 @@ go.sum
 *.bak
 *.config.local.yml
 temp_test.go
+__debug_bin

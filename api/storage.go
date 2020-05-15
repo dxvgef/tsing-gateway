@@ -7,10 +7,10 @@ import (
 	"github.com/dxvgef/tsing"
 	"github.com/rs/zerolog/log"
 
-	"github.com/dxvgef/tsing-gateway/source"
+	"github.com/dxvgef/tsing-gateway/storage"
 )
 
-// 数据源
+// 存储器
 type SourceHandler struct {
 	UnimplementedAPIServer
 }
@@ -23,8 +23,8 @@ func (*SourceHandler) SetSource(_ context.Context, req *Source) (*Null, error) {
 // 加载所有数据
 func (self *SourceHandler) LoadAll(ctx *tsing.Context) error {
 	var (
-		err        error
-		dataSource source.Source
+		err error
+		sa  storage.Storage
 		// 请求参数
 		req struct {
 			name       string // 数据源名称
@@ -52,14 +52,14 @@ func (self *SourceHandler) LoadAll(ctx *tsing.Context) error {
 	}
 
 	// 构建数据源实例
-	if dataSource, err = source.Build(proxyEngine, req.name, req.config); err != nil {
+	if sa, err = storage.Build(proxyEngine, req.name, req.config); err != nil {
 		log.Err(err).Send()
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
 
 	// 加载所有数据
-	if err = dataSource.LoadAll(); err != nil {
+	if err = sa.LoadAll(); err != nil {
 		log.Err(err).Send()
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)

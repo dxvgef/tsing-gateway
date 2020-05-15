@@ -5,14 +5,13 @@ import (
 	"testing"
 
 	"github.com/dxvgef/tsing-gateway/global"
-	"github.com/dxvgef/tsing-gateway/source"
 )
 
 func TestRoute(t *testing.T) {
 	var (
 		err        error
 		configFile string
-		dataSource source.Source
+		dataSource storage.Source
 	)
 	flag.StringVar(&configFile, "c", "./config.local.yml", "配置文件路径")
 	flag.Parse()
@@ -29,7 +28,7 @@ func TestRoute(t *testing.T) {
 	e := proxy.NewEngine()
 
 	// 构建数据源实例
-	dataSource, err = source.Build(e, global.Config.Source.Name, global.Config.Source.Config)
+	dataSource, err = storage.Build(e, global.Config.Source.Name, global.Config.Source.Config)
 	if err != nil {
 		t.Error(err.Error())
 		return

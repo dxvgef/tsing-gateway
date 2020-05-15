@@ -18,6 +18,10 @@ var Config struct {
 		Encode     string      `yaml:"encode"`
 		TimeFormat string      `yaml:"timeFormat"`
 	} `yaml:"logger"`
+	Storage struct {
+		Name   string `yaml:"name"`
+		Config string `yaml:"config"`
+	} `yaml:"storage"`
 	Proxy struct {
 		IP                string        `yaml:"ip"`
 		QuitWaitTimeout   time.Duration `yaml:"quitWaitTimeout"`

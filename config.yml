@@ -12,6 +12,23 @@ logger:
     # 时间格式，支持以下值
     # y 年 / m 月 / d 日 / h 时 / i 分 / s 秒 / timestamp unix时间戳
     timeFormat: "y-m-d h:i:s"
+# 存储器
+storage:
+    # 名称
+    name: "etcd"
+    # 存储器配置json字符串
+    config: '{
+        "endpoints": ["http://192.168.50.212:2379"],
+        "key_prefix": "tsing-gateway"
+    }
+    '
+    # 日志文件的权限，例如0755|0700|0600
+    fileMode: 0600
+    # 日志输出编码，支持json,console
+    encode: "console"
+    # 时间格式，支持以下值
+    # y 年 / m 月 / d 日 / h 时 / i 分 / s 秒 / timestamp unix时间戳
+    timeFormat: "y-m-d h:i:s"
 proxy:
     # 监听地址，留空表示监听0.0.0.0
     ip:
