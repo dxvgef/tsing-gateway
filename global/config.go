@@ -40,7 +40,6 @@ var Config struct {
 		} `yaml:"https"`
 	} `yaml:"proxy"`
 	API struct {
-		On                bool          `yaml:"on"`
 		IP                string        `yaml:"ip"`
 		Secret            string        `yaml:"secret"`
 		QuitWaitTimeout   time.Duration `yaml:"quitWaitTimeout"`

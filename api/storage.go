@@ -1,75 +1,29 @@
 package api
 
-import (
-	"context"
+import "github.com/dxvgef/tsing"
 
-	"github.com/dxvgef/filter"
-	"github.com/dxvgef/tsing"
-	"github.com/rs/zerolog/log"
-
-	"github.com/dxvgef/tsing-gateway/storage"
-)
-
-// 存储器
-type SourceHandler struct {
-	UnimplementedAPIServer
+type Data struct {
 }
 
-func (*SourceHandler) SetSource(_ context.Context, req *Source) (*Null, error) {
-	log.Debug().Interface("req", req).Send()
-	return &Null{}, nil
+func (*Data) LoadAll(ctx *tsing.Context) error {
+	if err := loadAll(); err != nil {
+		return Status(ctx, 500)
+	}
+	return Status(ctx, 204)
+}
+func (*Data) SaveAll(ctx *tsing.Context) error {
+	if err := saveAll(); err != nil {
+		return Status(ctx, 500)
+	}
+	return Status(ctx, 204)
 }
 
 // 加载所有数据
-func (self *SourceHandler) LoadAll(ctx *tsing.Context) error {
-	var (
-		err error
-		sa  storage.Storage
-		// 请求参数
-		req struct {
-			name       string // 数据源名称
-			config     string // 数据源配置(JSON字符串)
-			returnData bool   // 返回加载后的数据
-		}
-	)
+func loadAll() (err error) {
+	return storageInst.LoadAll()
+}
 
-	// 响应参数
-	resp := map[string]string{
-		"error": "",
-	}
-
-	// 接收并验证请求参数
-	if err = filter.MSet(
-		filter.El(&req.name, filter.FromString(ctx.Post("name")).
-			Required()),
-		filter.El(&req.config, filter.FromString(ctx.Post("config")).
-			Required().IsJSON()),
-		filter.El(&req.returnData, filter.FromString(ctx.Post("return_data")).
-			IsBool()),
-	); err != nil {
-		resp["error"] = err.Error()
-		return JSON(ctx, 400, &resp)
-	}
-
-	// 构建数据源实例
-	if sa, err = storage.Build(proxyEngine, req.name, req.config); err != nil {
-		log.Err(err).Send()
-		resp["error"] = err.Error()
-		return JSON(ctx, 500, &resp)
-	}
-
-	// 加载所有数据
-	if err = sa.LoadAll(); err != nil {
-		log.Err(err).Send()
-		resp["error"] = err.Error()
-		return JSON(ctx, 500, &resp)
-	}
-
-	// 输出所有配置给客户端
-	if req.returnData {
-		if dataJSON, err := proxyEngine.MarshalJSON(); err != nil {
-			return JSONBytes(ctx, 500, dataJSON)
-		}
-	}
-	return nil
+// 保存所有数据
+func saveAll() (err error) {
+	return storageInst.SaveAll()
 }

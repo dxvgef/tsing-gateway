@@ -51,8 +51,6 @@ proxy:
         http2: true
 # API服务
 api:
-    # 启用API服务
-    on: true
     # 访问密钥
     secret: "123456"
     # 监听地址，留空表示监听0.0.0.0
