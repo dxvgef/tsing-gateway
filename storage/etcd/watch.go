@@ -2,7 +2,6 @@ package etcd
 
 import (
 	"context"
-	"encoding/json"
 	"path"
 	"strings"
 
@@ -25,11 +24,9 @@ func (self *Etcd) Watch() error {
 					log.Err(err).Caller().Send()
 				}
 			case clientv3.EventTypeDelete:
-				log.Debug().
-					Str("type", event.Type.String()).
-					Str("key", string(event.Kv.Key)).
-					Str("value", string(event.Kv.Value)).
-					Send()
+				if err := self.delData(event.Kv.Key, event.Kv.Value); err != nil {
+					log.Err(err).Caller().Send()
+				}
 			}
 		}
 	}
@@ -60,6 +57,7 @@ func (self *Etcd) putData(key, value []byte) error {
 					return err
 				}
 			case "/routes/":
+				log.Debug().Caller().Msg("put了路由")
 				if err = self.setRoute(key, value); err != nil {
 					log.Err(err).Caller().Send()
 					return err
@@ -96,19 +94,86 @@ func (self *Etcd) setUpstream(value []byte) (err error) {
 }
 
 // 设置单个route
-func (self *Etcd) setRoute(key, value []byte) (err error) {
-	routeID, routePath := parseRouteGroup(key)
-	log.Debug().Str("routeID", routeID).Str("routePath", routePath).Send()
-	methods := make(map[string]string)
-	if err = json.Unmarshal(value, &methods); err != nil {
-		return
+func (self *Etcd) setRoute(key, value []byte) error {
+	routeID, routePath, routeMethod, err := parseRouteGroup(key)
+	if err != nil {
+		return err
 	}
-	log.Debug().Interface("methods", methods).Send()
-	for method, upstreamID := range methods {
-		if err = self.e.SetRoute(routeID, routePath, method, upstreamID); err != nil {
-			return
+	if routeMethod == "" {
+		return nil
+	}
+	if err = self.e.SetRoute(routeID, routePath, routeMethod, global.BytesToStr(value)); err != nil {
+		return err
+	}
+	log.Debug().Caller().Interface("proxy已更新", self.e).Send()
+	return nil
+}
+
+// del数据的操作
+func (self *Etcd) delData(key, value []byte) error {
+	var (
+		err     error
+		keyStr  = global.BytesToStr(key)
+		modules = []string{"/hosts/", "/upstreams/", "/routes/"}
+		keyPath strings.Builder
+	)
+	for k := range modules {
+		keyPath.WriteString(self.KeyPrefix)
+		keyPath.WriteString(modules[k])
+		if strings.HasPrefix(keyStr, keyPath.String()) {
+			switch modules[k] {
+			case "/hosts/":
+				if err = self.delHost(keyStr); err != nil {
+					log.Err(err).Caller().Send()
+					return err
+				}
+			case "/upstreams/":
+				if err = self.delUpstream(keyStr); err != nil {
+					log.Err(err).Caller().Send()
+					return err
+				}
+			case "/routes/":
+				if err = self.delRoute(key, value); err != nil {
+					log.Err(err).Caller().Send()
+					return err
+				}
+			}
+			break
 		}
+		keyPath.Reset()
+	}
+	return nil
+}
+
+// 删除单个host
+func (self *Etcd) delHost(key string) (err error) {
+	err = self.e.DelHost(path.Base(key))
+	if err != nil {
+		return err
 	}
 	log.Debug().Caller().Interface("proxy已更新", self.e).Send()
 	return
+}
+
+// 删除单个upstream
+func (self *Etcd) delUpstream(key string) (err error) {
+	if err = self.e.DelUpstream(path.Base(key)); err != nil {
+		return
+	}
+	log.Debug().Caller().Interface("proxy已更新", self.e).Send()
+	return
+}
+
+// 删除单个route
+func (self *Etcd) delRoute(key, value []byte) error {
+	log.Debug().Caller().Msg(global.BytesToStr(key))
+	routeID, routePath, routeMethod, err := parseRouteGroup(key)
+	if err != nil {
+		return err
+	}
+	if err = self.e.DelRoute(routeID, routePath, routeMethod); err != nil {
+		return err
+	}
+	log.Debug().Caller().Interface("proxy已更新", self.e).Send()
+	return nil
 }
