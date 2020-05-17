@@ -35,7 +35,7 @@ func main() {
 	// 设置默认logger
 	setDefaultLogger()
 
-	// 加载配置文件
+	// --------------------- 加载配置文件 ----------------------
 	flag.StringVar(&configFile, "c", "./config.yml", "配置文件路径")
 	flag.Parse()
 	err = global.LoadConfigFile(configFile)
@@ -44,7 +44,7 @@ func main() {
 		return
 	}
 
-	// 初始化代理引擎实例
+	// --------------------- 初始化代理引擎实例 ----------------------
 	proxyEngine.Hosts = make(map[string]string)
 	proxyEngine.Routes = make(map[string]map[string]map[string]string)
 	proxyEngine.Upstreams = make(map[string]proxy.Upstream)
@@ -56,7 +56,7 @@ func main() {
 		return
 	}
 
-	// 根据配置构建存储器
+	// --------------------- 根据配置构建存储器 ----------------------
 	sa, err = storage.Build(&proxyEngine, global.Config.Storage.Name, global.Config.Storage.Config)
 	if err != nil {
 		log.Fatal().Caller().Msg(err.Error())
@@ -70,6 +70,15 @@ func main() {
 	}
 	log.Debug().Interface("proxy", proxyEngine).Send()
 	log.Info().Msg("成功从" + global.Config.Storage.Name + "加载数据")
+
+	// 监听存储中的数据变更
+	go func() {
+		log.Info().Msg("开始监听数据变更")
+		if err = sa.Watch(); err != nil {
+			log.Fatal().Msg(err.Error())
+			return
+		}
+	}()
 
 	// 启动HTTP代理
 	if global.Config.Proxy.HTTP.Port > 0 {
@@ -101,15 +110,15 @@ func main() {
 
 	// 启动HTTPS代理
 	if global.Config.Proxy.HTTPS.Port > 0 {
-		proxyHttpsServer = &http.Server{
-			Addr:              global.Config.Proxy.IP + ":" + strconv.FormatUint(uint64(global.Config.Proxy.HTTPS.Port), 10),
-			Handler:           &proxyEngine,
-			ReadTimeout:       global.Config.Proxy.ReadTimeout,
-			WriteTimeout:      global.Config.Proxy.WriteTimeout,
-			IdleTimeout:       global.Config.Proxy.IdleTimeout,
-			ReadHeaderTimeout: global.Config.Proxy.ReadHeaderTimeout,
-		}
 		go func() {
+			proxyHttpsServer = &http.Server{
+				Addr:              global.Config.Proxy.IP + ":" + strconv.FormatUint(uint64(global.Config.Proxy.HTTPS.Port), 10),
+				Handler:           &proxyEngine,
+				ReadTimeout:       global.Config.Proxy.ReadTimeout,
+				WriteTimeout:      global.Config.Proxy.WriteTimeout,
+				IdleTimeout:       global.Config.Proxy.IdleTimeout,
+				ReadHeaderTimeout: global.Config.Proxy.ReadHeaderTimeout,
+			}
 			serverStatus.Reset()
 			serverStatus.WriteString("启动网关HTTPS")
 			if global.Config.Proxy.HTTPS.HTTP2 {
@@ -141,20 +150,20 @@ func main() {
 		log.Info().Msg(serverStatus.String())
 
 		var (
-			apiConfig tsing.Config
-			rootPath  string
+			apiEngineConfig tsing.Config
+			rootPath        string
 		)
-		apiConfig.EventHandler = api.EventHandler
-		apiConfig.Recover = true
-		apiConfig.EventShortPath = true
-		apiConfig.EventSource = true
-		apiConfig.EventTrace = true
-		apiConfig.EventHandlerError = true
+		apiEngineConfig.EventHandler = api.EventHandler
+		apiEngineConfig.Recover = true
+		apiEngineConfig.EventShortPath = true
+		apiEngineConfig.EventSource = true
+		apiEngineConfig.EventTrace = true
+		apiEngineConfig.EventHandlerError = true
 		rootPath, err = os.Getwd()
 		if err == nil {
-			apiConfig.RootPath = rootPath
+			apiEngineConfig.RootPath = rootPath
 		}
-		apiEngine := tsing.New(&apiConfig)
+		apiEngine := tsing.New(&apiEngineConfig)
 		// 设置路由
 		api.SetRouter(apiEngine)
 
@@ -209,21 +218,13 @@ func main() {
 		}
 	}
 
+	// 启动api https服务
 	if global.Config.API.HTTPS.Port > 0 {
 		serverStatus.Reset()
 		serverStatus.WriteString("启动API HTTP服务 https://")
 		serverStatus.WriteString(proxyHttpsServer.Addr)
 		log.Info().Msg(serverStatus.String())
 	}
-
-	// 监听存储中的数据变更
-	go func() {
-		log.Info().Msg("开始监听数据变更")
-		if err = sa.Watch(); err != nil {
-			log.Fatal().Msg(err.Error())
-			return
-		}
-	}()
 
 	// 阻塞并等待退出超时
 	quit := make(chan os.Signal, 1)

@@ -8,6 +8,7 @@ import (
 	"github.com/coreos/etcd/clientv3"
 
 	"github.com/dxvgef/tsing-gateway/global"
+	"github.com/dxvgef/tsing-gateway/proxy"
 )
 
 // 存储所有数据
@@ -165,6 +166,62 @@ func (self *Etcd) DelHost(hostname string) error {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
 	if _, err := self.client.Delete(ctx, key.String()); err != nil {
+		return err
+	}
+	return nil
+}
+
+// 设置单个upstream，如果不存在则创建
+func (self *Etcd) PutUpstream(upstream proxy.Upstream) error {
+	var key strings.Builder
+
+	key.WriteString(self.KeyPrefix)
+	key.WriteString("/upstreams/")
+	key.WriteString(upstream.ID)
+
+	jsonBytes, err := upstream.MarshalJSON()
+	if err != nil {
+		return err
+	}
+
+	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer ctxCancel()
+	if _, err = self.client.Put(ctx, key.String(), global.BytesToStr(jsonBytes)); err != nil {
+		return err
+	}
+	return nil
+}
+
+// 删除upstream
+func (self *Etcd) DelUpstream(upstreamID string) error {
+	var key strings.Builder
+
+	key.WriteString(self.KeyPrefix)
+	key.WriteString("/upstreams/")
+	key.WriteString(upstreamID)
+
+	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer ctxCancel()
+	if _, err := self.client.Delete(ctx, key.String()); err != nil {
+		return err
+	}
+	return nil
+}
+
+// 设置单个route，如果不存在则创建
+func (self *Etcd) PutRoute(routeGroupID, routePath, routeMethod, upstreamID string) error {
+	var key strings.Builder
+
+	key.WriteString(self.KeyPrefix)
+	key.WriteString("/routes/")
+	key.WriteString(routeGroupID)
+	key.WriteString(routePath)
+	key.WriteString("/")
+	key.WriteString(routeMethod)
+
+	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer ctxCancel()
+	if _, err := self.client.Put(ctx, key.String(), upstreamID); err != nil {
 		return err
 	}
 	return nil
