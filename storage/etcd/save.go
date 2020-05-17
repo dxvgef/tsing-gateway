@@ -80,6 +80,9 @@ func (self *Etcd) SaveAllRoutes() (err error) {
 	for routeGroupID, v := range self.e.Routes {
 		for routePath, vv := range v {
 			for routeMethod, upstreamID := range vv {
+				if routeMethod == "" {
+					continue
+				}
 				key.WriteString(self.KeyPrefix)
 				key.WriteString("/routes/")
 				key.WriteString(routeGroupID)
