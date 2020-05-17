@@ -71,7 +71,7 @@ func (self *Etcd) SaveAllRoutes() (err error) {
 	// 清空原来的配置
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
-	if _, err := self.client.Delete(ctx, key.String(), clientv3.WithPrefix()); err != nil {
+	if _, err = self.client.Delete(ctx, key.String(), clientv3.WithPrefix()); err != nil {
 		return err
 	}
 	key.Reset()
