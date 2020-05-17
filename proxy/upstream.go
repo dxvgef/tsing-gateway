@@ -39,7 +39,6 @@ func (p *Engine) NewUpstream(upstream Upstream) error {
 	return nil
 }
 
-// set upstream,create if it doesn't exist
 func (p *Engine) SetUpstream(upstream Upstream) error {
 	if upstream.ID == "" {
 		upstream.ID = global.GetIDStr()
@@ -48,6 +47,14 @@ func (p *Engine) SetUpstream(upstream Upstream) error {
 		return errors.New("没有传入upstream.ID,并且无法自动创建ID")
 	}
 	p.Upstreams[upstream.ID] = upstream
+	return nil
+}
+
+func (p *Engine) DelUpstream(upstreamID string) error {
+	if upstreamID == "" {
+		return errors.New("upstreamID不能为空")
+	}
+	delete(p.Upstreams, upstreamID)
 	return nil
 }
 

@@ -2,7 +2,6 @@ package etcd
 
 import (
 	"context"
-	"encoding/json"
 	"strings"
 	"time"
 
@@ -64,7 +63,7 @@ func (self *Etcd) SaveAllUpstreams() error {
 }
 
 // 存储所有route数据
-func (self *Etcd) SaveAllRoutes() error {
+func (self *Etcd) SaveAllRoutes() (err error) {
 	var key strings.Builder
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/routes/")
@@ -80,26 +79,26 @@ func (self *Etcd) SaveAllRoutes() error {
 	// 写入路由
 	for routeGroupID, v := range self.e.Routes {
 		for routePath, vv := range v {
-			value, err := json.Marshal(vv)
-			if err != nil {
-				return err
-			}
-			key.WriteString(self.KeyPrefix)
-			key.WriteString("/routes/")
-			key.WriteString(routeGroupID)
-			key.WriteString(routePath)
-			ctx2, ctx2Cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			_, err = self.client.Put(ctx2, key.String(), global.BytesToStr(value))
-			if err != nil {
+			for routeMethod, upstreamID := range vv {
+				key.WriteString(self.KeyPrefix)
+				key.WriteString("/routes/")
+				key.WriteString(routeGroupID)
+				key.WriteString(routePath)
+				key.WriteString("/")
+				key.WriteString(routeMethod)
+				ctx2, ctx2Cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				_, err = self.client.Put(ctx2, key.String(), upstreamID)
+				if err != nil {
+					ctx2Cancel()
+					return
+				}
+				key.Reset()
 				ctx2Cancel()
-				return err
 			}
-			key.Reset()
-			ctx2Cancel()
 		}
 	}
 
-	return nil
+	return
 }
 
 // 存储所有host数据

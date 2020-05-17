@@ -2,7 +2,8 @@ package etcd
 
 import (
 	"context"
-	"encoding/json"
+	"errors"
+	"path"
 	"strings"
 	"time"
 
@@ -64,18 +65,14 @@ func (self *Etcd) LoadAllRoutes() error {
 	if err != nil {
 		return err
 	}
-	methods := make(map[string]string)
 	for k := range resp.Kvs {
-		routeGroupID, routePath := parseRouteGroup(resp.Kvs[k].Key)
-		err = json.Unmarshal(resp.Kvs[k].Value, &methods)
+		routeGroupID, routePath, routeMethod, err := parseRouteGroup(resp.Kvs[k].Key)
 		if err != nil {
 			return err
 		}
-		for routeMethod, upstreamID := range methods {
-			err = self.e.SetRoute(routeGroupID, routePath, routeMethod, upstreamID)
-			if err != nil {
-				return err
-			}
+		err = self.e.SetRoute(routeGroupID, routePath, routeMethod, global.BytesToStr(resp.Kvs[k].Value))
+		if err != nil {
+			return err
 		}
 	}
 	return nil
@@ -104,14 +101,32 @@ func (self *Etcd) LoadAllHosts() error {
 	return nil
 }
 
-// 从etcd key里解析路由组信息
-func parseRouteGroup(key []byte) (routeGroupID, routePath string) {
+// 从etcd key里解析路由信息
+func parseRouteGroup(key []byte) (routeGroupID, routePath, routeMethod string, err error) {
 	keyStr := global.TrimPrefix(key, "/routes/")
 	pos := strings.Index(keyStr, "/")
 	if pos == -1 {
+		err = errors.New("路由解析失败")
 		return
 	}
 	routeGroupID = keyStr[:pos]
+	if routeGroupID == "" {
+		err = errors.New("路由组ID失败")
+		return
+	}
 	routePath = strings.TrimLeft(keyStr, routeGroupID)
+	routeMethod = path.Base(routePath)
+	if routeMethod != "GET" &&
+		routeMethod != "POST" &&
+		routeMethod != "PUT" &&
+		routeMethod != "DELETE" &&
+		routeMethod != "OPTIONS" &&
+		routeMethod != "HEAD" &&
+		routeMethod != "TRACE" &&
+		routeMethod != "PATCH" &&
+		routeMethod != "CONNECT" {
+		err = errors.New("路由方法解析失败")
+	}
+	routePath = strings.TrimRight(routePath, "/"+routeMethod)
 	return
 }
