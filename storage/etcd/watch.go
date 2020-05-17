@@ -20,11 +20,11 @@ func (self *Etcd) Watch() error {
 			switch event.Type {
 			// 添加key
 			case clientv3.EventTypePut:
-				if err := self.putData(event.Kv.Key, event.Kv.Value); err != nil {
+				if err := self.putDataToLocal(event.Kv.Key, event.Kv.Value); err != nil {
 					log.Err(err).Caller().Send()
 				}
 			case clientv3.EventTypeDelete:
-				if err := self.delData(event.Kv.Key, event.Kv.Value); err != nil {
+				if err := self.delDataToLocal(event.Kv.Key); err != nil {
 					log.Err(err).Caller().Send()
 				}
 			}
@@ -34,7 +34,7 @@ func (self *Etcd) Watch() error {
 }
 
 // put数据的操作
-func (self *Etcd) putData(key, value []byte) error {
+func (self *Etcd) putDataToLocal(key, value []byte) error {
 	var (
 		err     error
 		keyStr  = global.BytesToStr(key)
@@ -47,18 +47,18 @@ func (self *Etcd) putData(key, value []byte) error {
 		if strings.HasPrefix(keyStr, keyPath.String()) {
 			switch modules[k] {
 			case "/hosts/":
-				if err = self.setHost(keyStr, value); err != nil {
+				if err = self.setHostToLocal(keyStr, value); err != nil {
 					log.Err(err).Caller().Send()
 					return err
 				}
 			case "/upstreams/":
-				if err = self.setUpstream(value); err != nil {
+				if err = self.setUpstreamToLocal(value); err != nil {
 					log.Err(err).Caller().Send()
 					return err
 				}
 			case "/routes/":
 				log.Debug().Caller().Msg("put了路由")
-				if err = self.setRoute(key, value); err != nil {
+				if err = self.setRouteToLocal(key, value); err != nil {
 					log.Err(err).Caller().Send()
 					return err
 				}
@@ -70,8 +70,8 @@ func (self *Etcd) putData(key, value []byte) error {
 	return nil
 }
 
-// 设置单个host
-func (self *Etcd) setHost(key string, value []byte) (err error) {
+// 设置本地单个host
+func (self *Etcd) setHostToLocal(key string, value []byte) (err error) {
 	err = self.e.SetHost(path.Base(key), global.BytesToStr(value))
 	if err != nil {
 		return err
@@ -80,8 +80,8 @@ func (self *Etcd) setHost(key string, value []byte) (err error) {
 	return
 }
 
-// 设置单个upstream
-func (self *Etcd) setUpstream(value []byte) (err error) {
+// 设置本地单个upstream
+func (self *Etcd) setUpstreamToLocal(value []byte) (err error) {
 	var upstream proxy.Upstream
 	if err = upstream.UnmarshalJSON(value); err != nil {
 		return
@@ -93,8 +93,8 @@ func (self *Etcd) setUpstream(value []byte) (err error) {
 	return
 }
 
-// 设置单个route
-func (self *Etcd) setRoute(key, value []byte) error {
+// 设置本地单个route
+func (self *Etcd) setRouteToLocal(key, value []byte) error {
 	routeID, routePath, routeMethod, err := parseRouteGroup(key)
 	if err != nil {
 		return err
@@ -110,7 +110,7 @@ func (self *Etcd) setRoute(key, value []byte) error {
 }
 
 // del数据的操作
-func (self *Etcd) delData(key, value []byte) error {
+func (self *Etcd) delDataToLocal(key []byte) error {
 	var (
 		err     error
 		keyStr  = global.BytesToStr(key)
@@ -123,17 +123,17 @@ func (self *Etcd) delData(key, value []byte) error {
 		if strings.HasPrefix(keyStr, keyPath.String()) {
 			switch modules[k] {
 			case "/hosts/":
-				if err = self.delHost(keyStr); err != nil {
+				if err = self.delHostToLocal(keyStr); err != nil {
 					log.Err(err).Caller().Send()
 					return err
 				}
 			case "/upstreams/":
-				if err = self.delUpstream(keyStr); err != nil {
+				if err = self.delUpstreamToLocal(keyStr); err != nil {
 					log.Err(err).Caller().Send()
 					return err
 				}
 			case "/routes/":
-				if err = self.delRoute(key, value); err != nil {
+				if err = self.delRouteToLocal(key); err != nil {
 					log.Err(err).Caller().Send()
 					return err
 				}
@@ -145,8 +145,8 @@ func (self *Etcd) delData(key, value []byte) error {
 	return nil
 }
 
-// 删除单个host
-func (self *Etcd) delHost(key string) (err error) {
+// 删除本地单个host
+func (self *Etcd) delHostToLocal(key string) (err error) {
 	err = self.e.DelHost(path.Base(key))
 	if err != nil {
 		return err
@@ -155,8 +155,8 @@ func (self *Etcd) delHost(key string) (err error) {
 	return
 }
 
-// 删除单个upstream
-func (self *Etcd) delUpstream(key string) (err error) {
+// 删除本地单个upstream
+func (self *Etcd) delUpstreamToLocal(key string) (err error) {
 	if err = self.e.DelUpstream(path.Base(key)); err != nil {
 		return
 	}
@@ -164,8 +164,8 @@ func (self *Etcd) delUpstream(key string) (err error) {
 	return
 }
 
-// 删除单个route
-func (self *Etcd) delRoute(key, value []byte) error {
+// 删除本地单个route
+func (self *Etcd) delRouteToLocal(key []byte) error {
 	log.Debug().Caller().Msg(global.BytesToStr(key))
 	routeID, routePath, routeMethod, err := parseRouteGroup(key)
 	if err != nil {

@@ -4,4 +4,4 @@ import (
 	"github.com/dxvgef/tsing-gateway/storage"
 )
 
-var storageInst storage.Storage
+var sa storage.Storage

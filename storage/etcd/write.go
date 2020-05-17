@@ -137,3 +137,35 @@ func (self *Etcd) SaveAllHosts() error {
 
 	return nil
 }
+
+// 设置单个host，如果不存在则创建
+func (self *Etcd) PutHost(hostname, upstreamID string) error {
+	var key strings.Builder
+
+	key.WriteString(self.KeyPrefix)
+	key.WriteString("/hosts/")
+	key.WriteString(hostname)
+
+	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer ctxCancel()
+	if _, err := self.client.Put(ctx, key.String(), upstreamID); err != nil {
+		return err
+	}
+	return nil
+}
+
+// 删除host
+func (self *Etcd) DelHost(hostname string) error {
+	var key strings.Builder
+
+	key.WriteString(self.KeyPrefix)
+	key.WriteString("/hosts/")
+	key.WriteString(hostname)
+
+	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer ctxCancel()
+	if _, err := self.client.Delete(ctx, key.String()); err != nil {
+		return err
+	}
+	return nil
+}
