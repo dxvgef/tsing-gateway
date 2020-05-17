@@ -30,6 +30,18 @@ func (p *Engine) SetHost(hostname, routeGroupID string) error {
 	return nil
 }
 
+// 删除主机
+func (p *Engine) DelHost(hostname string) error {
+	hostname = strings.ToLower(hostname)
+	// if _, exist := p.Routes[routeGroupID]; !exist {
+	// 	err := errors.New("路由组ID:" + routeGroupID + "不存在")
+	// 	log.Err(err).Caller().Send()
+	// 	return err
+	// }
+	delete(p.Hosts, hostname)
+	return nil
+}
+
 // 匹配主机名，返回对应的路由组ID
 func (p *Engine) MatchHost(reqHost string) (string, bool) {
 	pos := strings.LastIndex(reqHost, ":")

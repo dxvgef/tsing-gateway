@@ -72,6 +72,25 @@ func (p *Engine) SetRoute(routeGroupID, reqPath, reqMethod, upstreamID string) e
 	return nil
 }
 
+// 删除路由
+func (p *Engine) DelRoute(routeGroupID, reqPath, reqMethod string) error {
+	if routeGroupID == "" {
+		routeGroupID = global.GetIDStr()
+	}
+	if routeGroupID == "" {
+		return errors.New("routeGroupID不能为空")
+	}
+	if reqPath == "" {
+		return errors.New("reqPath不能为空")
+	}
+	if reqMethod == "" {
+		return errors.New("reqMethod不能为空")
+	}
+	reqMethod = strings.ToUpper(reqMethod)
+	delete(p.Routes[routeGroupID][reqPath], reqMethod)
+	return nil
+}
+
 // 匹配路由，返回集群ID和匹配结果的HTTP状态码
 func (p *Engine) MatchRoute(req *http.Request) (upstream Upstream, status int) {
 	routeGroupID := ""

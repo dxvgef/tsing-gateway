@@ -49,6 +49,15 @@ func (p *Engine) SetRouteGroup(routeGroupID string) (routeGroup RouteGroup, err 
 	return
 }
 
+// 删除路由组，所有子路由都将被清空
+func (p *Engine) DelRouteGroup(routeGroupID string) error {
+	if routeGroupID == "" {
+		return errors.New("routeGroupID不能为空")
+	}
+	delete(p.Routes, routeGroupID)
+	return nil
+}
+
 // 在路由组内设置路由，如果存在则更新，不存在则新建
 func (g *RouteGroup) SetRoute(path, method, upstreamID string) error {
 	if path == "" {
@@ -76,5 +85,18 @@ func (g *RouteGroup) SetRoute(path, method, upstreamID string) error {
 	}
 	g.p.Routes[g.ID][path][method] = upstreamID
 
+	return nil
+}
+
+// 在路由组内删除路由
+func (g *RouteGroup) DelRoute(path, method string) error {
+	if path == "" {
+		return errors.New("path不能为空")
+	}
+	if method == "" {
+		return errors.New("method不能为空")
+	}
+	method = strings.ToUpper(method)
+	delete(g.p.Routes[g.ID][path], method)
 	return nil
 }
