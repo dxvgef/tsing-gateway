@@ -7,14 +7,18 @@ import (
 type Data struct{}
 
 func (*Data) LoadAll(ctx *tsing.Context) error {
+	resp := make(map[string]string)
 	if err := loadAll(); err != nil {
-		return Status(ctx, 500)
+		resp["error"] = err.Error()
+		return JSON(ctx, 500, &resp)
 	}
 	return Status(ctx, 204)
 }
 func (*Data) SaveAll(ctx *tsing.Context) error {
+	resp := make(map[string]string)
 	if err := saveAll(); err != nil {
-		return Status(ctx, 500)
+		resp["error"] = err.Error()
+		return JSON(ctx, 500, &resp)
 	}
 	return Status(ctx, 204)
 }
