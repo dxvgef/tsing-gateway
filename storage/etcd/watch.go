@@ -66,7 +66,6 @@ func (self *Etcd) putDataToLocal(key, value []byte) error {
 		}
 		keyPath.Reset()
 	}
-	log.Debug().Caller().Interface("proxy", self.e).Msg("已更新本地数据")
 	return nil
 }
 
