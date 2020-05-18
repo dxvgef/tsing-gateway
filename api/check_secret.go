@@ -2,16 +2,14 @@ package api
 
 import (
 	"github.com/dxvgef/tsing"
+	"github.com/rs/zerolog/log"
 
 	"github.com/dxvgef/tsing-gateway/global"
 )
 
-func checkSecret(ctx *tsing.Context) error {
-	if ctx.Request.Method == "GET" && ctx.Query("secret") != global.Config.API.Secret {
-		ctx.Abort()
-		return Status(ctx, 401)
-	}
-	if ctx.Request.Method != "GET" && ctx.Post("secret") != global.Config.API.Secret {
+func checkHeader(ctx *tsing.Context) error {
+	log.Debug().Str("secret", ctx.Request.Header.Get("SECRET")).Msg("检查secfret")
+	if ctx.Request.Header.Get("SECRET") != global.Config.API.Secret {
 		ctx.Abort()
 		return Status(ctx, 401)
 	}
