@@ -5,7 +5,7 @@ import "github.com/dxvgef/tsing"
 // 设置路由
 func SetRouter(engine *tsing.Engine) {
 	// 检查secert
-	router := engine.Group("", checkSecret)
+	router := engine.Group("", checkHeader)
 
 	var dataHandler Data
 	router.GET("/data/", dataHandler.LoadAll)
@@ -13,5 +13,9 @@ func SetRouter(engine *tsing.Engine) {
 
 	var hostHandler Host
 	router.PUT("/host/", hostHandler.Put)
-	router.DELETE("/host/:id", hostHandler.Del)
+	router.DELETE("/host/:hostname", hostHandler.Del)
+
+	var upstreamHandler Host
+	router.PUT("/upstream/", upstreamHandler.Put)
+	router.DELETE("/upstream/:id", upstreamHandler.Del)
 }
