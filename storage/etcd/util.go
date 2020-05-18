@@ -9,8 +9,8 @@ import (
 )
 
 // 从etcd key里解析路由信息
-func parseRouteGroup(key []byte) (routeGroupID, routePath, routeMethod string, err error) {
-	keyStr := global.TrimPrefix(key, "/routes/")
+func parseRouteGroup(key []byte, keyPrefix string) (routeGroupID, routePath, routeMethod string, err error) {
+	keyStr := strings.TrimPrefix(global.BytesToStr(key), keyPrefix+"/routes/")
 	pos := strings.Index(keyStr, "/")
 	if pos == -1 {
 		err = errors.New("路由解析失败")
@@ -18,7 +18,7 @@ func parseRouteGroup(key []byte) (routeGroupID, routePath, routeMethod string, e
 	}
 	routeGroupID = keyStr[:pos]
 	if routeGroupID == "" {
-		err = errors.New("路由组ID失败")
+		err = errors.New("路由组ID解析失败")
 		return
 	}
 	routePath = strings.TrimLeft(keyStr, routeGroupID)
