@@ -6,11 +6,6 @@ import (
 	"github.com/dxvgef/tsing-gateway/global"
 )
 
-type Configurator struct {
-	Name   string `json:"name"`
-	Config string `json:"config"`
-}
-
 // 端点信息
 type Endpoint struct {
 	Addr      string `json:"addr"`       // 地址
@@ -20,9 +15,9 @@ type Endpoint struct {
 }
 
 type Upstream struct {
-	ID         string         `json:"id"`                   // 上游ID
-	Middleware []Configurator `json:"middleware,omitempty"` // 中间件配置
-	Discover   Configurator   `json:"discover"`             // 节点发现配置
+	ID         string                `json:"id"`                   // 上游ID
+	Middleware []global.ModuleConfig `json:"middleware,omitempty"` // 中间件配置
+	Discover   global.ModuleConfig   `json:"discover"`             // 节点发现配置
 }
 
 func (p *Engine) NewUpstream(upstream Upstream) error {

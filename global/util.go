@@ -5,6 +5,11 @@ import (
 	"unsafe"
 )
 
+type ModuleConfig struct {
+	Name   string `json:"name"`
+	Config string `json:"config"`
+}
+
 func BytesToStr(value []byte) string {
 	return *(*string)(unsafe.Pointer(&value)) // nolint
 }
