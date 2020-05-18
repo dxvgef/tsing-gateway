@@ -29,13 +29,3 @@ func FormatTime(str string) string {
 	str = strings.Replace(str, "s", "05", -1)
 	return str
 }
-
-func TrimPrefix(key []byte, prefix string) string {
-	str := BytesToStr(key)
-	pos := strings.Index(str, prefix)
-	if pos == -1 {
-		return ""
-	}
-	start := pos + len(prefix)
-	return str[start:]
-}
