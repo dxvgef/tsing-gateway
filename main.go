@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
-	"strings"
 
 	"github.com/dxvgef/tsing"
 	"github.com/rs/zerolog/log"
@@ -29,7 +28,6 @@ func main() {
 		apiHttpServer    *http.Server
 		apiHttpsServer   *http.Server
 		sa               storage.Storage
-		serverStatus     strings.Builder
 	)
 
 	// 设置默认logger
@@ -62,13 +60,12 @@ func main() {
 		log.Fatal().Caller().Msg(err.Error())
 		return
 	}
-	log.Debug().Interface("storage", sa).Send()
+	log.Debug().Caller().Interface("storage", sa).Send()
 	// 从存储器中加载所有数据
 	if err = sa.LoadAll(); err != nil {
 		log.Fatal().Caller().Msg(err.Error())
 		return
 	}
-	log.Debug().Interface("proxy", proxyEngine).Send()
 	log.Info().Msg("成功从" + global.Config.Storage.Name + "加载数据")
 
 	// 监听存储中的数据变更
@@ -91,12 +88,7 @@ func main() {
 			ReadHeaderTimeout: global.Config.Proxy.ReadHeaderTimeout,
 		}
 		go func() {
-			serverStatus.Reset()
-			serverStatus.WriteString("启动网关HTTP服务")
-			serverStatus.WriteString(" http://")
-			serverStatus.WriteString(proxyHttpServer.Addr)
-			log.Info().Msg(serverStatus.String())
-
+			log.Info().Msg("启动网关HTTP服务 http://" + proxyHttpServer.Addr)
 			if err = proxyHttpServer.ListenAndServe(); err != nil {
 				if err == http.ErrServerClosed {
 					log.Info().Msg("HTTP代理服务已关闭")
@@ -119,24 +111,19 @@ func main() {
 				IdleTimeout:       global.Config.Proxy.IdleTimeout,
 				ReadHeaderTimeout: global.Config.Proxy.ReadHeaderTimeout,
 			}
-			serverStatus.Reset()
-			serverStatus.WriteString("启动网关HTTPS")
 			if global.Config.Proxy.HTTPS.HTTP2 {
 				if err = http2.ConfigureServer(proxyHttpsServer, &http2.Server{}); err != nil {
 					log.Fatal().Caller().Msg(err.Error())
 					return
 				}
-				serverStatus.WriteString("/HTTP2")
 			}
-			serverStatus.WriteString("服务 https://")
-			serverStatus.WriteString(proxyHttpServer.Addr)
-			log.Info().Msg(serverStatus.String())
+			log.Info().Msg("启动网关HTTPS服务 https://" + proxyHttpsServer.Addr)
 			if err = proxyHttpsServer.ListenAndServeTLS("server.cert", "server.key"); err != nil {
 				if err == http.ErrServerClosed {
 					log.Info().Msg("HTTPS代理服务已关闭")
 					return
 				}
-				log.Fatal().Caller().Msg(err.Error())
+				log.Fatal().Caller().Caller().Msg(err.Error())
 				return
 			}
 		}()
@@ -144,11 +131,6 @@ func main() {
 
 	// 启动API服务
 	if global.Config.API.HTTP.Port > 0 || global.Config.API.HTTPS.Port > 0 {
-		serverStatus.Reset()
-		serverStatus.WriteString("启动API HTTP服务 https://")
-		serverStatus.WriteString(proxyHttpServer.Addr)
-		log.Info().Msg(serverStatus.String())
-
 		var (
 			apiEngineConfig tsing.Config
 			rootPath        string
@@ -164,9 +146,10 @@ func main() {
 			apiEngineConfig.RootPath = rootPath
 		}
 		apiEngine := tsing.New(&apiEngineConfig)
+		// 设置存储器
+		api.SetStorage(sa)
 		// 设置路由
 		api.SetRouter(apiEngine)
-
 		// 启动api http服务
 		if global.Config.API.HTTP.Port > 0 {
 			go func() {
@@ -178,6 +161,7 @@ func main() {
 					IdleTimeout:       global.Config.API.IdleTimeout,
 					ReadHeaderTimeout: global.Config.API.ReadHeaderTimeout,
 				}
+				log.Info().Msg("启动API HTTP服务 https://" + apiHttpServer.Addr)
 				if err = apiHttpServer.ListenAndServe(); err != nil {
 					if err == http.ErrServerClosed {
 						log.Info().Msg("API HTTP服务已关闭")
@@ -206,6 +190,7 @@ func main() {
 						return
 					}
 				}
+				log.Info().Msg("启动API HTTPS服务 https://" + apiHttpsServer.Addr)
 				if err = apiHttpsServer.ListenAndServeTLS("server.cert", "server.key"); err != nil {
 					if err == http.ErrServerClosed {
 						log.Info().Msg("API HTTPS服务已关闭")
@@ -216,14 +201,6 @@ func main() {
 				}
 			}()
 		}
-	}
-
-	// 启动api https服务
-	if global.Config.API.HTTPS.Port > 0 {
-		serverStatus.Reset()
-		serverStatus.WriteString("启动API HTTP服务 https://")
-		serverStatus.WriteString(proxyHttpsServer.Addr)
-		log.Info().Msg(serverStatus.String())
 	}
 
 	// 阻塞并等待退出超时

@@ -38,11 +38,11 @@ proxy:
     # HTTP配置
     http:
         # 监听端口，如果为0则禁用HTTP
-        port: 8000
+        port: 80
     # HTTPS配置
     https:
         # 端口号，如果为0则禁用HTTPS
-        port: 8443
+        port: 443
         # 服务端证书文件
         certFile: "./server.cert"
         # 服务端私钥文件
@@ -68,11 +68,11 @@ api:
     # HTTP配置
     http:
         # 监听端口，如果为0则禁用HTTP
-        port: 18000
+        port: 10080
     # HTTPS配置
     https:
         # 端口号，如果为0则禁用HTTPS
-        port: 18443
+        port: 10443
         # 服务端证书文件
         certFile: "./server.cert"
         # 服务端私钥文件

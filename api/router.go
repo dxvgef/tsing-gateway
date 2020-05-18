@@ -4,7 +4,10 @@ import "github.com/dxvgef/tsing"
 
 // 设置路由
 func SetRouter(engine *tsing.Engine) {
+	// 检查secert
+	router := engine.Group("", checkSecret)
+
 	var dataHandler Data
-	engine.POST("/data/load-all", dataHandler.LoadAll)
-	engine.POST("/data/save-all", dataHandler.SaveAll)
+	router.GET("/data/", dataHandler.LoadAll)
+	router.PUT("/data/", dataHandler.SaveAll)
 }

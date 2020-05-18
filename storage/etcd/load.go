@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/coreos/etcd/clientv3"
+	"github.com/rs/zerolog/log"
 
 	"github.com/dxvgef/tsing-gateway/global"
 	"github.com/dxvgef/tsing-gateway/proxy"
@@ -22,6 +23,7 @@ func (self *Etcd) LoadAll() (err error) {
 	if err = self.LoadAllHosts(); err != nil {
 		return
 	}
+	log.Debug().Caller().Interface("proxy", self.e).Send()
 	return
 }
 
