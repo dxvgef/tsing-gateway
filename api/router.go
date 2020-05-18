@@ -10,4 +10,8 @@ func SetRouter(engine *tsing.Engine) {
 	var dataHandler Data
 	router.GET("/data/", dataHandler.LoadAll)
 	router.PUT("/data/", dataHandler.SaveAll)
+
+	var hostHandler Host
+	router.PUT("/host/", hostHandler.Put)
+	router.DELETE("/host/:id", hostHandler.Del)
 }
