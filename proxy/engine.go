@@ -14,7 +14,7 @@ import (
 // 代理引擎
 type Engine struct {
 	ID              int64                                   `json:"-"`
-	Middleware      []Configurator                          `json:"middleware,omitempty"` // 全局中间件
+	Middleware      []global.ModuleConfig                   `json:"middleware,omitempty"` // 全局中间件
 	Hosts           map[string]string                       `json:"hosts,omitempty"`      // [hostname]routeGroupID
 	Routes          map[string]map[string]map[string]string `json:"routes,omitempty"`     // [routeGroupID][path][method]upstreamID
 	Upstreams       map[string]Upstream                     `json:"upstreams,omitempty"`  // [upstreamID]Upstream
