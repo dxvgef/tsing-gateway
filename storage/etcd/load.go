@@ -23,7 +23,7 @@ func (self *Etcd) LoadAll() (err error) {
 	if err = self.LoadAllHosts(); err != nil {
 		return
 	}
-	log.Debug().Caller().Interface("proxy", self.e).Send()
+	log.Debug().Caller().Interface("proxy", self.e).Msg("加载所有配置")
 	return
 }
 
@@ -44,6 +44,9 @@ func (self *Etcd) LoadAllUpstreams() error {
 		err = upstream.UnmarshalJSON(resp.Kvs[k].Value)
 		if err != nil {
 			return err
+		}
+		if upstream.ID == "" {
+			continue
 		}
 		err = self.e.SetUpstream(upstream)
 		if err != nil {

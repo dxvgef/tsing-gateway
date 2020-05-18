@@ -28,6 +28,7 @@ func (self *Etcd) SaveAll() (err error) {
 // 存储所有upstream数据
 func (self *Etcd) SaveAllUpstreams() error {
 	var (
+		err       error
 		jsonBytes []byte
 		key       strings.Builder
 	)
@@ -35,25 +36,35 @@ func (self *Etcd) SaveAllUpstreams() error {
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/upstreams/")
 
+	// 将配置保存到临时变量中
+	upstreams := make(map[string]string, len(self.e.Upstreams))
+	for k := range self.e.Upstreams {
+		if k == "" {
+			continue
+		}
+		jsonBytes, err = self.e.Upstreams[k].MarshalJSON()
+		if err != nil {
+			continue
+		}
+		upstreams[k] = global.BytesToStr(jsonBytes)
+	}
+
 	// 清空原来的配置
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
-	_, err := self.client.Delete(ctx, key.String(), clientv3.WithPrefix())
+	_, err = self.client.Delete(ctx, key.String(), clientv3.WithPrefix())
 	if err != nil {
 		return err
 	}
 	key.Reset()
 
 	// 写入upstreams
-	for k := range self.e.Upstreams {
-		if jsonBytes, err = self.e.Upstreams[k].MarshalJSON(); err != nil {
-			return err
-		}
+	for k := range upstreams {
 		key.WriteString(self.KeyPrefix)
 		key.WriteString("/upstreams/")
-		key.WriteString(self.e.Upstreams[k].ID)
+		key.WriteString(k)
 		ctx2, ctx2Cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		if _, err = self.client.Put(ctx2, key.String(), global.BytesToStr(jsonBytes)); err != nil {
+		if _, err = self.client.Put(ctx2, key.String(), upstreams[k]); err != nil {
 			ctx2Cancel()
 			return err
 		}
@@ -65,7 +76,29 @@ func (self *Etcd) SaveAllUpstreams() error {
 
 // 存储所有route数据
 func (self *Etcd) SaveAllRoutes() (err error) {
-	var key strings.Builder
+	var (
+		key    strings.Builder
+		routes = make(map[string]map[string]map[string]string)
+	)
+
+	// 将配置保存到临时变量中
+	for routeGroupID, v := range self.e.Routes {
+		if _, exist := routes[routeGroupID]; !exist {
+			routes[routeGroupID] = make(map[string]map[string]string)
+		}
+		for routePath, vv := range v {
+			if _, exist := routes[routeGroupID][routePath]; !exist {
+				routes[routeGroupID][routePath] = make(map[string]string)
+			}
+			for routeMethod, upstreamID := range vv {
+				if routeMethod == "" {
+					continue
+				}
+				routes[routeGroupID][routePath][routeMethod] = upstreamID
+			}
+		}
+	}
+
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/routes/")
 
@@ -78,7 +111,7 @@ func (self *Etcd) SaveAllRoutes() (err error) {
 	key.Reset()
 
 	// 写入路由
-	for routeGroupID, v := range self.e.Routes {
+	for routeGroupID, v := range routes {
 		for routePath, vv := range v {
 			for routeMethod, upstreamID := range vv {
 				if routeMethod == "" {
@@ -107,7 +140,15 @@ func (self *Etcd) SaveAllRoutes() (err error) {
 
 // 存储所有host数据
 func (self *Etcd) SaveAllHosts() error {
-	var key strings.Builder
+	var (
+		key   strings.Builder
+		hosts = make(map[string]string)
+	)
+
+	// 将配置保存到临时变量中
+	for hostname, upstreamID := range self.e.Hosts {
+		hosts[hostname] = upstreamID
+	}
 
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/hosts/")
@@ -122,7 +163,7 @@ func (self *Etcd) SaveAllHosts() error {
 	key.Reset()
 
 	// 写入路由
-	for hostname, upstreamID := range self.e.Hosts {
+	for hostname, upstreamID := range hosts {
 		key.WriteString(self.KeyPrefix)
 		key.WriteString("/hosts/")
 		key.WriteString(hostname)

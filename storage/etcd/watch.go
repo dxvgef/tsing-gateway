@@ -21,11 +21,11 @@ func (self *Etcd) Watch() error {
 			// 添加key
 			case clientv3.EventTypePut:
 				if err := self.putDataToLocal(event.Kv.Key, event.Kv.Value); err != nil {
-					log.Err(err).Caller().Send()
+					log.Err(err).Caller().Msg("更新本地数据时出错")
 				}
 			case clientv3.EventTypeDelete:
 				if err := self.delDataToLocal(event.Kv.Key); err != nil {
-					log.Err(err).Caller().Send()
+					log.Err(err).Caller().Msg("删除本地数据时出错")
 				}
 			}
 		}
@@ -48,18 +48,17 @@ func (self *Etcd) putDataToLocal(key, value []byte) error {
 			switch modules[k] {
 			case "/hosts/":
 				if err = self.setHostToLocal(keyStr, value); err != nil {
-					log.Err(err).Caller().Send()
+					log.Err(err).Caller().Msg("更新本地主机数据时出错")
 					return err
 				}
 			case "/upstreams/":
 				if err = self.setUpstreamToLocal(value); err != nil {
-					log.Err(err).Caller().Send()
+					log.Err(err).Caller().Msg("更新本地上游数据时出错")
 					return err
 				}
 			case "/routes/":
-				log.Debug().Caller().Msg("put了路由")
 				if err = self.setRouteToLocal(key, value); err != nil {
-					log.Err(err).Caller().Send()
+					log.Err(err).Caller().Msg("更新本地路由数据时出错")
 					return err
 				}
 			}
@@ -67,6 +66,7 @@ func (self *Etcd) putDataToLocal(key, value []byte) error {
 		}
 		keyPath.Reset()
 	}
+	log.Debug().Caller().Interface("proxy", self.e).Msg("已更新本地数据")
 	return nil
 }
 
@@ -76,7 +76,6 @@ func (self *Etcd) setHostToLocal(key string, value []byte) (err error) {
 	if err != nil {
 		return err
 	}
-	log.Debug().Caller().Interface("proxy已更新", self.e).Send()
 	return
 }
 
@@ -89,7 +88,6 @@ func (self *Etcd) setUpstreamToLocal(value []byte) (err error) {
 	if err = self.e.SetUpstream(upstream); err != nil {
 		return
 	}
-	log.Debug().Caller().Interface("proxy已更新", self.e).Send()
 	return
 }
 
@@ -105,7 +103,6 @@ func (self *Etcd) setRouteToLocal(key, value []byte) error {
 	if err = self.e.SetRoute(routeID, routePath, routeMethod, global.BytesToStr(value)); err != nil {
 		return err
 	}
-	log.Debug().Caller().Interface("proxy已更新", self.e).Send()
 	return nil
 }
 
@@ -124,17 +121,17 @@ func (self *Etcd) delDataToLocal(key []byte) error {
 			switch modules[k] {
 			case "/hosts/":
 				if err = self.delHostToLocal(keyStr); err != nil {
-					log.Err(err).Caller().Send()
+					log.Err(err).Caller().Msg("删除本地主机数据时出错")
 					return err
 				}
 			case "/upstreams/":
 				if err = self.delUpstreamToLocal(keyStr); err != nil {
-					log.Err(err).Caller().Send()
+					log.Err(err).Caller().Msg("删除本地上游数据时出错")
 					return err
 				}
 			case "/routes/":
 				if err = self.delRouteToLocal(key); err != nil {
-					log.Err(err).Caller().Send()
+					log.Err(err).Caller().Msg("删除本地路由数据时出错")
 					return err
 				}
 			}
@@ -151,7 +148,6 @@ func (self *Etcd) delHostToLocal(key string) (err error) {
 	if err != nil {
 		return err
 	}
-	log.Debug().Caller().Interface("proxy已更新", self.e).Send()
 	return
 }
 
@@ -160,13 +156,11 @@ func (self *Etcd) delUpstreamToLocal(key string) (err error) {
 	if err = self.e.DelUpstream(path.Base(key)); err != nil {
 		return
 	}
-	log.Debug().Caller().Interface("proxy已更新", self.e).Send()
 	return
 }
 
 // 删除本地单个route
 func (self *Etcd) delRouteToLocal(key []byte) error {
-	log.Debug().Caller().Msg(global.BytesToStr(key))
 	routeID, routePath, routeMethod, err := parseRouteGroup(key)
 	if err != nil {
 		return err
@@ -174,6 +168,5 @@ func (self *Etcd) delRouteToLocal(key []byte) error {
 	if err = self.e.DelRoute(routeID, routePath, routeMethod); err != nil {
 		return err
 	}
-	log.Debug().Caller().Interface("proxy已更新", self.e).Send()
 	return nil
 }
