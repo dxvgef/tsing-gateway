@@ -60,13 +60,11 @@ func main() {
 		log.Fatal().Caller().Msg(err.Error())
 		return
 	}
-	log.Debug().Caller().Interface("storage", sa).Send()
 	// 从存储器中加载所有数据
 	if err = sa.LoadAll(); err != nil {
 		log.Fatal().Caller().Msg(err.Error())
 		return
 	}
-	log.Info().Msg("成功从" + global.Config.Storage.Name + "加载数据")
 
 	// 监听存储中的数据变更
 	go func() {
@@ -88,7 +86,7 @@ func main() {
 			ReadHeaderTimeout: global.Config.Proxy.ReadHeaderTimeout,
 		}
 		go func() {
-			log.Info().Msg("启动网关HTTP服务 http://" + proxyHttpServer.Addr)
+			log.Info().Str("addr", proxyHttpServer.Addr).Msg("网关HTTP服务")
 			if err = proxyHttpServer.ListenAndServe(); err != nil {
 				if err == http.ErrServerClosed {
 					log.Info().Msg("HTTP代理服务已关闭")
@@ -117,7 +115,7 @@ func main() {
 					return
 				}
 			}
-			log.Info().Msg("启动网关HTTPS服务 https://" + proxyHttpsServer.Addr)
+			log.Info().Bool("HTTP2", global.Config.Proxy.HTTPS.HTTP2).Str("addr", proxyHttpsServer.Addr).Msg("网关HTTPS服务")
 			if err = proxyHttpsServer.ListenAndServeTLS("server.cert", "server.key"); err != nil {
 				if err == http.ErrServerClosed {
 					log.Info().Msg("HTTPS代理服务已关闭")
@@ -161,7 +159,7 @@ func main() {
 					IdleTimeout:       global.Config.API.IdleTimeout,
 					ReadHeaderTimeout: global.Config.API.ReadHeaderTimeout,
 				}
-				log.Info().Msg("启动API HTTP服务 https://" + apiHttpServer.Addr)
+				log.Info().Str("addr", apiHttpServer.Addr).Msg("API HTTP服务")
 				if err = apiHttpServer.ListenAndServe(); err != nil {
 					if err == http.ErrServerClosed {
 						log.Info().Msg("API HTTP服务已关闭")
@@ -190,7 +188,7 @@ func main() {
 						return
 					}
 				}
-				log.Info().Msg("启动API HTTPS服务 https://" + apiHttpsServer.Addr)
+				log.Info().Bool("HTTP2", global.Config.API.HTTPS.HTTP2).Str("addr", apiHttpsServer.Addr).Msg("API HTTPS服务")
 				if err = apiHttpsServer.ListenAndServeTLS("server.cert", "server.key"); err != nil {
 					if err == http.ErrServerClosed {
 						log.Info().Msg("API HTTPS服务已关闭")
