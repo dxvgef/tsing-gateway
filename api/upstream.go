@@ -1,9 +1,10 @@
 package api
 
 import (
-	"github.com/dxvgef/filter"
 	"github.com/dxvgef/tsing"
+	"github.com/rs/zerolog/log"
 
+	"github.com/dxvgef/tsing-gateway/global"
 	"github.com/dxvgef/tsing-gateway/proxy"
 )
 
@@ -11,17 +12,21 @@ type Upstream struct{}
 
 func (self *Upstream) Put(ctx *tsing.Context) error {
 	resp := make(map[string]string)
-	var upstream proxy.Upstream
-	err := filter.MSet(
-		filter.El(upstream.ID, filter.FromString(ctx.Post("upstream_id"), "upstream_id").Required()),
-		filter.El(upstream.Middleware, filter.FromString(ctx.Post("middleware"), "middleware").Required()),
-		filter.El(upstream.Discover, filter.FromString(ctx.Post("discover"), "discover").Required()),
+	var (
+		upstream    proxy.Upstream
+		upstreamStr = ctx.Post("upstream")
 	)
+	err := upstream.UnmarshalJSON(global.StrToBytes(upstreamStr))
 	if err != nil {
+		log.Err(err).Caller().Msg("解析中间件配置时出错")
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
-	if err = sa.PutUpstream(upstream); err != nil {
+	if upstream.ID == "" {
+		resp["error"] = "ID参数不能为空"
+		return JSON(ctx, 400, &resp)
+	}
+	if err = sa.PutUpstream(upstream.ID, upstreamStr); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -30,12 +35,12 @@ func (self *Upstream) Put(ctx *tsing.Context) error {
 
 func (self *Upstream) Del(ctx *tsing.Context) error {
 	resp := make(map[string]string)
-	hostname := ctx.PathParams.Value("hostname")
-	if hostname == "" {
-		resp["error"] = "hostname参数不能为空"
+	id := ctx.PathParams.Value("id")
+	if id == "" {
+		resp["error"] = "id参数不能为空"
 		return JSON(ctx, 400, &resp)
 	}
-	err := sa.DelUpstream(ctx.PathParams.Value("name"))
+	err := sa.DelUpstream(id)
 	if err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)

@@ -8,7 +8,6 @@ import (
 	"github.com/coreos/etcd/clientv3"
 
 	"github.com/dxvgef/tsing-gateway/global"
-	"github.com/dxvgef/tsing-gateway/proxy"
 )
 
 // 存储所有数据
@@ -213,21 +212,16 @@ func (self *Etcd) DelHost(hostname string) error {
 }
 
 // 设置单个upstream，如果不存在则创建
-func (self *Etcd) PutUpstream(upstream proxy.Upstream) error {
+func (self *Etcd) PutUpstream(id, upstreamJSON string) error {
 	var key strings.Builder
 
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/upstreams/")
-	key.WriteString(upstream.ID)
-
-	jsonBytes, err := upstream.MarshalJSON()
-	if err != nil {
-		return err
-	}
+	key.WriteString(id)
 
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
-	if _, err = self.client.Put(ctx, key.String(), global.BytesToStr(jsonBytes)); err != nil {
+	if _, err := self.client.Put(ctx, key.String(), upstreamJSON); err != nil {
 		return err
 	}
 	return nil

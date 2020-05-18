@@ -20,7 +20,7 @@ type Storage interface {
 	Watch() error                     // 监听数据变更
 	PutHost(string, string) error     // 设置单个主机
 	DelHost(string) error             // 删除单个主机
-	PutUpstream(proxy.Upstream) error // 设置单个主机
+	PutUpstream(string, string) error // 设置单个主机
 	DelUpstream(string) error         // 删除单个主机
 }
 
