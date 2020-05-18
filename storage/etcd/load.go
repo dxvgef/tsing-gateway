@@ -69,7 +69,7 @@ func (self *Etcd) LoadAllRoutes() error {
 		return err
 	}
 	for k := range resp.Kvs {
-		routeGroupID, routePath, routeMethod, err := parseRouteGroup(resp.Kvs[k].Key)
+		routeGroupID, routePath, routeMethod, err := parseRouteGroup(resp.Kvs[k].Key, self.KeyPrefix)
 		if err != nil {
 			return err
 		}
@@ -97,7 +97,7 @@ func (self *Etcd) LoadAllHosts() error {
 	}
 	for k := range resp.Kvs {
 		err = self.e.SetHost(
-			global.TrimPrefix(resp.Kvs[k].Key, "/hosts/"),
+			strings.TrimPrefix(global.BytesToStr(resp.Kvs[k].Key), "/hosts/"),
 			global.BytesToStr(resp.Kvs[k].Value),
 		)
 		if err != nil {
