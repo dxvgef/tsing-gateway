@@ -4,7 +4,7 @@ package proxy
 
 import (
 	json "encoding/json"
-
+	global "github.com/dxvgef/tsing-gateway/global"
 	easyjson "github.com/mailru/easyjson"
 	jlexer "github.com/mailru/easyjson/jlexer"
 	jwriter "github.com/mailru/easyjson/jwriter"
@@ -18,7 +18,7 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjson370d5093DecodeGithubComDxvgefTsingGatewayEngine(in *jlexer.Lexer, out *Upstream) {
+func easyjson370d5093DecodeGithubComDxvgefTsingGatewayProxy(in *jlexer.Lexer, out *Upstream) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -47,23 +47,23 @@ func easyjson370d5093DecodeGithubComDxvgefTsingGatewayEngine(in *jlexer.Lexer, o
 				in.Delim('[')
 				if out.Middleware == nil {
 					if !in.IsDelim(']') {
-						out.Middleware = make([]Configurator, 0, 2)
+						out.Middleware = make([]global.ModuleConfig, 0, 2)
 					} else {
-						out.Middleware = []Configurator{}
+						out.Middleware = []global.ModuleConfig{}
 					}
 				} else {
 					out.Middleware = (out.Middleware)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v1 Configurator
-					(v1).UnmarshalEasyJSON(in)
+					var v1 global.ModuleConfig
+					easyjson370d5093DecodeGithubComDxvgefTsingGatewayGlobal(in, &v1)
 					out.Middleware = append(out.Middleware, v1)
 					in.WantComma()
 				}
 				in.Delim(']')
 			}
 		case "discover":
-			(out.Discover).UnmarshalEasyJSON(in)
+			easyjson370d5093DecodeGithubComDxvgefTsingGatewayGlobal(in, &out.Discover)
 		default:
 			in.SkipRecursive()
 		}
@@ -74,7 +74,7 @@ func easyjson370d5093DecodeGithubComDxvgefTsingGatewayEngine(in *jlexer.Lexer, o
 		in.Consumed()
 	}
 }
-func easyjson370d5093EncodeGithubComDxvgefTsingGatewayEngine(out *jwriter.Writer, in Upstream) {
+func easyjson370d5093EncodeGithubComDxvgefTsingGatewayProxy(out *jwriter.Writer, in Upstream) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -92,7 +92,7 @@ func easyjson370d5093EncodeGithubComDxvgefTsingGatewayEngine(out *jwriter.Writer
 				if v2 > 0 {
 					out.RawByte(',')
 				}
-				(v3).MarshalEasyJSON(out)
+				easyjson370d5093EncodeGithubComDxvgefTsingGatewayGlobal(out, v3)
 			}
 			out.RawByte(']')
 		}
@@ -100,7 +100,7 @@ func easyjson370d5093EncodeGithubComDxvgefTsingGatewayEngine(out *jwriter.Writer
 	{
 		const prefix string = ",\"discover\":"
 		out.RawString(prefix)
-		(in.Discover).MarshalEasyJSON(out)
+		easyjson370d5093EncodeGithubComDxvgefTsingGatewayGlobal(out, in.Discover)
 	}
 	out.RawByte('}')
 }
@@ -108,27 +108,76 @@ func easyjson370d5093EncodeGithubComDxvgefTsingGatewayEngine(out *jwriter.Writer
 // MarshalJSON supports json.Marshaler interface
 func (v Upstream) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson370d5093EncodeGithubComDxvgefTsingGatewayEngine(&w, v)
+	easyjson370d5093EncodeGithubComDxvgefTsingGatewayProxy(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Upstream) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson370d5093EncodeGithubComDxvgefTsingGatewayEngine(w, v)
+	easyjson370d5093EncodeGithubComDxvgefTsingGatewayProxy(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Upstream) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson370d5093DecodeGithubComDxvgefTsingGatewayEngine(&r, v)
+	easyjson370d5093DecodeGithubComDxvgefTsingGatewayProxy(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Upstream) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson370d5093DecodeGithubComDxvgefTsingGatewayEngine(l, v)
+	easyjson370d5093DecodeGithubComDxvgefTsingGatewayProxy(l, v)
 }
-func easyjson370d5093DecodeGithubComDxvgefTsingGatewayEngine1(in *jlexer.Lexer, out *Endpoint) {
+func easyjson370d5093DecodeGithubComDxvgefTsingGatewayGlobal(in *jlexer.Lexer, out *global.ModuleConfig) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeString()
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "name":
+			out.Name = string(in.String())
+		case "config":
+			out.Config = string(in.String())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson370d5093EncodeGithubComDxvgefTsingGatewayGlobal(out *jwriter.Writer, in global.ModuleConfig) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"name\":"
+		out.RawString(prefix[1:])
+		out.String(string(in.Name))
+	}
+	{
+		const prefix string = ",\"config\":"
+		out.RawString(prefix)
+		out.String(string(in.Config))
+	}
+	out.RawByte('}')
+}
+func easyjson370d5093DecodeGithubComDxvgefTsingGatewayProxy1(in *jlexer.Lexer, out *Endpoint) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -165,7 +214,7 @@ func easyjson370d5093DecodeGithubComDxvgefTsingGatewayEngine1(in *jlexer.Lexer, 
 		in.Consumed()
 	}
 }
-func easyjson370d5093EncodeGithubComDxvgefTsingGatewayEngine1(out *jwriter.Writer, in Endpoint) {
+func easyjson370d5093EncodeGithubComDxvgefTsingGatewayProxy1(out *jwriter.Writer, in Endpoint) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -195,96 +244,23 @@ func easyjson370d5093EncodeGithubComDxvgefTsingGatewayEngine1(out *jwriter.Write
 // MarshalJSON supports json.Marshaler interface
 func (v Endpoint) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson370d5093EncodeGithubComDxvgefTsingGatewayEngine1(&w, v)
+	easyjson370d5093EncodeGithubComDxvgefTsingGatewayProxy1(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Endpoint) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson370d5093EncodeGithubComDxvgefTsingGatewayEngine1(w, v)
+	easyjson370d5093EncodeGithubComDxvgefTsingGatewayProxy1(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Endpoint) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson370d5093DecodeGithubComDxvgefTsingGatewayEngine1(&r, v)
+	easyjson370d5093DecodeGithubComDxvgefTsingGatewayProxy1(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Endpoint) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson370d5093DecodeGithubComDxvgefTsingGatewayEngine1(l, v)
-}
-func easyjson370d5093DecodeGithubComDxvgefTsingGatewayEngine2(in *jlexer.Lexer, out *Configurator) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeString()
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "name":
-			out.Name = string(in.String())
-		case "config":
-			out.Config = string(in.String())
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson370d5093EncodeGithubComDxvgefTsingGatewayEngine2(out *jwriter.Writer, in Configurator) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"name\":"
-		out.RawString(prefix[1:])
-		out.String(string(in.Name))
-	}
-	{
-		const prefix string = ",\"config\":"
-		out.RawString(prefix)
-		out.String(string(in.Config))
-	}
-	out.RawByte('}')
-}
-
-// MarshalJSON supports json.Marshaler interface
-func (v Configurator) MarshalJSON() ([]byte, error) {
-	w := jwriter.Writer{}
-	easyjson370d5093EncodeGithubComDxvgefTsingGatewayEngine2(&w, v)
-	return w.Buffer.BuildBytes(), w.Error
-}
-
-// MarshalEasyJSON supports easyjson.Marshaler interface
-func (v Configurator) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson370d5093EncodeGithubComDxvgefTsingGatewayEngine2(w, v)
-}
-
-// UnmarshalJSON supports json.Unmarshaler interface
-func (v *Configurator) UnmarshalJSON(data []byte) error {
-	r := jlexer.Lexer{Data: data}
-	easyjson370d5093DecodeGithubComDxvgefTsingGatewayEngine2(&r, v)
-	return r.Error()
-}
-
-// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *Configurator) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson370d5093DecodeGithubComDxvgefTsingGatewayEngine2(l, v)
+	easyjson370d5093DecodeGithubComDxvgefTsingGatewayProxy1(l, v)
 }

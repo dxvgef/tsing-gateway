@@ -4,7 +4,7 @@ package proxy
 
 import (
 	json "encoding/json"
-
+	global "github.com/dxvgef/tsing-gateway/global"
 	easyjson "github.com/mailru/easyjson"
 	jlexer "github.com/mailru/easyjson/jlexer"
 	jwriter "github.com/mailru/easyjson/jwriter"
@@ -18,7 +18,7 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjson42c839f2DecodeGithubComDxvgefTsingGatewayEngine(in *jlexer.Lexer, out *Engine) {
+func easyjson42c839f2DecodeGithubComDxvgefTsingGatewayProxy(in *jlexer.Lexer, out *Engine) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -45,16 +45,16 @@ func easyjson42c839f2DecodeGithubComDxvgefTsingGatewayEngine(in *jlexer.Lexer, o
 				in.Delim('[')
 				if out.Middleware == nil {
 					if !in.IsDelim(']') {
-						out.Middleware = make([]Configurator, 0, 2)
+						out.Middleware = make([]global.ModuleConfig, 0, 2)
 					} else {
-						out.Middleware = []Configurator{}
+						out.Middleware = []global.ModuleConfig{}
 					}
 				} else {
 					out.Middleware = (out.Middleware)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v1 Configurator
-					(v1).UnmarshalEasyJSON(in)
+					var v1 global.ModuleConfig
+					easyjson42c839f2DecodeGithubComDxvgefTsingGatewayGlobal(in, &v1)
 					out.Middleware = append(out.Middleware, v1)
 					in.WantComma()
 				}
@@ -166,7 +166,7 @@ func easyjson42c839f2DecodeGithubComDxvgefTsingGatewayEngine(in *jlexer.Lexer, o
 		in.Consumed()
 	}
 }
-func easyjson42c839f2EncodeGithubComDxvgefTsingGatewayEngine(out *jwriter.Writer, in Engine) {
+func easyjson42c839f2EncodeGithubComDxvgefTsingGatewayProxy(out *jwriter.Writer, in Engine) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -184,7 +184,7 @@ func easyjson42c839f2EncodeGithubComDxvgefTsingGatewayEngine(out *jwriter.Writer
 				if v7 > 0 {
 					out.RawByte(',')
 				}
-				(v8).MarshalEasyJSON(out)
+				easyjson42c839f2EncodeGithubComDxvgefTsingGatewayGlobal(out, v8)
 			}
 			out.RawByte(']')
 		}
@@ -299,23 +299,72 @@ func easyjson42c839f2EncodeGithubComDxvgefTsingGatewayEngine(out *jwriter.Writer
 // MarshalJSON supports json.Marshaler interface
 func (v Engine) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson42c839f2EncodeGithubComDxvgefTsingGatewayEngine(&w, v)
+	easyjson42c839f2EncodeGithubComDxvgefTsingGatewayProxy(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Engine) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson42c839f2EncodeGithubComDxvgefTsingGatewayEngine(w, v)
+	easyjson42c839f2EncodeGithubComDxvgefTsingGatewayProxy(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Engine) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson42c839f2DecodeGithubComDxvgefTsingGatewayEngine(&r, v)
+	easyjson42c839f2DecodeGithubComDxvgefTsingGatewayProxy(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Engine) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson42c839f2DecodeGithubComDxvgefTsingGatewayEngine(l, v)
+	easyjson42c839f2DecodeGithubComDxvgefTsingGatewayProxy(l, v)
+}
+func easyjson42c839f2DecodeGithubComDxvgefTsingGatewayGlobal(in *jlexer.Lexer, out *global.ModuleConfig) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeString()
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "name":
+			out.Name = string(in.String())
+		case "config":
+			out.Config = string(in.String())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson42c839f2EncodeGithubComDxvgefTsingGatewayGlobal(out *jwriter.Writer, in global.ModuleConfig) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"name\":"
+		out.RawString(prefix[1:])
+		out.String(string(in.Name))
+	}
+	{
+		const prefix string = ",\"config\":"
+		out.RawString(prefix)
+		out.String(string(in.Config))
+	}
+	out.RawByte('}')
 }
