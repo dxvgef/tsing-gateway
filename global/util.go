@@ -5,6 +5,10 @@ import (
 	"unsafe"
 )
 
+var Methods = []string{
+	"*", "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "TRACE", "CONNECT",
+}
+
 type ModuleConfig struct {
 	Name   string `json:"name"`
 	Config string `json:"config"`
