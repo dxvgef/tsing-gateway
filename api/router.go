@@ -12,10 +12,17 @@ func SetRouter(engine *tsing.Engine) {
 	router.PUT("/data/", dataHandler.SaveAll)
 
 	var hostHandler Host
-	router.PUT("/host/", hostHandler.Put)
-	router.DELETE("/host/:hostname", hostHandler.Del)
+	router.POST("/host/", hostHandler.Add)
+	router.PUT("/host/:hostname", hostHandler.Put)
+	router.DELETE("/host/:hostname", hostHandler.Delete)
 
 	var upstreamHandler Upstream
-	router.PUT("/upstream/", upstreamHandler.Put)
+	router.POST("/upstream/", upstreamHandler.Add)
+	router.PUT("/upstream/:id", upstreamHandler.Put)
 	router.DELETE("/upstream/:id", upstreamHandler.Del)
+
+	var routeHandler Route
+	router.POST("/route/", routeHandler.Update)
+	router.PUT("/route/", routeHandler.Update)
+	router.DELETE("/route/{:groupID}/:path/:method", routeHandler.Delete)
 }
