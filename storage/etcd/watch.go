@@ -82,6 +82,7 @@ func (self *Etcd) setHostToLocal(key string, value []byte) (err error) {
 func (self *Etcd) setUpstreamToLocal(value []byte) (err error) {
 	var upstream proxy.Upstream
 	if err = upstream.UnmarshalJSON(value); err != nil {
+		log.Debug().Str("value", global.BytesToStr(value)).Msg("解析数据失败")
 		return
 	}
 	if err = self.e.SetUpstream(upstream); err != nil {
