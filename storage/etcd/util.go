@@ -5,6 +5,8 @@ import (
 	"path"
 	"strings"
 
+	"github.com/dxvgef/gommon/slice"
+
 	"github.com/dxvgef/tsing-gateway/global"
 )
 
@@ -23,16 +25,7 @@ func parseRouteGroup(key []byte, keyPrefix string) (routeGroupID, routePath, rou
 	}
 	routePath = strings.TrimLeft(keyStr, routeGroupID)
 	routeMethod = path.Base(routePath)
-	if routeMethod != "GET" &&
-		routeMethod != "POST" &&
-		routeMethod != "PUT" &&
-		routeMethod != "DELETE" &&
-		routeMethod != "OPTIONS" &&
-		routeMethod != "HEAD" &&
-		routeMethod != "TRACE" &&
-		routeMethod != "PATCH" &&
-		routeMethod != "CONNECT" &&
-		routeMethod != "*" {
+	if !slice.InStr(global.Methods, routeMethod) {
 		err = errors.New("路由方法解析失败")
 	}
 	routePath = strings.TrimRight(routePath, "/"+routeMethod)
