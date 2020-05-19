@@ -146,6 +146,8 @@ func main() {
 		apiEngine := tsing.New(&apiEngineConfig)
 		// 设置存储器
 		api.SetStorage(sa)
+		// 设置代理引擎
+		api.SetProxyEngine(&proxyEngine)
 		// 设置路由
 		api.SetRouter(apiEngine)
 		// 启动api http服务
