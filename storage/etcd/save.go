@@ -2,10 +2,12 @@ package etcd
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"time"
 
 	"github.com/coreos/etcd/clientv3"
+	"github.com/dxvgef/gommon/slice"
 
 	"github.com/dxvgef/tsing-gateway/global"
 )
@@ -212,7 +214,7 @@ func (self *Etcd) DelHost(hostname string) error {
 }
 
 // 设置单个upstream，如果不存在则创建
-func (self *Etcd) PutUpstream(id, upstreamJSON string) error {
+func (self *Etcd) PutUpstream(id, upstreamConfig string) error {
 	var key strings.Builder
 
 	key.WriteString(self.KeyPrefix)
@@ -221,7 +223,7 @@ func (self *Etcd) PutUpstream(id, upstreamJSON string) error {
 
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
-	if _, err := self.client.Put(ctx, key.String(), upstreamJSON); err != nil {
+	if _, err := self.client.Put(ctx, key.String(), upstreamConfig); err != nil {
 		return err
 	}
 	return nil
@@ -245,8 +247,12 @@ func (self *Etcd) DelUpstream(upstreamID string) error {
 
 // 设置单个route，如果不存在则创建
 func (self *Etcd) PutRoute(routeGroupID, routePath, routeMethod, upstreamID string) error {
-	var key strings.Builder
+	routeMethod = strings.ToUpper(routeMethod)
+	if !slice.InStr(global.Methods, routeMethod) {
+		return errors.New("HTTP方法无效")
+	}
 
+	var key strings.Builder
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/routes/")
 	key.WriteString(routeGroupID)
