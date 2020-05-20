@@ -6,8 +6,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/dxvgef/gommon/slice"
-
 	"github.com/dxvgef/tsing-gateway/global"
 )
 
@@ -27,7 +25,7 @@ func (p *Engine) SetRoute(routeGroupID, routePath, routeMethod, upstreamID strin
 	} else {
 		routeMethod = strings.ToUpper(routeMethod)
 	}
-	if !slice.InStr(global.Methods, routeMethod) {
+	if !global.InStr(global.Methods, routeMethod) {
 		return errors.New("HTTP方法无效")
 	}
 	if _, exist := p.Routes[routeGroupID]; !exist {

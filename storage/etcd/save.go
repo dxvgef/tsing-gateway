@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/coreos/etcd/clientv3"
-	"github.com/dxvgef/gommon/slice"
 
 	"github.com/dxvgef/tsing-gateway/global"
 )
@@ -246,7 +245,7 @@ func (self *Etcd) DelUpstream(upstreamID string) error {
 // 设置单个route，如果不存在则创建
 func (self *Etcd) PutRoute(routeGroupID, routePath, routeMethod, upstreamID string) error {
 	routeMethod = strings.ToUpper(routeMethod)
-	if !slice.InStr(global.Methods, routeMethod) {
+	if !global.InStr(global.Methods, routeMethod) {
 		return errors.New("HTTP方法无效")
 	}
 

@@ -8,7 +8,6 @@ import (
 	"unsafe"
 
 	"github.com/bwmarrin/snowflake"
-	"github.com/dxvgef/gommon/slice"
 	"github.com/rs/zerolog/log"
 )
 
@@ -93,7 +92,7 @@ func ParseRoute(key, keyPrefix string) (routeGroupID, routePath, routeMethod str
 
 	// 获取方法(最后一个路径)
 	routeMethod = path.Base(key)
-	if !slice.InStr(Methods, routeMethod) {
+	if !InStr(Methods, routeMethod) {
 		err = errors.New("路由方法解析失败")
 		return
 	}
@@ -106,4 +105,14 @@ func ParseRoute(key, keyPrefix string) (routeGroupID, routePath, routeMethod str
 	}
 	routePath = key[:pos]
 	return
+}
+
+// InStr 检查string值在一个string slice中是否存在
+func InStr(s []string, str string) bool {
+	for k := range s {
+		if str == s[k] {
+			return true
+		}
+	}
+	return false
 }
