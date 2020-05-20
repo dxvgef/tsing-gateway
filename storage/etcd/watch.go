@@ -93,7 +93,7 @@ func (self *Etcd) setUpstreamToLocal(value []byte) (err error) {
 
 // 设置本地单个route
 func (self *Etcd) setRouteToLocal(key, value []byte) error {
-	routeID, routePath, routeMethod, err := parseRouteGroup(key, self.KeyPrefix)
+	routeID, routePath, routeMethod, err := global.ParseRoute(global.BytesToStr(key), self.KeyPrefix)
 	if err != nil {
 		return err
 	}
@@ -161,7 +161,7 @@ func (self *Etcd) delUpstreamToLocal(key string) (err error) {
 
 // 删除本地单个route
 func (self *Etcd) delRouteToLocal(key []byte) error {
-	routeID, routePath, routeMethod, err := parseRouteGroup(key, self.KeyPrefix)
+	routeID, routePath, routeMethod, err := global.ParseRoute(global.BytesToStr(key), self.KeyPrefix)
 	if err != nil {
 		return err
 	}

@@ -69,7 +69,7 @@ func (self *Etcd) LoadAllRoutes() error {
 		return err
 	}
 	for k := range resp.Kvs {
-		routeGroupID, routePath, routeMethod, err := parseRouteGroup(resp.Kvs[k].Key, self.KeyPrefix)
+		routeGroupID, routePath, routeMethod, err := global.ParseRoute(global.BytesToStr(resp.Kvs[k].Key), self.KeyPrefix)
 		if err != nil {
 			return err
 		}
