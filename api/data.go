@@ -6,6 +6,10 @@ import (
 
 type Data struct{}
 
+func (*Data) OutputAll(ctx *tsing.Context) error {
+	return JSON(ctx, 200, proxyEngine)
+}
+
 func (*Data) LoadAll(ctx *tsing.Context) error {
 	resp := make(map[string]string)
 	if err := loadAll(); err != nil {
