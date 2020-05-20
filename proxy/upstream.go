@@ -17,7 +17,7 @@ type Upstream struct {
 		在缓存中失败达到指定次数后，重新从discover中获取endpoints来更新缓存
 	*/
 	CacheRetry   int               `json:"cache_retry"`
-	Endpoints    []global.Endpoint `json:"-"`                      // 终端列表
+	Endpoints    []global.Endpoint `json:"-"`                      // 终点列表
 	LoadBalance  string            `json:"load_balance,omitempty"` // 负载均衡算法
 	LastEndpoint string            `json:"-"`                      // 最后使用的endpoint，用于防止连续命中同一个
 }

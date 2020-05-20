@@ -24,6 +24,8 @@ type ModuleConfig struct {
 	Name   string `json:"name"`
 	Config string `json:"config"`
 }
+
+// 终点
 type Endpoint struct {
 	UpstreamID string `json:"upstream_id"`
 	URL        string `json:"url"`
