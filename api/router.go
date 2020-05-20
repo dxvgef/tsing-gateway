@@ -5,7 +5,7 @@ import "github.com/dxvgef/tsing"
 // 设置路由
 func SetRouter(engine *tsing.Engine) {
 	// 检查secert
-	router := engine.Group("", checkHeader)
+	router := engine.Group("", checkSecretFromHeader)
 
 	var dataHandler Data
 	router.GET("/data/", dataHandler.OutputAll)
