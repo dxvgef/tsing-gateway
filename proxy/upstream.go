@@ -6,32 +6,20 @@ import (
 	"github.com/dxvgef/tsing-gateway/global"
 )
 
-// 端点信息
-type Endpoint struct {
-	Addr      string `json:"addr"`       // 地址
-	Weight    int    `json:"weight"`     // 权重
-	TTL       int    `json:"ttl"`        // 生命周期(秒)
-	UpdatedAt int64  `json:"updated_at"` // 最后更新时间
-}
-
 type Upstream struct {
 	ID         string                `json:"id"`                   // 上游ID
 	Middleware []global.ModuleConfig `json:"middleware,omitempty"` // 中间件配置
 	Discover   global.ModuleConfig   `json:"discover"`             // 节点发现配置
-}
-
-func (p *Engine) NewUpstream(upstream Upstream) error {
-	if upstream.ID == "" {
-		upstream.ID = global.GetIDStr()
-	}
-	if upstream.ID == "" {
-		return errors.New("没有传入upstream.ID,并且无法自动创建ID")
-	}
-	if _, exist := p.Upstreams[upstream.ID]; exist {
-		return errors.New("upstream.ID:" + upstream.ID + " 已存在")
-	}
-	p.Upstreams[upstream.ID] = upstream
-	return nil
+	// 启用缓存，如果关闭，则每次请求都从etcd中获取endpoints
+	Cache bool `json:"cache"`
+	/*
+		缓存重试次数
+		在缓存中失败达到指定次数后，重新从discover中获取endpoints来更新缓存
+	*/
+	CacheRetry   int               `json:"cache_retry"`
+	Endpoints    []global.Endpoint `json:"-"`                      // 终端列表
+	LoadBalance  string            `json:"load_balance,omitempty"` // 负载均衡算法
+	LastEndpoint string            `json:"-"`                      // 最后使用的endpoint，用于防止连续命中同一个
 }
 
 func (p *Engine) SetUpstream(upstream Upstream) error {
@@ -53,7 +41,7 @@ func (p *Engine) DelUpstream(upstreamID string) error {
 	return nil
 }
 
-func (p *Engine) MatchUpstream(upstreamID string) (upstream Upstream, exist bool) {
+func (p *Engine) matchUpstream(upstreamID string) (upstream Upstream, exist bool) {
 	if upstreamID == "" {
 		return
 	}

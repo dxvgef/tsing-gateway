@@ -3,12 +3,10 @@ package storage
 import (
 	"errors"
 
+	"github.com/dxvgef/tsing-gateway/global"
 	"github.com/dxvgef/tsing-gateway/proxy"
 	"github.com/dxvgef/tsing-gateway/storage/etcd"
 )
-
-// 键名前缀
-var KeyPrefix string
 
 // 存储器接口
 type Storage interface {
@@ -38,7 +36,7 @@ func Build(e *proxy.Engine, name, config string) (Storage, error) {
 		if err != nil {
 			return nil, err
 		}
-		KeyPrefix = sa.KeyPrefix
+		global.StorageKeyPrefix = sa.KeyPrefix
 		return sa, nil
 	}
 	return nil, errors.New("根据名称没有找到对应的存储器")

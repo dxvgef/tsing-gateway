@@ -11,14 +11,6 @@ import (
 	"github.com/dxvgef/tsing-gateway/global"
 )
 
-// 新建路由组及路由
-func (p *Engine) NewRoute(routeGroupID, routePath, routeMethod, upstreamID string) error {
-	if _, exist := p.Routes[routeGroupID][routePath][routeMethod]; exist {
-		return errors.New("路由组ID:" + routeGroupID + "/路径:" + routePath + "/方法:" + routeMethod + "已存在")
-	}
-	return p.SetRoute(routeGroupID, routePath, routeMethod, upstreamID)
-}
-
 // 设置路由组及路由，如果存在则更新，不存在则新建
 func (p *Engine) SetRoute(routeGroupID, routePath, routeMethod, upstreamID string) error {
 	if routeGroupID == "" {
@@ -68,33 +60,33 @@ func (p *Engine) DelRoute(routeGroupID, routePath, routeMethod string) error {
 }
 
 // 匹配路由，返回集群ID和匹配结果的HTTP状态码
-func (p *Engine) MatchRoute(req *http.Request) (upstream Upstream, status int) {
+func (p *Engine) matchRoute(req *http.Request) (upstream Upstream, status int) {
 	routeGroupID := ""
 	reqPath := req.URL.Path
 	reqMethod := req.Method
 	matchResult := false
 
 	// 匹配主机
-	routeGroupID, matchResult = p.MatchHost(req.Host)
+	routeGroupID, matchResult = p.matchHost(req.Host)
 	if !matchResult {
 		status = http.StatusServiceUnavailable
 		return
 	}
 	// 匹配路径
-	reqPath, matchResult = p.MatchPath(routeGroupID, reqPath)
+	reqPath, matchResult = p.matchPath(routeGroupID, reqPath)
 	if !matchResult {
 		status = http.StatusNotFound
 		return
 	}
 	// 匹配方法
-	reqMethod, matchResult = p.MatchMethod(routeGroupID, reqPath, reqMethod)
+	reqMethod, matchResult = p.matchMethod(routeGroupID, reqPath, reqMethod)
 	if !matchResult {
 		status = http.StatusMethodNotAllowed
 		return
 	}
 	// 匹配上游
 	upstreamID := p.Routes[routeGroupID][reqPath][reqMethod]
-	upstream, matchResult = p.MatchUpstream(upstreamID)
+	upstream, matchResult = p.matchUpstream(upstreamID)
 	if !matchResult {
 		status = http.StatusNotImplemented
 		return
@@ -104,7 +96,7 @@ func (p *Engine) MatchRoute(req *http.Request) (upstream Upstream, status int) {
 }
 
 // 匹配路径，返回最终匹配到的路径
-func (p *Engine) MatchPath(routeGroupID, reoutePath string) (string, bool) {
+func (p *Engine) matchPath(routeGroupID, reoutePath string) (string, bool) {
 	if reoutePath == "" {
 		reoutePath = "/"
 	}
@@ -127,7 +119,7 @@ func (p *Engine) MatchPath(routeGroupID, reoutePath string) (string, bool) {
 }
 
 // 匹配方法，返回对应的集群ID
-func (p *Engine) MatchMethod(routeGroupID, routePath, routeMethod string) (string, bool) {
+func (p *Engine) matchMethod(routeGroupID, routePath, routeMethod string) (string, bool) {
 	if _, exist := p.Routes[routeGroupID][routePath][routeMethod]; exist {
 		return routeMethod, true
 	}

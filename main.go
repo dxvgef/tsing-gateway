@@ -48,8 +48,8 @@ func main() {
 	proxyEngine.Upstreams = make(map[string]proxy.Upstream)
 
 	// 生成唯一ID
-	proxyEngine.ID = global.GetIDInt64()
-	if proxyEngine.ID == 0 {
+	global.ID = global.GetIDInt64()
+	if global.ID == 0 {
 		log.Fatal().Caller().Msg("无法自动生成ID标识")
 		return
 	}
