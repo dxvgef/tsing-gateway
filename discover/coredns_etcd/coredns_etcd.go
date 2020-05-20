@@ -2,6 +2,8 @@ package coredns_etcd
 
 import (
 	"encoding/json"
+
+	"github.com/dxvgef/tsing-gateway/global"
 )
 
 // coredns etcd
@@ -21,7 +23,12 @@ func New(config string) (*CoreDNSEtcd, error) {
 	return &e, nil
 }
 
-// 探测行为
-func (self *CoreDNSEtcd) Action() (ip string, port int, weight int, ttl int, err error) {
+// 获取单个endpoint
+func (self *CoreDNSEtcd) Fetch() (endpoint global.Endpoint, err error) {
+	return
+}
+
+// 获取所有endpoint
+func (self *CoreDNSEtcd) FetchAll() (endpoints []global.Endpoint, err error) {
 	return
 }

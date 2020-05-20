@@ -6,11 +6,13 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/dxvgef/tsing-gateway/discover/coredns_etcd"
+	"github.com/dxvgef/tsing-gateway/global"
 )
 
 // 节点发现接口
 type Discover interface {
-	Action() (string, int, int, int, error)
+	Fetch() (global.Endpoint, error)
+	FetchAll() ([]global.Endpoint, error)
 }
 
 // 构建节点发现实例
