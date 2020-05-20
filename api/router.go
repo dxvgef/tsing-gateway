@@ -8,8 +8,9 @@ func SetRouter(engine *tsing.Engine) {
 	router := engine.Group("", checkHeader)
 
 	var dataHandler Data
-	router.GET("/data/", dataHandler.LoadAll)
-	router.PUT("/data/", dataHandler.SaveAll)
+	router.GET("/data/", dataHandler.OutputAll)
+	router.PUT("/data/load/", dataHandler.LoadAll)
+	router.PUT("/data/save/", dataHandler.SaveAll)
 
 	var hostHandler Host
 	router.POST("/host/", hostHandler.Add)
