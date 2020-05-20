@@ -165,8 +165,6 @@ func (self *Etcd) SaveAllHosts() error {
 
 	// 写入路由
 	for hostname, upstreamID := range hosts {
-		key.WriteString(self.KeyPrefix)
-		key.WriteString("/hosts/")
 		key.WriteString(hostname)
 		ctx2, ctx2Cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		_, err = self.client.Put(ctx2, key.String(), upstreamID)
