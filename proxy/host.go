@@ -11,9 +11,6 @@ func (p *Engine) NewHost(hostname, routeGroupID string) error {
 	if _, ok := p.Hosts[hostname]; ok {
 		return errors.New("主机名:" + hostname + "已存在")
 	}
-	// if _, exist := p.Routes[routeGroupID]; !exist {
-	// 	return errors.New("路由组ID:" + routeGroupID + "不存在")
-	// }
 	p.Hosts[hostname] = routeGroupID
 	return nil
 }
@@ -21,11 +18,6 @@ func (p *Engine) NewHost(hostname, routeGroupID string) error {
 // 写入主机，如果存在则覆盖，不存在则创建
 func (p *Engine) SetHost(hostname, routeGroupID string) error {
 	hostname = strings.ToLower(hostname)
-	// if _, exist := p.Routes[routeGroupID]; !exist {
-	// 	err := errors.New("路由组ID:" + routeGroupID + "不存在")
-	// 	log.Err(err).Caller().Send()
-	// 	return err
-	// }
 	p.Hosts[hostname] = routeGroupID
 	return nil
 }
@@ -33,11 +25,6 @@ func (p *Engine) SetHost(hostname, routeGroupID string) error {
 // 删除主机
 func (p *Engine) DelHost(hostname string) error {
 	hostname = strings.ToLower(hostname)
-	// if _, exist := p.Routes[routeGroupID]; !exist {
-	// 	err := errors.New("路由组ID:" + routeGroupID + "不存在")
-	// 	log.Err(err).Caller().Send()
-	// 	return err
-	// }
 	delete(p.Hosts, hostname)
 	return nil
 }
