@@ -39,18 +39,29 @@ func FormatTime(str string) string {
 }
 
 func ParseRoute(key, keyPrefix string) (routeGroupID, routePath, routeMethod string, err error) {
-	keyPrefix += "/routes/"
+	var pos int
 
-	// 确定第一次要裁剪的位置，为了去掉前缀
-	pos := strings.Index(key, keyPrefix)
-	if pos == -1 {
-		err = errors.New("键名前缀处理失败")
-		return
+	// 如果有前缀
+	if keyPrefix != "" {
+		keyPrefix += "/routes/"
+
+		// 确定第一次要裁剪的位置，为了去掉前缀
+		pos = strings.Index(key, keyPrefix)
+		if pos == -1 {
+			err = errors.New("键名前缀处理失败")
+			return
+		}
+		key = key[pos+len(keyPrefix):]
 	}
-	key = key[pos+len(keyPrefix):]
+
+	// 去掉第一位的/字符，适用于key解析没有前缀的key
+	if key[0:1] == "/" {
+		key = key[1:]
+	}
 
 	// 确定第二次要裁剪的位置，为了获得路由组ID
 	pos = strings.Index(key, "/")
+
 	if pos == -1 {
 		err = errors.New("路由解析失败")
 		return
