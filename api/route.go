@@ -7,7 +7,6 @@ import (
 	"github.com/dxvgef/tsing"
 
 	"github.com/dxvgef/tsing-gateway/global"
-	"github.com/dxvgef/tsing-gateway/storage"
 )
 
 type Route struct{}
@@ -50,11 +49,11 @@ func (self *Route) Put(ctx *tsing.Context) error {
 		routePath    string
 		routeMethod  string
 	)
-	key, err = base64.URLEncoding.DecodeString(ctx.PathParams.Value("key"))
+	key, err = base64.RawURLEncoding.DecodeString(ctx.PathParams.Value("key"))
 	if err != nil {
 		return Status(ctx, 404)
 	}
-	routeGroupID, routePath, routeMethod, err = global.ParseRoute(global.BytesToStr(key), storage.KeyPrefix)
+	routeGroupID, routePath, routeMethod, err = global.ParseRoute(global.BytesToStr(key), "")
 	if err != nil {
 		return Status(ctx, 404)
 	}
@@ -74,11 +73,11 @@ func (self *Route) Delete(ctx *tsing.Context) error {
 		routePath    string
 		routeMethod  string
 	)
-	key, err = base64.URLEncoding.DecodeString(ctx.PathParams.Value("key"))
+	key, err = base64.RawURLEncoding.DecodeString(ctx.PathParams.Value("key"))
 	if err != nil {
 		return Status(ctx, 404)
 	}
-	routeGroupID, routePath, routeMethod, err = global.ParseRoute(global.BytesToStr(key), storage.KeyPrefix)
+	routeGroupID, routePath, routeMethod, err = global.ParseRoute(global.BytesToStr(key), "")
 	if err != nil {
 		return Status(ctx, 404)
 	}

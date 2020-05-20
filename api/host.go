@@ -39,7 +39,7 @@ func (self *Host) Put(ctx *tsing.Context) error {
 		hostname []byte
 		resp     = make(map[string]string)
 	)
-	hostname, err = base64.URLEncoding.DecodeString(ctx.PathParams.Value("hostname"))
+	hostname, err = base64.RawURLEncoding.DecodeString(ctx.PathParams.Value("hostname"))
 	if err != nil {
 		return Status(ctx, 404)
 	}
@@ -56,7 +56,7 @@ func (self *Host) Delete(ctx *tsing.Context) error {
 		hostname []byte
 		resp     = make(map[string]string)
 	)
-	hostname, err = base64.URLEncoding.DecodeString(ctx.PathParams.Value("hostname"))
+	hostname, err = base64.RawURLEncoding.DecodeString(ctx.PathParams.Value("hostname"))
 	if err != nil {
 		return Status(ctx, 404)
 	}

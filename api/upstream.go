@@ -78,7 +78,7 @@ func (self *Upstream) Put(ctx *tsing.Context) error {
 		upstream      proxy.Upstream
 		upstreamBytes []byte
 	)
-	req.id, err = base64.URLEncoding.DecodeString(ctx.PathParams.Value("id"))
+	req.id, err = base64.RawURLEncoding.DecodeString(ctx.PathParams.Value("id"))
 	if err != nil {
 		return Status(ctx, 404)
 	}
@@ -123,7 +123,7 @@ func (self *Upstream) Delete(ctx *tsing.Context) error {
 		resp = make(map[string]string)
 		id   []byte
 	)
-	id, err = base64.URLEncoding.DecodeString(ctx.PathParams.Value("id"))
+	id, err = base64.RawURLEncoding.DecodeString(ctx.PathParams.Value("id"))
 	if err != nil {
 		return Status(ctx, 404)
 	}
