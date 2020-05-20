@@ -1,33 +1,26 @@
 package global
 
-import "github.com/bwmarrin/snowflake"
+import (
+	"github.com/bwmarrin/snowflake"
+)
 
-// 节点ID
-var ID int64
+var (
+	ID               int64
+	StorageKeyPrefix string
+	IDNode           *snowflake.Node
+	Methods          = []string{
+		"*", "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "TRACE", "CONNECT",
+	}
 
-// ID生成器的实例
-var IDNode *snowflake.Node
+	Storage StorageType
 
-// 存储器内的键名前缀
-var StorageKeyPrefix string
+	LoadBalance = []string{"discover", "wred"}
 
-// http方法
-var Methods = []string{
-	"*", "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "TRACE", "CONNECT",
-}
+	Middleware []ModuleConfig
 
-// 负载均衡算法
-var LoadBalance = []string{"discover", "wred"}
+	Hosts map[string]string
 
-// 模块配置，用于upstream
-type ModuleConfig struct {
-	Name   string `json:"name"`
-	Config string `json:"config"`
-}
+	Routes map[string]map[string]map[string]string
 
-// 终点
-type Endpoint struct {
-	UpstreamID string `json:"upstream_id"`
-	URL        string `json:"url"`
-	Weight     int    `json:"weight"`
-}
+	Upstreams map[string]UpstreamType
+)

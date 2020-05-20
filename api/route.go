@@ -29,11 +29,11 @@ func (self *Route) Add(ctx *tsing.Context) error {
 		resp["error"] = err.Error()
 		return JSON(ctx, 400, &resp)
 	}
-	if _, exist := proxyEngine.Routes[req.groupID][req.path][req.method]; exist {
+	if _, exist := global.Routes[req.groupID][req.path][req.method]; exist {
 		resp["error"] = "路由已存在"
 		return JSON(ctx, 400, &resp)
 	}
-	if err = sa.PutRoute(req.groupID, req.path, req.method, req.upstreamID); err != nil {
+	if err = global.Storage.PutRoute(req.groupID, req.path, req.method, req.upstreamID); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -57,7 +57,7 @@ func (self *Route) Put(ctx *tsing.Context) error {
 	if err != nil {
 		return Status(ctx, 404)
 	}
-	if err = sa.PutRoute(routeGroupID, routePath, routeMethod, ctx.Post("upstream_id")); err != nil {
+	if err = global.Storage.PutRoute(routeGroupID, routePath, routeMethod, ctx.Post("upstream_id")); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -81,7 +81,7 @@ func (self *Route) Delete(ctx *tsing.Context) error {
 	if err != nil {
 		return Status(ctx, 404)
 	}
-	err = sa.DelRoute(routeGroupID, routePath, routeMethod)
+	err = global.Storage.DelRoute(routeGroupID, routePath, routeMethod)
 	if err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)

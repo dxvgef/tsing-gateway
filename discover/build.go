@@ -9,15 +9,9 @@ import (
 	"github.com/dxvgef/tsing-gateway/global"
 )
 
-// 节点发现接口
-type Discover interface {
-	Fetch() (global.Endpoint, error)
-	FetchAll() ([]global.Endpoint, error)
-}
-
 // 构建节点发现实例
 // key为节点发现方式的名称，value为节点发现的参数json字符串
-func Build(name, config string) (Discover, error) {
+func Build(name, config string) (global.DiscoverType, error) {
 	switch name {
 	case "coredns_etcd":
 		f, err := coredns_etcd.New(config)

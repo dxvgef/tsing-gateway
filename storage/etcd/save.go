@@ -37,12 +37,12 @@ func (self *Etcd) SaveAllUpstreams() error {
 	key.WriteString("/upstreams/")
 
 	// 将配置保存到临时变量中
-	upstreams := make(map[string]string, len(self.e.Upstreams))
-	for k := range self.e.Upstreams {
+	upstreams := make(map[string]string, len(global.Upstreams))
+	for k := range global.Upstreams {
 		if k == "" {
 			continue
 		}
-		jsonBytes, err = self.e.Upstreams[k].MarshalJSON()
+		jsonBytes, err = global.Upstreams[k].MarshalJSON()
 		if err != nil {
 			continue
 		}
@@ -82,7 +82,7 @@ func (self *Etcd) SaveAllRoutes() (err error) {
 	)
 
 	// 将配置保存到临时变量中
-	for routeGroupID, v := range self.e.Routes {
+	for routeGroupID, v := range global.Routes {
 		if _, exist := routes[routeGroupID]; !exist {
 			routes[routeGroupID] = make(map[string]map[string]string)
 		}
@@ -146,7 +146,7 @@ func (self *Etcd) SaveAllHosts() error {
 	)
 
 	// 将配置保存到临时变量中
-	for hostname, upstreamID := range self.e.Hosts {
+	for hostname, upstreamID := range global.Hosts {
 		hosts[hostname] = upstreamID
 	}
 

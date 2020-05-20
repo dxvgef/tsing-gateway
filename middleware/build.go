@@ -2,23 +2,18 @@ package middleware
 
 import (
 	"errors"
-	"net/http"
 
 	"github.com/rs/zerolog/log"
 
+	"github.com/dxvgef/tsing-gateway/global"
 	"github.com/dxvgef/tsing-gateway/middleware/favicon"
 	"github.com/dxvgef/tsing-gateway/middleware/health"
 	"github.com/dxvgef/tsing-gateway/middleware/set_header"
 )
 
-// 定义中间件接口
-type Middleware interface {
-	Action(http.ResponseWriter, *http.Request) (bool, error)
-}
-
 // 构建多个中间件实例
 // key为中间件名称，value为中间件的参数json字符串
-func Build(name, config string) (Middleware, error) {
+func Build(name, config string) (global.MiddlewareType, error) {
 	switch name {
 	case "favicon":
 		f, err := favicon.New(config)

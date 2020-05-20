@@ -71,7 +71,7 @@ func (self *Etcd) putDataToLocal(key, value []byte) error {
 
 // 设置本地单个host
 func (self *Etcd) setHostToLocal(key string, value []byte) (err error) {
-	err = self.e.SetHost(path.Base(key), global.BytesToStr(value))
+	err = proxy.SetHost(path.Base(key), global.BytesToStr(value))
 	if err != nil {
 		return err
 	}
@@ -80,12 +80,12 @@ func (self *Etcd) setHostToLocal(key string, value []byte) (err error) {
 
 // 设置本地单个upstream
 func (self *Etcd) setUpstreamToLocal(value []byte) (err error) {
-	var upstream proxy.Upstream
+	var upstream global.UpstreamType
 	if err = upstream.UnmarshalJSON(value); err != nil {
 		log.Debug().Str("value", global.BytesToStr(value)).Msg("解析数据失败")
 		return
 	}
-	if err = self.e.SetUpstream(upstream); err != nil {
+	if err = proxy.SetUpstream(upstream); err != nil {
 		return
 	}
 	return
@@ -100,7 +100,7 @@ func (self *Etcd) setRouteToLocal(key, value []byte) error {
 	if routeMethod == "" {
 		return nil
 	}
-	if err = self.e.SetRoute(routeID, routePath, routeMethod, global.BytesToStr(value)); err != nil {
+	if err = proxy.SetRoute(routeID, routePath, routeMethod, global.BytesToStr(value)); err != nil {
 		return err
 	}
 	return nil
@@ -144,7 +144,7 @@ func (self *Etcd) delDataToLocal(key []byte) error {
 
 // 删除本地单个host
 func (self *Etcd) delHostToLocal(key string) (err error) {
-	err = self.e.DelHost(path.Base(key))
+	err = proxy.DelHost(path.Base(key))
 	if err != nil {
 		return err
 	}
@@ -153,7 +153,7 @@ func (self *Etcd) delHostToLocal(key string) (err error) {
 
 // 删除本地单个upstream
 func (self *Etcd) delUpstreamToLocal(key string) (err error) {
-	if err = self.e.DelUpstream(path.Base(key)); err != nil {
+	if err = proxy.DelUpstream(path.Base(key)); err != nil {
 		return
 	}
 	return
@@ -165,7 +165,7 @@ func (self *Etcd) delRouteToLocal(key []byte) error {
 	if err != nil {
 		return err
 	}
-	if err = self.e.DelRoute(routeID, routePath, routeMethod); err != nil {
+	if err = proxy.DelRoute(routeID, routePath, routeMethod); err != nil {
 		return err
 	}
 	return nil

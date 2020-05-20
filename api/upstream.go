@@ -9,7 +9,6 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/dxvgef/tsing-gateway/global"
-	"github.com/dxvgef/tsing-gateway/proxy"
 )
 
 type Upstream struct{}
@@ -23,7 +22,7 @@ func (self *Upstream) Add(ctx *tsing.Context) error {
 			middleware string
 			discover   string
 		}
-		upstream      proxy.Upstream
+		upstream      global.UpstreamType
 		upstreamBytes []byte
 	)
 	if err = filter.MSet(
@@ -35,7 +34,7 @@ func (self *Upstream) Add(ctx *tsing.Context) error {
 		return JSON(ctx, 400, &resp)
 	}
 
-	if _, exists := proxyEngine.Upstreams[req.id]; exists {
+	if _, exists := global.Upstreams[req.id]; exists {
 		resp["error"] = "上游ID已存在"
 		return JSON(ctx, 400, &resp)
 	}
@@ -60,7 +59,7 @@ func (self *Upstream) Add(ctx *tsing.Context) error {
 		return JSON(ctx, 500, &resp)
 	}
 
-	if err = sa.PutUpstream(req.id, global.BytesToStr(upstreamBytes)); err != nil {
+	if err = global.Storage.PutUpstream(req.id, global.BytesToStr(upstreamBytes)); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -75,7 +74,7 @@ func (self *Upstream) Put(ctx *tsing.Context) error {
 			discover   string
 		}
 		resp          = make(map[string]string)
-		upstream      proxy.Upstream
+		upstream      global.UpstreamType
 		upstreamBytes []byte
 	)
 	req.id, err = base64.RawURLEncoding.DecodeString(ctx.PathParams.Value("id"))
@@ -110,7 +109,7 @@ func (self *Upstream) Put(ctx *tsing.Context) error {
 		return JSON(ctx, 500, &resp)
 	}
 
-	if err = sa.PutUpstream(upstream.ID, global.BytesToStr(upstreamBytes)); err != nil {
+	if err = global.Storage.PutUpstream(upstream.ID, global.BytesToStr(upstreamBytes)); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -127,7 +126,7 @@ func (self *Upstream) Delete(ctx *tsing.Context) error {
 	if err != nil {
 		return Status(ctx, 404)
 	}
-	err = sa.DelUpstream(global.BytesToStr(id))
+	err = global.Storage.DelUpstream(global.BytesToStr(id))
 	if err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)

@@ -22,11 +22,11 @@ func (self *Host) Add(ctx *tsing.Context) error {
 		resp["error"] = "upstream_id参数不能为空"
 		return JSON(ctx, 400, &resp)
 	}
-	if _, exists := proxyEngine.Hosts[hostname]; exists {
+	if _, exists := global.Hosts[hostname]; exists {
 		resp["error"] = "主机名已存在"
 		return JSON(ctx, 400, &resp)
 	}
-	if err := sa.PutHost(hostname, ctx.Post("upstream_id")); err != nil {
+	if err := global.Storage.PutHost(hostname, ctx.Post("upstream_id")); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -43,7 +43,7 @@ func (self *Host) Put(ctx *tsing.Context) error {
 	if err != nil {
 		return Status(ctx, 404)
 	}
-	if err = sa.PutHost(global.BytesToStr(hostname), ctx.Post("upstream_id")); err != nil {
+	if err = global.Storage.PutHost(global.BytesToStr(hostname), ctx.Post("upstream_id")); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -60,7 +60,7 @@ func (self *Host) Delete(ctx *tsing.Context) error {
 	if err != nil {
 		return Status(ctx, 404)
 	}
-	if err := sa.DelHost(global.BytesToStr(hostname)); err != nil {
+	if err := global.Storage.DelHost(global.BytesToStr(hostname)); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}

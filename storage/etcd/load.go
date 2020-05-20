@@ -14,17 +14,29 @@ import (
 
 // 加载所有数据
 func (self *Etcd) LoadAll() (err error) {
+	if err = self.LoadAllMiddleware(); err != nil {
+		return
+	}
+	log.Debug().Caller().Interface("middleware", global.Middleware).Msg("加载了middleware")
 	if err = self.LoadAllUpstreams(); err != nil {
 		return
 	}
+	log.Debug().Caller().Interface("upstreams", global.Upstreams).Msg("加载了upstreams")
 	if err = self.LoadAllRoutes(); err != nil {
 		return
 	}
+	log.Debug().Caller().Interface("routes", global.Routes).Msg("加载了routes")
 	if err = self.LoadAllHosts(); err != nil {
 		return
 	}
-	log.Debug().Caller().Interface("proxy", self.e).Msg("加载所有配置")
+	log.Debug().Caller().Interface("hosts", global.Hosts).Msg("加载了hosts")
 	return
+}
+
+// 加载所有全局中间件
+func (self *Etcd) LoadAllMiddleware() error {
+	// todo 这个功能还没有实现
+	return nil
 }
 
 // 加载所有upstream
@@ -40,7 +52,7 @@ func (self *Etcd) LoadAllUpstreams() error {
 		return err
 	}
 	for k := range resp.Kvs {
-		var upstream proxy.Upstream
+		var upstream global.UpstreamType
 		err = upstream.UnmarshalJSON(resp.Kvs[k].Value)
 		if err != nil {
 			return err
@@ -48,7 +60,7 @@ func (self *Etcd) LoadAllUpstreams() error {
 		if upstream.ID == "" {
 			continue
 		}
-		err = self.e.SetUpstream(upstream)
+		err = proxy.SetUpstream(upstream)
 		if err != nil {
 			return err
 		}
@@ -76,7 +88,7 @@ func (self *Etcd) LoadAllRoutes() error {
 		if routeMethod == "" {
 			return nil
 		}
-		err = self.e.SetRoute(routeGroupID, routePath, routeMethod, global.BytesToStr(resp.Kvs[k].Value))
+		err = proxy.SetRoute(routeGroupID, routePath, routeMethod, global.BytesToStr(resp.Kvs[k].Value))
 		if err != nil {
 			return err
 		}
@@ -96,7 +108,7 @@ func (self *Etcd) LoadAllHosts() error {
 		return err
 	}
 	for k := range resp.Kvs {
-		err = self.e.SetHost(
+		err = proxy.SetHost(
 			strings.TrimPrefix(global.BytesToStr(resp.Kvs[k].Key), "/hosts/"),
 			global.BytesToStr(resp.Kvs[k].Value),
 		)

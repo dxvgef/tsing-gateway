@@ -11,17 +11,12 @@ import (
 )
 
 // 代理引擎
-type Engine struct {
-	Middleware []global.ModuleConfig                   `json:"middleware,omitempty"` // 全局中间件
-	Hosts      map[string]string                       `json:"hosts,omitempty"`      // [hostname]routeGroupID
-	Routes     map[string]map[string]map[string]string `json:"routes,omitempty"`     // [routeGroupID][path][method]upstreamID
-	Upstreams  map[string]Upstream                     `json:"upstreams,omitempty"`  // [upstreamID]Upstream
-}
+type Engine struct{}
 
 // 实现http.Handler接口的方法
 // 下游请求入口
-func (p *Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	upstream, status := p.matchRoute(req)
+func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	upstream, status := matchRoute(req)
 	if status != http.StatusOK {
 		resp.WriteHeader(status)
 		// nolint
@@ -30,8 +25,8 @@ func (p *Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	// 执行全局中间件
-	for k := range p.Middleware {
-		mw, err := middleware.Build(p.Middleware[k].Name, p.Middleware[k].Config)
+	for k := range global.Middleware {
+		mw, err := middleware.Build(global.Middleware[k].Name, global.Middleware[k].Config)
 		if err != nil {
 			log.Error().Caller().Msg(err.Error())
 			resp.WriteHeader(http.StatusInternalServerError)

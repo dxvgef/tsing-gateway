@@ -7,12 +7,10 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/dxvgef/tsing-gateway/global"
-	"github.com/dxvgef/tsing-gateway/proxy"
 )
 
 type Etcd struct {
 	client               *clientv3.Client
-	e                    *proxy.Engine
 	KeyPrefix            string   `json:"key_prefix"`
 	Endpoints            []string `json:"endpoints"`
 	DialTimeout          uint     `json:"dial_timeout"`
@@ -27,14 +25,13 @@ type Etcd struct {
 	PermitWithoutStream  bool     `json:"permit_without_stream"`
 }
 
-func New(e *proxy.Engine, config string) (*Etcd, error) {
+func New(config string) (*Etcd, error) {
 	var instance Etcd
 	err := instance.UnmarshalJSON(global.StrToBytes(config))
 	if err != nil {
 		return nil, err
 	}
 
-	instance.e = e
 	instance.client, err = clientv3.New(clientv3.Config{
 		Endpoints:            instance.Endpoints,
 		DialTimeout:          time.Duration(instance.DialTimeout) * time.Second,

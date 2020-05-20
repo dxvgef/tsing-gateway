@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"time"
 
-	_ "github.com/dxvgef/filter"
 	"gopkg.in/yaml.v3"
 )
 

@@ -22,12 +22,10 @@ func main() {
 	var (
 		configFile       string
 		err              error
-		proxyEngine      proxy.Engine
 		proxyHttpServer  *http.Server
 		proxyHttpsServer *http.Server
 		apiHttpServer    *http.Server
 		apiHttpsServer   *http.Server
-		sa               storage.Storage
 	)
 
 	// 设置默认logger
@@ -42,10 +40,10 @@ func main() {
 		return
 	}
 
-	// --------------------- 初始化代理引擎实例 ----------------------
-	proxyEngine.Hosts = make(map[string]string)
-	proxyEngine.Routes = make(map[string]map[string]map[string]string)
-	proxyEngine.Upstreams = make(map[string]proxy.Upstream)
+	// --------------------- 初始化 ----------------------
+	global.Hosts = make(map[string]string)
+	global.Routes = make(map[string]map[string]map[string]string)
+	global.Upstreams = make(map[string]global.UpstreamType)
 
 	// 生成唯一ID
 	global.ID = global.GetIDInt64()
@@ -55,13 +53,13 @@ func main() {
 	}
 
 	// --------------------- 根据配置构建存储器 ----------------------
-	sa, err = storage.Build(&proxyEngine, global.Config.Storage.Name, global.Config.Storage.Config)
+	global.Storage, err = storage.Build(global.Config.Storage.Name, global.Config.Storage.Config)
 	if err != nil {
 		log.Fatal().Caller().Msg(err.Error())
 		return
 	}
 	// 从存储器中加载所有数据
-	if err = sa.LoadAll(); err != nil {
+	if err = global.Storage.LoadAll(); err != nil {
 		log.Fatal().Caller().Msg(err.Error())
 		return
 	}
@@ -69,7 +67,7 @@ func main() {
 	// 监听存储中的数据变更
 	go func() {
 		log.Info().Msg("开始监听数据变更")
-		if err = sa.Watch(); err != nil {
+		if err = global.Storage.Watch(); err != nil {
 			log.Fatal().Msg(err.Error())
 			return
 		}
@@ -79,7 +77,7 @@ func main() {
 	if global.Config.Proxy.HTTP.Port > 0 {
 		proxyHttpServer = &http.Server{
 			Addr:              global.Config.Proxy.IP + ":" + strconv.FormatUint(uint64(global.Config.Proxy.HTTP.Port), 10),
-			Handler:           &proxyEngine,
+			Handler:           &proxy.Engine{},
 			ReadTimeout:       global.Config.Proxy.ReadTimeout,
 			WriteTimeout:      global.Config.Proxy.WriteTimeout,
 			IdleTimeout:       global.Config.Proxy.IdleTimeout,
@@ -103,7 +101,7 @@ func main() {
 		go func() {
 			proxyHttpsServer = &http.Server{
 				Addr:              global.Config.Proxy.IP + ":" + strconv.FormatUint(uint64(global.Config.Proxy.HTTPS.Port), 10),
-				Handler:           &proxyEngine,
+				Handler:           &proxy.Engine{},
 				ReadTimeout:       global.Config.Proxy.ReadTimeout,
 				WriteTimeout:      global.Config.Proxy.WriteTimeout,
 				IdleTimeout:       global.Config.Proxy.IdleTimeout,
@@ -144,10 +142,6 @@ func main() {
 			apiEngineConfig.RootPath = rootPath
 		}
 		apiEngine := tsing.New(&apiEngineConfig)
-		// 设置存储器
-		api.SetStorage(sa)
-		// 设置代理引擎
-		api.SetProxyEngine(&proxyEngine)
 		// 设置路由
 		api.SetRouter(apiEngine)
 		// 启动api http服务
