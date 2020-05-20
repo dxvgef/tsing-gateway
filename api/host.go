@@ -1,9 +1,11 @@
 package api
 
 import (
-	"net/url"
+	"encoding/base64"
 
 	"github.com/dxvgef/tsing"
+
+	"github.com/dxvgef/tsing-gateway/global"
 )
 
 type Host struct{}
@@ -33,19 +35,15 @@ func (self *Host) Add(ctx *tsing.Context) error {
 
 func (self *Host) Put(ctx *tsing.Context) error {
 	var (
-		err  error
-		resp = make(map[string]string)
+		err      error
+		hostname []byte
+		resp     = make(map[string]string)
 	)
-	hostname, exists := ctx.PathParams.Get("hostname")
-	if !exists {
+	hostname, err = base64.URLEncoding.DecodeString(ctx.PathParams.Value("hostname"))
+	if err != nil {
 		return Status(ctx, 404)
 	}
-	hostname, err = url.PathUnescape(hostname)
-	if err != nil {
-		resp["error"] = err.Error()
-		return JSON(ctx, 400, &resp)
-	}
-	if err = sa.PutHost(hostname, ctx.Post("upstream_id")); err != nil {
+	if err = sa.PutHost(global.BytesToStr(hostname), ctx.Post("upstream_id")); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -54,19 +52,15 @@ func (self *Host) Put(ctx *tsing.Context) error {
 
 func (self *Host) Delete(ctx *tsing.Context) error {
 	var (
-		err  error
-		resp = make(map[string]string)
+		err      error
+		hostname []byte
+		resp     = make(map[string]string)
 	)
-	hostname, exists := ctx.PathParams.Get("hostname")
-	if !exists {
+	hostname, err = base64.URLEncoding.DecodeString(ctx.PathParams.Value("hostname"))
+	if err != nil {
 		return Status(ctx, 404)
 	}
-	hostname, err = url.PathUnescape(hostname)
-	if err != nil {
-		resp["error"] = err.Error()
-		return JSON(ctx, 400, &resp)
-	}
-	if err := sa.DelHost(hostname); err != nil {
+	if err := sa.DelHost(global.BytesToStr(hostname)); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}

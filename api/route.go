@@ -1,10 +1,13 @@
 package api
 
 import (
+	"encoding/base64"
+
 	"github.com/dxvgef/filter"
 	"github.com/dxvgef/tsing"
 
 	"github.com/dxvgef/tsing-gateway/global"
+	"github.com/dxvgef/tsing-gateway/storage"
 )
 
 type Route struct{}
@@ -18,13 +21,17 @@ func (self *Route) Add(ctx *tsing.Context) error {
 		upstreamID string
 	}
 	err := filter.MSet(
-		filter.El(&req.groupID, filter.FromString(ctx.Post("group_id")).Required().UnescapeURLPath()),
+		filter.El(&req.groupID, filter.FromString(ctx.Post("group_id")).Required()),
 		filter.El(&req.path, filter.FromString(ctx.Post("path")).Required()),
 		filter.El(&req.method, filter.FromString(ctx.Post("method")).Required().EnumString(global.Methods)),
 		filter.El(&req.upstreamID, filter.FromString(ctx.Post("upstream_id")).Required()),
 	)
 	if err != nil {
 		resp["error"] = err.Error()
+		return JSON(ctx, 400, &resp)
+	}
+	if _, exist := proxyEngine.Routes[req.groupID][req.path][req.method]; exist {
+		resp["error"] = "路由已存在"
 		return JSON(ctx, 400, &resp)
 	}
 	if err = sa.PutRoute(req.groupID, req.path, req.method, req.upstreamID); err != nil {
@@ -34,25 +41,24 @@ func (self *Route) Add(ctx *tsing.Context) error {
 	return Status(ctx, 204)
 }
 
-func (self *Route) Update(ctx *tsing.Context) error {
-	resp := make(map[string]string)
-	var req struct {
-		groupID    string
-		path       string
-		method     string
-		upstreamID string
-	}
-	err := filter.MSet(
-		filter.El(&req.groupID, filter.FromString(ctx.Post("group_id")).Required().UnescapeURLPath()),
-		filter.El(&req.path, filter.FromString(ctx.Post("path")).Required()),
-		filter.El(&req.method, filter.FromString(ctx.Post("method")).Required().EnumString(global.Methods)),
-		filter.El(&req.upstreamID, filter.FromString(ctx.Post("upstream_id")).Required()),
+func (self *Route) Put(ctx *tsing.Context) error {
+	var (
+		err          error
+		resp         = make(map[string]string)
+		key          []byte
+		routeGroupID string
+		routePath    string
+		routeMethod  string
 	)
+	key, err = base64.URLEncoding.DecodeString(ctx.PathParams.Value("key"))
 	if err != nil {
-		resp["error"] = err.Error()
-		return JSON(ctx, 400, &resp)
+		return Status(ctx, 404)
 	}
-	if err = sa.PutRoute(req.groupID, req.path, req.method, req.upstreamID); err != nil {
+	routeGroupID, routePath, routeMethod, err = global.ParseRoute(global.BytesToStr(key), storage.KeyPrefix)
+	if err != nil {
+		return Status(ctx, 404)
+	}
+	if err = sa.PutRoute(routeGroupID, routePath, routeMethod, ctx.Post("upstream_id")); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -60,22 +66,23 @@ func (self *Route) Update(ctx *tsing.Context) error {
 }
 
 func (self *Route) Delete(ctx *tsing.Context) error {
-	resp := make(map[string]string)
-	var req struct {
-		groupID string
-		path    string
-		method  string
-	}
-	err := filter.MSet(
-		filter.El(&req.groupID, filter.FromString(ctx.PathParams.Value("groupID")).Required().UnescapeURLPath()),
-		filter.El(&req.path, filter.FromString(ctx.PathParams.Value("path")).Required().UnescapeURLPath()),
-		filter.El(&req.method, filter.FromString(ctx.PathParams.Value("method")).Required().EnumString(global.Methods)),
+	var (
+		resp         = make(map[string]string)
+		err          error
+		key          []byte
+		routeGroupID string
+		routePath    string
+		routeMethod  string
 	)
+	key, err = base64.URLEncoding.DecodeString(ctx.PathParams.Value("key"))
 	if err != nil {
-		resp["error"] = err.Error()
-		return JSON(ctx, 400, &resp)
+		return Status(ctx, 404)
 	}
-	err = sa.DelRoute(req.groupID, req.path, req.method)
+	routeGroupID, routePath, routeMethod, err = global.ParseRoute(global.BytesToStr(key), storage.KeyPrefix)
+	if err != nil {
+		return Status(ctx, 404)
+	}
+	err = sa.DelRoute(routeGroupID, routePath, routeMethod)
 	if err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)

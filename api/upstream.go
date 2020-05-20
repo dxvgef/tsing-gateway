@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/base64"
 	"encoding/json"
 
 	"github.com/dxvgef/filter"
@@ -14,9 +15,10 @@ import (
 type Upstream struct{}
 
 func (self *Upstream) Add(ctx *tsing.Context) error {
-	resp := make(map[string]string)
 	var (
-		req struct {
+		err  error
+		resp = make(map[string]string)
+		req  struct {
 			id         string
 			middleware string
 			discover   string
@@ -24,12 +26,11 @@ func (self *Upstream) Add(ctx *tsing.Context) error {
 		upstream      proxy.Upstream
 		upstreamBytes []byte
 	)
-	err := filter.MSet(
-		filter.El(&req.id, filter.FromString(ctx.Post("id"), "id").Required().UnescapeURLPath()),
+	if err = filter.MSet(
+		filter.El(&req.id, filter.FromString(ctx.Post("id"), "id").Required()),
 		filter.El(&req.discover, filter.FromString(ctx.Post("discover"), "discover").Required().IsJSON()),
 		filter.El(&req.middleware, filter.FromString(ctx.Post("middleware"), "middleware").IsJSON()),
-	)
-	if err != nil {
+	); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 400, &resp)
 	}
@@ -66,22 +67,25 @@ func (self *Upstream) Add(ctx *tsing.Context) error {
 	return Status(ctx, 204)
 }
 func (self *Upstream) Put(ctx *tsing.Context) error {
-	resp := make(map[string]string)
 	var (
+		err error
 		req struct {
-			id         string
+			id         []byte
 			middleware string
 			discover   string
 		}
+		resp          = make(map[string]string)
 		upstream      proxy.Upstream
 		upstreamBytes []byte
 	)
-	err := filter.MSet(
-		filter.El(&req.id, filter.FromString(ctx.PathParams.Value("id"), "id").Required().UnescapeURLPath()),
+	req.id, err = base64.URLEncoding.DecodeString(ctx.PathParams.Value("id"))
+	if err != nil {
+		return Status(ctx, 404)
+	}
+	if err = filter.MSet(
 		filter.El(&req.discover, filter.FromString(ctx.Post("discover"), "discover").Required().IsJSON()),
 		filter.El(&req.middleware, filter.FromString(ctx.Post("middleware"), "middleware").IsJSON()),
-	)
-	if err != nil {
+	); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 400, &resp)
 	}
@@ -98,7 +102,7 @@ func (self *Upstream) Put(ctx *tsing.Context) error {
 		}
 	}
 
-	upstream.ID = req.id
+	upstream.ID = global.BytesToStr(req.id)
 
 	if upstreamBytes, err = upstream.MarshalJSON(); err != nil {
 		log.Err(err).Caller().Msg("对upstream序列化成JSON字符串失败")
@@ -106,25 +110,24 @@ func (self *Upstream) Put(ctx *tsing.Context) error {
 		return JSON(ctx, 500, &resp)
 	}
 
-	if err = sa.PutUpstream(req.id, global.BytesToStr(upstreamBytes)); err != nil {
+	if err = sa.PutUpstream(upstream.ID, global.BytesToStr(upstreamBytes)); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
 	return Status(ctx, 204)
 }
 
-func (self *Upstream) Del(ctx *tsing.Context) error {
+func (self *Upstream) Delete(ctx *tsing.Context) error {
 	var (
 		err  error
 		resp = make(map[string]string)
-		id   string
+		id   []byte
 	)
-	id, err = filter.FromString(ctx.PathParams.Value("id"), "id").Required().UnescapeURLPath().String()
+	id, err = base64.URLEncoding.DecodeString(ctx.PathParams.Value("id"))
 	if err != nil {
-		resp["error"] = err.Error()
-		return JSON(ctx, 400, &resp)
+		return Status(ctx, 404)
 	}
-	err = sa.DelUpstream(id)
+	err = sa.DelUpstream(global.BytesToStr(id))
 	if err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
