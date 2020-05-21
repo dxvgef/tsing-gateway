@@ -7,7 +7,9 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"time"
 
+	"github.com/bwmarrin/snowflake"
 	"github.com/dxvgef/tsing"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/net/http2"
@@ -40,17 +42,18 @@ func main() {
 		return
 	}
 
+	// --------------------- 配置snowflake id ----------------------
+	snowflake.Epoch = time.Now().Unix()
+	global.SnowflakeNode, err = snowflake.NewNode(int64(time.Now().Hour()))
+	if err != nil {
+		log.Fatal().Caller().Msg(err.Error())
+		return
+	}
+
 	// --------------------- 初始化 ----------------------
 	global.Hosts = make(map[string]string)
 	global.Routes = make(map[string]map[string]map[string]string)
 	global.Upstreams = make(map[string]global.UpstreamType)
-
-	// 生成唯一ID
-	global.ID = global.GetIDInt64()
-	if global.ID == 0 {
-		log.Fatal().Caller().Msg("无法自动生成ID标识")
-		return
-	}
 
 	// --------------------- 根据配置构建存储器 ----------------------
 	global.Storage, err = storage.Build(global.Config.Storage.Name, global.Config.Storage.Config)
