@@ -2,14 +2,18 @@ package proxy
 
 import (
 	"encoding/json"
+	"errors"
+
+	"github.com/rs/zerolog/log"
 
 	"github.com/dxvgef/tsing-gateway/global"
 	"github.com/dxvgef/tsing-gateway/middleware"
 )
 
-func SetMiddleware(config string) error {
+// 设置全局中间件，同时构建并更新所有全局中间件的实例
+func SetGlobalMiddleware(config string) error {
 	if config == "" {
-		global.Middleware = nil
+		global.GlobalMiddleware = nil
 		return nil
 	}
 	var (
@@ -25,10 +29,39 @@ func SetMiddleware(config string) error {
 	}
 	mwConfigLen := len(mwConfig)
 	if mwConfigLen == 0 {
-		global.Middleware = nil
+		global.GlobalMiddleware = nil
 		return nil
 	}
 	mw := make([]global.MiddlewareType, mwConfigLen)
+	// 根据配置构建中间件实例
+	for k := range mwConfig {
+		log.Debug().Caller().Interface("mwConfig", mwConfig[k]).Send()
+		m, err = middleware.Build(mwConfig[k].Name, mwConfig[k].Config, false)
+		if err != nil {
+			return err
+		}
+		mw = append(mw, m)
+	}
+	global.GlobalMiddleware = mw
+	return nil
+}
+
+// 构建并更新某个上游的所有中间件的实例
+func SetUpstreamMiddleware(upstreamID string, mwConfig []global.ModuleConfig) error {
+	if upstreamID == "" {
+		return errors.New("上游ID不能为空")
+	}
+	mwConfigLen := len(mwConfig)
+	if mwConfigLen == 0 {
+		global.UpstreamMiddleware[upstreamID] = nil
+		return nil
+	}
+	var (
+		err error
+		m   global.MiddlewareType
+	)
+	// nolint:prealloc
+	var mw []global.MiddlewareType
 	// 根据配置构建中间件实例
 	for k := range mwConfig {
 		m, err = middleware.Build(mwConfig[k].Name, mwConfig[k].Config, false)
@@ -37,6 +70,6 @@ func SetMiddleware(config string) error {
 		}
 		mw = append(mw, m)
 	}
-	global.Middleware = mw
+	global.UpstreamMiddleware[upstreamID] = mw
 	return nil
 }

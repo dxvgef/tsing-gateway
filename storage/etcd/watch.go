@@ -66,7 +66,7 @@ func (self *Etcd) putDataToLocal(key, value []byte) error {
 		return nil
 	}
 	if strings.HasPrefix(keyStr, self.KeyPrefix+"/middleware") {
-		if err = proxy.SetMiddleware(global.BytesToStr(value)); err != nil {
+		if err = proxy.SetGlobalMiddleware(global.BytesToStr(value)); err != nil {
 			log.Err(err).Caller().Msg("更新本地路由数据时出错")
 			return err
 		}

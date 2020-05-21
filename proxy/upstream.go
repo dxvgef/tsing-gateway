@@ -11,6 +11,9 @@ func SetUpstream(upstream global.UpstreamType) error {
 		return errors.New("upstream ID不能为空")
 	}
 	global.Upstreams[upstream.ID] = upstream
+	if err := SetUpstreamMiddleware(upstream.ID, upstream.Middleware); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -19,6 +22,7 @@ func DelUpstream(upstreamID string) error {
 		return errors.New("upstream ID不能为空")
 	}
 	delete(global.Upstreams, upstreamID)
+	delete(global.UpstreamMiddleware, upstreamID)
 	return nil
 }
 

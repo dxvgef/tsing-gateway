@@ -49,7 +49,7 @@ func (self *Etcd) LoadMiddleware() error {
 	if resp.Count > 0 {
 		str.WriteString(global.BytesToStr(resp.Kvs[0].Value))
 	}
-	err = proxy.SetMiddleware(str.String())
+	err = proxy.SetGlobalMiddleware(str.String())
 	if err != nil {
 		return err
 	}

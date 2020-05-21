@@ -11,11 +11,12 @@ var (
 	StorageKeyPrefix string      // 存储器键名前缀
 	// 存储器客户端ID，在存储器被构建时自动生成
 	// 用于存储器的
-	StorageClientID int64
-	Middleware      []MiddlewareType                                // 全局中间件
-	Hosts           = make(map[string]string)                       // 主机列表
-	Routes          = make(map[string]map[string]map[string]string) // 路由列表
-	Upstreams       = make(map[string]UpstreamType)                 // 上游列表
+	StorageClientID    int64
+	GlobalMiddleware   []MiddlewareType                                // 全局中间件
+	Hosts              = make(map[string]string)                       // 主机列表
+	Routes             = make(map[string]map[string]map[string]string) // 路由列表
+	Upstreams          = make(map[string]UpstreamType)                 // 上游列表
+	UpstreamMiddleware = make(map[string][]MiddlewareType)             // 所有上游的中间件实例
 	// HTTP方法允许的值
 	Methods = []string{
 		"*", "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "TRACE", "CONNECT",

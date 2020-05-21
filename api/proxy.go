@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/dxvgef/tsing"
+	"github.com/rs/zerolog/log"
 
 	"github.com/dxvgef/tsing-gateway/global"
 )
@@ -19,8 +20,8 @@ func (self *Proxy) OutputAll(ctx *tsing.Context) error {
 	self.Hosts = global.Hosts
 	self.Routes = global.Routes
 
-	if global.Middleware != nil && len(global.Middleware) > 0 {
-		mw, err := json.Marshal(&global.Middleware)
+	if global.GlobalMiddleware != nil && len(global.GlobalMiddleware) > 0 {
+		mw, err := json.Marshal(&global.GlobalMiddleware)
 		if err != nil {
 			return err
 		}
@@ -34,6 +35,8 @@ func (self *Proxy) OutputAll(ctx *tsing.Context) error {
 	self.Routes = nil
 	self.Upstreams = nil
 	self.Middleware = ""
+	log.Debug().Caller().Interface("globalMiddleware", global.GlobalMiddleware).Send()
+	log.Debug().Caller().Interface("upstreamMiddleware", global.UpstreamMiddleware).Send()
 	return err
 }
 
