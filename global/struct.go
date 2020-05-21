@@ -2,13 +2,6 @@ package global
 
 import "net/http"
 
-type ProxyStruct struct {
-	Middleware []ModuleConfig                          `json:"middleware"`
-	Hosts      map[string]string                       `json:"hosts"`
-	Routes     map[string]map[string]map[string]string `json:"routes"`
-	Upstreams  map[string]UpstreamType                 `json:"upstreams"`
-}
-
 type UpstreamType struct {
 	ID         string         `json:"id"`                   // 上游ID
 	Middleware []ModuleConfig `json:"middleware,omitempty"` // 中间件配置
