@@ -5,22 +5,21 @@ import (
 )
 
 var (
-	ID               int64
-	StorageKeyPrefix string
-	IDNode           *snowflake.Node
-	Methods          = []string{
+	SnowflakeNode *snowflake.Node
+
+	Storage          StorageType // 存储器
+	StorageKeyPrefix string      // 存储器键名前缀
+	// 存储器客户端ID，在存储器被构建时自动生成
+	// 用于存储器的
+	StorageClientID int64
+	Middleware      []ModuleConfig                          // 全局中间件
+	Hosts           map[string]string                       // 主机列表
+	Routes          map[string]map[string]map[string]string // 路由列表
+	Upstreams       map[string]UpstreamType                 // 上游列表
+	// HTTP方法允许的值
+	Methods = []string{
 		"*", "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "TRACE", "CONNECT",
 	}
-
-	Storage StorageType
-
+	// 负载均衡算数允许的值
 	LoadBalance = []string{"discover", "wred"}
-
-	Middleware []ModuleConfig
-
-	Hosts map[string]string
-
-	Routes map[string]map[string]map[string]string
-
-	Upstreams map[string]UpstreamType
 )
