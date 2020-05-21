@@ -7,15 +7,22 @@ import (
 )
 
 type Proxy struct {
+	Middleware []global.ModuleConfig                   `json:"middleware"`
+	Hosts      map[string]string                       `json:"hosts"`
+	Routes     map[string]map[string]map[string]string `json:"routes"`
+	Upstreams  map[string]global.UpstreamType          `json:"upstreams"`
 }
 
-func (*Proxy) OutputAll(ctx *tsing.Context) error {
-	var proxy global.ProxyStruct
-	proxy.Hosts = global.Hosts
-	proxy.Routes = global.Routes
-	proxy.Middleware = global.Middleware
-	proxy.Upstreams = global.Upstreams
-	return JSON(ctx, 200, &proxy)
+func (self *Proxy) OutputAll(ctx *tsing.Context) error {
+	self.Hosts = global.Hosts
+	self.Routes = global.Routes
+	self.Middleware = global.Middleware
+	self.Upstreams = global.Upstreams
+	err := JSON(ctx, 200, self)
+	self.Hosts = nil
+	self.Routes = nil
+	self.Upstreams = nil
+	return err
 }
 
 func (*Proxy) LoadAll(ctx *tsing.Context) error {

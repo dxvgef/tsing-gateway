@@ -50,11 +50,6 @@ func main() {
 		return
 	}
 
-	// --------------------- 初始化 ----------------------
-	global.Hosts = make(map[string]string)
-	global.Routes = make(map[string]map[string]map[string]string)
-	global.Upstreams = make(map[string]global.UpstreamType)
-
 	// --------------------- 根据配置构建存储器 ----------------------
 	global.Storage, err = storage.Build(global.Config.Storage.Name, global.Config.Storage.Config)
 	if err != nil {
