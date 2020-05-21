@@ -11,6 +11,7 @@ import (
 
 type Etcd struct {
 	client               *clientv3.Client
+	ClientID             string   `json:"-"`
 	KeyPrefix            string   `json:"key_prefix"`
 	Endpoints            []string `json:"endpoints"`
 	DialTimeout          uint     `json:"dial_timeout"`
@@ -27,6 +28,8 @@ type Etcd struct {
 
 func New(config string) (*Etcd, error) {
 	var instance Etcd
+	instance.ClientID = global.SnowflakeNode.Generate().String()
+
 	err := instance.UnmarshalJSON(global.StrToBytes(config))
 	if err != nil {
 		return nil, err
