@@ -41,7 +41,7 @@ func SetRoute(routeGroupID, routePath, routeMethod, upstreamID string) error {
 // 删除路由
 func DelRoute(routeGroupID, routePath, routeMethod string) error {
 	if routeGroupID == "" {
-		routeGroupID = global.GetIDStr()
+		routeGroupID = global.SnowflakeNode.Generate().String()
 	}
 	if routeGroupID == "" {
 		return errors.New("routeGroupID不能为空")

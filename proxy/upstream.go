@@ -8,7 +8,7 @@ import (
 
 func SetUpstream(upstream global.UpstreamType) error {
 	if upstream.ID == "" {
-		upstream.ID = global.GetIDStr()
+		upstream.ID = global.SnowflakeNode.Generate().String()
 	}
 	if upstream.ID == "" {
 		return errors.New("没有传入upstream.ID,并且无法自动创建ID")
