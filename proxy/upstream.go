@@ -8,10 +8,7 @@ import (
 
 func SetUpstream(upstream global.UpstreamType) error {
 	if upstream.ID == "" {
-		upstream.ID = global.SnowflakeNode.Generate().String()
-	}
-	if upstream.ID == "" {
-		return errors.New("没有传入upstream.ID,并且无法自动创建ID")
+		return errors.New("upstream ID不能为空")
 	}
 	global.Upstreams[upstream.ID] = upstream
 	return nil
@@ -19,7 +16,7 @@ func SetUpstream(upstream global.UpstreamType) error {
 
 func DelUpstream(upstreamID string) error {
 	if upstreamID == "" {
-		return errors.New("upstreamID不能为空")
+		return errors.New("upstream ID不能为空")
 	}
 	delete(global.Upstreams, upstreamID)
 	return nil

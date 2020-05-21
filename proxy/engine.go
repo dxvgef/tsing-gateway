@@ -26,14 +26,7 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	// 执行全局中间件
 	for k := range global.Middleware {
-		mw, err := middleware.Build(global.Middleware[k].Name, global.Middleware[k].Config)
-		if err != nil {
-			log.Error().Caller().Msg(err.Error())
-			resp.WriteHeader(http.StatusInternalServerError)
-			_, _ = resp.Write(global.StrToBytes(http.StatusText(http.StatusInternalServerError))) // nolint
-			return
-		}
-		next, err := mw.Action(resp, req)
+		next, err := global.Middleware[k].Action(resp, req)
 		if err != nil {
 			log.Error().Caller().Msg(err.Error())
 			return
@@ -45,7 +38,7 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	// 执行上游中间件
 	for k := range upstream.Middleware {
-		mw, err := middleware.Build(upstream.Middleware[k].Name, upstream.Middleware[k].Config)
+		mw, err := middleware.Build(upstream.Middleware[k].Name, upstream.Middleware[k].Config, false)
 		if err != nil {
 			log.Error().Caller().Msg(err.Error())
 			resp.WriteHeader(http.StatusInternalServerError)
@@ -80,6 +73,6 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	// }
 
 	// 这里使用的servHTTP是一个使用新协程的非阻塞处理方式
-	// resp.Header().Set("X-Power-By", "Tsing Gateway")
+	// resp.Header().Put("X-Power-By", "Tsing Gateway")
 	// p.ServeHTTP(resp, req)
 }

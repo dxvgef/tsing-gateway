@@ -38,28 +38,7 @@ func easyjson6fc2bfdaDecodeGithubComDxvgefTsingGatewayApi(in *jlexer.Lexer, out 
 		}
 		switch key {
 		case "middleware":
-			if in.IsNull() {
-				in.Skip()
-				out.Middleware = nil
-			} else {
-				in.Delim('[')
-				if out.Middleware == nil {
-					if !in.IsDelim(']') {
-						out.Middleware = make([]global.ModuleConfig, 0, 2)
-					} else {
-						out.Middleware = []global.ModuleConfig{}
-					}
-				} else {
-					out.Middleware = (out.Middleware)[:0]
-				}
-				for !in.IsDelim(']') {
-					var v1 global.ModuleConfig
-					(v1).UnmarshalEasyJSON(in)
-					out.Middleware = append(out.Middleware, v1)
-					in.WantComma()
-				}
-				in.Delim(']')
-			}
+			out.Middleware = string(in.String())
 		case "hosts":
 			if in.IsNull() {
 				in.Skip()
@@ -69,9 +48,9 @@ func easyjson6fc2bfdaDecodeGithubComDxvgefTsingGatewayApi(in *jlexer.Lexer, out 
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
-					var v2 string
-					v2 = string(in.String())
-					(out.Hosts)[key] = v2
+					var v1 string
+					v1 = string(in.String())
+					(out.Hosts)[key] = v1
 					in.WantComma()
 				}
 				in.Delim('}')
@@ -85,37 +64,37 @@ func easyjson6fc2bfdaDecodeGithubComDxvgefTsingGatewayApi(in *jlexer.Lexer, out 
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
-					var v3 map[string]map[string]string
+					var v2 map[string]map[string]string
 					if in.IsNull() {
 						in.Skip()
 					} else {
 						in.Delim('{')
-						v3 = make(map[string]map[string]string)
+						v2 = make(map[string]map[string]string)
 						for !in.IsDelim('}') {
 							key := string(in.String())
 							in.WantColon()
-							var v4 map[string]string
+							var v3 map[string]string
 							if in.IsNull() {
 								in.Skip()
 							} else {
 								in.Delim('{')
-								v4 = make(map[string]string)
+								v3 = make(map[string]string)
 								for !in.IsDelim('}') {
 									key := string(in.String())
 									in.WantColon()
-									var v5 string
-									v5 = string(in.String())
-									(v4)[key] = v5
+									var v4 string
+									v4 = string(in.String())
+									(v3)[key] = v4
 									in.WantComma()
 								}
 								in.Delim('}')
 							}
-							(v3)[key] = v4
+							(v2)[key] = v3
 							in.WantComma()
 						}
 						in.Delim('}')
 					}
-					(out.Routes)[key] = v3
+					(out.Routes)[key] = v2
 					in.WantComma()
 				}
 				in.Delim('}')
@@ -129,9 +108,9 @@ func easyjson6fc2bfdaDecodeGithubComDxvgefTsingGatewayApi(in *jlexer.Lexer, out 
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
-					var v6 global.UpstreamType
-					(v6).UnmarshalEasyJSON(in)
-					(out.Upstreams)[key] = v6
+					var v5 global.UpstreamType
+					(v5).UnmarshalEasyJSON(in)
+					(out.Upstreams)[key] = v5
 					in.WantComma()
 				}
 				in.Delim('}')
@@ -153,18 +132,7 @@ func easyjson6fc2bfdaEncodeGithubComDxvgefTsingGatewayApi(out *jwriter.Writer, i
 	{
 		const prefix string = ",\"middleware\":"
 		out.RawString(prefix[1:])
-		if in.Middleware == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
-			out.RawString("null")
-		} else {
-			out.RawByte('[')
-			for v7, v8 := range in.Middleware {
-				if v7 > 0 {
-					out.RawByte(',')
-				}
-				(v8).MarshalEasyJSON(out)
-			}
-			out.RawByte(']')
-		}
+		out.String(string(in.Middleware))
 	}
 	{
 		const prefix string = ",\"hosts\":"
@@ -173,16 +141,16 @@ func easyjson6fc2bfdaEncodeGithubComDxvgefTsingGatewayApi(out *jwriter.Writer, i
 			out.RawString(`null`)
 		} else {
 			out.RawByte('{')
-			v9First := true
-			for v9Name, v9Value := range in.Hosts {
-				if v9First {
-					v9First = false
+			v6First := true
+			for v6Name, v6Value := range in.Hosts {
+				if v6First {
+					v6First = false
 				} else {
 					out.RawByte(',')
 				}
-				out.String(string(v9Name))
+				out.String(string(v6Name))
 				out.RawByte(':')
-				out.String(string(v9Value))
+				out.String(string(v6Value))
 			}
 			out.RawByte('}')
 		}
@@ -194,42 +162,42 @@ func easyjson6fc2bfdaEncodeGithubComDxvgefTsingGatewayApi(out *jwriter.Writer, i
 			out.RawString(`null`)
 		} else {
 			out.RawByte('{')
-			v10First := true
-			for v10Name, v10Value := range in.Routes {
-				if v10First {
-					v10First = false
+			v7First := true
+			for v7Name, v7Value := range in.Routes {
+				if v7First {
+					v7First = false
 				} else {
 					out.RawByte(',')
 				}
-				out.String(string(v10Name))
+				out.String(string(v7Name))
 				out.RawByte(':')
-				if v10Value == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
+				if v7Value == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
 					out.RawString(`null`)
 				} else {
 					out.RawByte('{')
-					v11First := true
-					for v11Name, v11Value := range v10Value {
-						if v11First {
-							v11First = false
+					v8First := true
+					for v8Name, v8Value := range v7Value {
+						if v8First {
+							v8First = false
 						} else {
 							out.RawByte(',')
 						}
-						out.String(string(v11Name))
+						out.String(string(v8Name))
 						out.RawByte(':')
-						if v11Value == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
+						if v8Value == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
 							out.RawString(`null`)
 						} else {
 							out.RawByte('{')
-							v12First := true
-							for v12Name, v12Value := range v11Value {
-								if v12First {
-									v12First = false
+							v9First := true
+							for v9Name, v9Value := range v8Value {
+								if v9First {
+									v9First = false
 								} else {
 									out.RawByte(',')
 								}
-								out.String(string(v12Name))
+								out.String(string(v9Name))
 								out.RawByte(':')
-								out.String(string(v12Value))
+								out.String(string(v9Value))
 							}
 							out.RawByte('}')
 						}
@@ -247,16 +215,16 @@ func easyjson6fc2bfdaEncodeGithubComDxvgefTsingGatewayApi(out *jwriter.Writer, i
 			out.RawString(`null`)
 		} else {
 			out.RawByte('{')
-			v13First := true
-			for v13Name, v13Value := range in.Upstreams {
-				if v13First {
-					v13First = false
+			v10First := true
+			for v10Name, v10Value := range in.Upstreams {
+				if v10First {
+					v10First = false
 				} else {
 					out.RawByte(',')
 				}
-				out.String(string(v13Name))
+				out.String(string(v10Name))
 				out.RawByte(':')
-				(v13Value).MarshalEasyJSON(out)
+				(v10Value).MarshalEasyJSON(out)
 			}
 			out.RawByte('}')
 		}

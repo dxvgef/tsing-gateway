@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/coreos/etcd/clientv3"
-	"github.com/rs/zerolog/log"
 
 	"github.com/dxvgef/tsing-gateway/global"
 	"github.com/dxvgef/tsing-gateway/proxy"
@@ -14,39 +13,58 @@ import (
 
 // 加载所有数据
 func (self *Etcd) LoadAll() (err error) {
-	if err = self.LoadAllMiddleware(); err != nil {
+	if err = self.LoadMiddleware(); err != nil {
 		return
 	}
-	log.Debug().Caller().Interface("middleware", global.Middleware).Msg("加载了middleware")
 	if err = self.LoadAllUpstreams(); err != nil {
 		return
 	}
-	log.Debug().Caller().Interface("upstreams", global.Upstreams).Msg("加载了upstreams")
 	if err = self.LoadAllRoutes(); err != nil {
 		return
 	}
-	log.Debug().Caller().Interface("routes", global.Routes).Msg("加载了routes")
 	if err = self.LoadAllHosts(); err != nil {
 		return
 	}
-	log.Debug().Caller().Interface("hosts", global.Hosts).Msg("加载了hosts")
 	return
 }
 
 // 加载所有全局中间件
-func (self *Etcd) LoadAllMiddleware() error {
-	// todo 这个功能还没有实现
+func (self *Etcd) LoadMiddleware() error {
+	var str strings.Builder
+
+	// str做为key使用
+	str.WriteString(self.KeyPrefix)
+	str.WriteString("/middleware")
+
+	// 获取middleware
+	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer ctxCancel()
+	resp, err := self.client.Get(ctx, str.String())
+	if err != nil {
+		return err
+	}
+
+	// 重置str准备做为value使用
+	str.Reset()
+	if resp.Count > 0 {
+		str.WriteString(global.BytesToStr(resp.Kvs[0].Value))
+	}
+	err = proxy.SetMiddleware(str.String())
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // 加载所有upstream
 func (self *Etcd) LoadAllUpstreams() error {
 	var key strings.Builder
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer ctxCancel()
-	// 获取upstreams
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/upstreams/")
+
+	// 获取upstreams
+	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer ctxCancel()
 	resp, err := self.client.Get(ctx, key.String(), clientv3.WithPrefix())
 	if err != nil {
 		return err
@@ -71,11 +89,12 @@ func (self *Etcd) LoadAllUpstreams() error {
 // 加载所有route
 func (self *Etcd) LoadAllRoutes() error {
 	var key strings.Builder
+	key.WriteString(self.KeyPrefix)
+	key.WriteString("/routes/")
+
 	// 获取路由
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
-	key.WriteString(self.KeyPrefix)
-	key.WriteString("/routes/")
 	resp, err := self.client.Get(ctx, key.String(), clientv3.WithPrefix())
 	if err != nil {
 		return err
@@ -99,10 +118,11 @@ func (self *Etcd) LoadAllRoutes() error {
 // 加载所有host
 func (self *Etcd) LoadAllHosts() error {
 	var key strings.Builder
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer ctxCancel()
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/hosts/")
+
+	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer ctxCancel()
 	resp, err := self.client.Get(ctx, key.String(), clientv3.WithPrefix())
 	if err != nil {
 		return err

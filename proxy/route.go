@@ -12,17 +12,15 @@ import (
 // 设置路由组及路由，如果存在则更新，不存在则新建
 func SetRoute(routeGroupID, routePath, routeMethod, upstreamID string) error {
 	if routeGroupID == "" {
-		return errors.New("没有传入路由组ID,并且无法自动创建ID")
+		return errors.New("路由组ID不能为空")
 	}
-	// if _, exist := p.Upstreams[upstreamID]; !exist {
-	// 	return errors.New("上游ID:" + upstreamID + "不存在")
-	// }
 	if routePath == "" {
-		routePath = "/"
+		return errors.New("路径不能为空")
 	}
 	if routeMethod == "" {
-		routeMethod = "*"
-	} else {
+		return errors.New("HTTP方法不能为空")
+	}
+	if routeMethod != "*" {
 		routeMethod = strings.ToUpper(routeMethod)
 	}
 	if !global.InStr(global.Methods, routeMethod) {
@@ -94,26 +92,26 @@ func matchRoute(req *http.Request) (upstream global.UpstreamType, status int) {
 }
 
 // 匹配路径，返回最终匹配到的路径
-func matchPath(routeGroupID, reoutePath string) (string, bool) {
-	if reoutePath == "" {
-		reoutePath = "/"
+func matchPath(routeGroupID, routePath string) (string, bool) {
+	if routePath == "" {
+		routePath = "/"
 	}
 	// 先尝试完全匹配路径
-	if _, exist := global.Routes[routeGroupID][reoutePath]; exist {
-		return reoutePath, true
+	if _, exist := global.Routes[routeGroupID][routePath]; exist {
+		return routePath, true
 	}
 	// 尝试模糊匹配
-	pathLastChar := reoutePath[len(reoutePath)-1]
+	pathLastChar := routePath[len(routePath)-1]
 	if pathLastChar != 47 {
-		pos := strings.LastIndex(reoutePath, path.Base(reoutePath))
-		reoutePath = reoutePath[:pos]
+		pos := strings.LastIndex(routePath, path.Base(routePath))
+		routePath = routePath[:pos]
 	}
 	// todo 可能要将*号换成别的符号，因为和api(tsing)的路由规则冲突
-	reoutePath = reoutePath + "*"
-	if _, exist := global.Routes[routeGroupID][reoutePath]; exist {
-		return reoutePath, true
+	routePath = routePath + "*"
+	if _, exist := global.Routes[routeGroupID][routePath]; exist {
+		return routePath, true
 	}
-	return reoutePath, false
+	return routePath, false
 }
 
 // 匹配方法，返回对应的集群ID

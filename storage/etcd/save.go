@@ -13,6 +13,9 @@ import (
 
 // 存储所有数据
 func (self *Etcd) SaveAll() (err error) {
+	if err = self.SaveMiddleware(); err != nil {
+		return
+	}
 	if err = self.SaveAllHosts(); err != nil {
 		return
 	}
@@ -23,6 +26,24 @@ func (self *Etcd) SaveAll() (err error) {
 		return
 	}
 	return
+}
+
+// 存储全局中间件数据
+func (self *Etcd) SaveMiddleware() error {
+	return nil
+}
+
+// 设置全局中间件数据
+func (self *Etcd) PutMiddleware(configStr string) error {
+	var key strings.Builder
+	key.WriteString(self.KeyPrefix)
+	key.WriteString("/middleware")
+	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer ctxCancel()
+	if _, err := self.client.Put(ctx, key.String(), configStr); err != nil {
+		return err
+	}
+	return nil
 }
 
 // 存储所有upstream数据
@@ -63,13 +84,13 @@ func (self *Etcd) SaveAllUpstreams() error {
 		key.WriteString(self.KeyPrefix)
 		key.WriteString("/upstreams/")
 		key.WriteString(k)
-		ctx2, ctx2Cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		if _, err = self.client.Put(ctx2, key.String(), upstreams[k]); err != nil {
-			ctx2Cancel()
+		ctxTmp, ctxTmpCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		if _, err = self.client.Put(ctxTmp, key.String(), upstreams[k]); err != nil {
+			ctxTmpCancel()
 			return err
 		}
 		key.Reset()
-		ctx2Cancel()
+		ctxTmpCancel()
 	}
 	return nil
 }

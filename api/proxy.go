@@ -1,13 +1,15 @@
 package api
 
 import (
+	"encoding/json"
+
 	"github.com/dxvgef/tsing"
 
 	"github.com/dxvgef/tsing-gateway/global"
 )
 
 type Proxy struct {
-	Middleware []global.ModuleConfig                   `json:"middleware"`
+	Middleware string                                  `json:"middleware"`
 	Hosts      map[string]string                       `json:"hosts"`
 	Routes     map[string]map[string]map[string]string `json:"routes"`
 	Upstreams  map[string]global.UpstreamType          `json:"upstreams"`
@@ -16,12 +18,22 @@ type Proxy struct {
 func (self *Proxy) OutputAll(ctx *tsing.Context) error {
 	self.Hosts = global.Hosts
 	self.Routes = global.Routes
-	self.Middleware = global.Middleware
+
+	if global.Middleware != nil && len(global.Middleware) > 0 {
+		mw, err := json.Marshal(&global.Middleware)
+		if err != nil {
+			return err
+		}
+		self.Middleware = global.BytesToStr(mw)
+	}
+
 	self.Upstreams = global.Upstreams
 	err := JSON(ctx, 200, self)
+
 	self.Hosts = nil
 	self.Routes = nil
 	self.Upstreams = nil
+	self.Middleware = ""
 	return err
 }
 
