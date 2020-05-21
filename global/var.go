@@ -12,10 +12,10 @@ var (
 	// 存储器客户端ID，在存储器被构建时自动生成
 	// 用于存储器的
 	StorageClientID int64
-	Middleware      []ModuleConfig                          // 全局中间件
-	Hosts           map[string]string                       // 主机列表
-	Routes          map[string]map[string]map[string]string // 路由列表
-	Upstreams       map[string]UpstreamType                 // 上游列表
+	Middleware      []ModuleConfig                                  // 全局中间件
+	Hosts           = make(map[string]string)                       // 主机列表
+	Routes          = make(map[string]map[string]map[string]string) // 路由列表
+	Upstreams       = make(map[string]UpstreamType)                 // 上游列表
 	// HTTP方法允许的值
 	Methods = []string{
 		"*", "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "TRACE", "CONNECT",
