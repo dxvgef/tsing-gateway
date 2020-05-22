@@ -59,7 +59,7 @@ func (self *Upstream) Add(ctx *tsing.Context) error {
 		return JSON(ctx, 500, &resp)
 	}
 
-	if err = global.Storage.PutUpstream(req.id, global.BytesToStr(upstreamBytes)); err != nil {
+	if err = global.Storage.PutUpstream(req.id, global.BytesToStr(upstreamBytes), false); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -109,7 +109,7 @@ func (self *Upstream) Put(ctx *tsing.Context) error {
 		return JSON(ctx, 500, &resp)
 	}
 
-	if err = global.Storage.PutUpstream(upstream.ID, global.BytesToStr(upstreamBytes)); err != nil {
+	if err = global.Storage.PutUpstream(upstream.ID, global.BytesToStr(upstreamBytes), false); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -126,7 +126,7 @@ func (self *Upstream) Delete(ctx *tsing.Context) error {
 	if err != nil {
 		return Status(ctx, 404)
 	}
-	err = global.Storage.DelUpstream(global.BytesToStr(id))
+	err = global.Storage.DelUpstream(global.BytesToStr(id), false)
 	if err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)

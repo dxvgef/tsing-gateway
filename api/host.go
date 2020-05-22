@@ -24,7 +24,7 @@ func (self *Host) Add(ctx *tsing.Context) error {
 		resp["error"] = "主机名已存在"
 		return JSON(ctx, 400, &resp)
 	}
-	if err := global.Storage.PutHost(hostname, ctx.Post("upstream_id")); err != nil {
+	if err := global.Storage.PutHost(hostname, ctx.Post("upstream_id"), false); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -41,7 +41,7 @@ func (self *Host) Put(ctx *tsing.Context) error {
 	if err != nil {
 		return Status(ctx, 404)
 	}
-	if err = global.Storage.PutHost(hostname, ctx.Post("upstream_id")); err != nil {
+	if err = global.Storage.PutHost(hostname, ctx.Post("upstream_id"), false); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -58,7 +58,7 @@ func (self *Host) Delete(ctx *tsing.Context) error {
 	if err != nil {
 		return Status(ctx, 404)
 	}
-	if err := global.Storage.DelHost(hostname); err != nil {
+	if err := global.Storage.DelHost(hostname, false); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}

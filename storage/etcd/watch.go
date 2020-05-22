@@ -61,6 +61,7 @@ func (self *Etcd) putDataToLocal(key, value []byte) error {
 		return nil
 	}
 	if strings.HasPrefix(keyStr, self.KeyPrefix+"/routes/") {
+		// todo 这里的parseRoute函数好像没有正确的解码key，所以数据都写不进去
 		routeID, routePath, routeMethod, errTmp := global.ParseRoute(keyStr, self.KeyPrefix)
 		if errTmp != nil {
 			return err
