@@ -274,16 +274,13 @@ func (self *Etcd) PutRoute(routeGroupID, routePath, routeMethod, upstreamID stri
 	}
 
 	var key strings.Builder
-	key.WriteString(routePath)
-	key.WriteString("/")
-	key.WriteString(routeMethod)
-	keyName := global.EncodeKey(key.String())
-
-	key.Reset()
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/routes/")
-	key.WriteString(routeGroupID)
-	key.WriteString(keyName)
+	key.WriteString(global.EncodeKey(routeGroupID))
+	key.WriteString("/")
+	key.WriteString(global.EncodeKey(routePath))
+	key.WriteString("#")
+	key.WriteString(routeMethod)
 
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
