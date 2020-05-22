@@ -1,8 +1,6 @@
 package api
 
 import (
-	"encoding/base64"
-
 	"github.com/dxvgef/tsing"
 
 	"github.com/dxvgef/tsing-gateway/global"
@@ -36,14 +34,14 @@ func (self *Host) Add(ctx *tsing.Context) error {
 func (self *Host) Put(ctx *tsing.Context) error {
 	var (
 		err      error
-		hostname []byte
+		hostname string
 		resp     = make(map[string]string)
 	)
-	hostname, err = base64.RawURLEncoding.DecodeString(ctx.PathParams.Value("hostname"))
+	hostname, err = global.DecodeKey(ctx.PathParams.Value("hostname"))
 	if err != nil {
 		return Status(ctx, 404)
 	}
-	if err = global.Storage.PutHost(global.BytesToStr(hostname), ctx.Post("upstream_id")); err != nil {
+	if err = global.Storage.PutHost(hostname, ctx.Post("upstream_id")); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -53,14 +51,14 @@ func (self *Host) Put(ctx *tsing.Context) error {
 func (self *Host) Delete(ctx *tsing.Context) error {
 	var (
 		err      error
-		hostname []byte
+		hostname string
 		resp     = make(map[string]string)
 	)
-	hostname, err = base64.RawURLEncoding.DecodeString(ctx.PathParams.Value("hostname"))
+	hostname, err = global.DecodeKey(ctx.PathParams.Value("hostname"))
 	if err != nil {
 		return Status(ctx, 404)
 	}
-	if err := global.Storage.DelHost(global.BytesToStr(hostname)); err != nil {
+	if err := global.Storage.DelHost(hostname); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}

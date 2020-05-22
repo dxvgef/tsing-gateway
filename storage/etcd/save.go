@@ -77,19 +77,18 @@ func (self *Etcd) SaveAllUpstreams() error {
 	if err != nil {
 		return err
 	}
-	key.Reset()
 
 	// 写入upstreams
 	for k := range upstreams {
+		key.Reset()
 		key.WriteString(self.KeyPrefix)
 		key.WriteString("/upstreams/")
-		key.WriteString(k)
+		key.WriteString(global.EncodeKey(k))
 		ctxTmp, ctxTmpCancel := context.WithTimeout(context.Background(), 5*time.Second)
 		if _, err = self.client.Put(ctxTmp, key.String(), upstreams[k]); err != nil {
 			ctxTmpCancel()
 			return err
 		}
-		key.Reset()
 		ctxTmpCancel()
 	}
 	return nil
@@ -129,28 +128,32 @@ func (self *Etcd) SaveAllRoutes() (err error) {
 	if _, err = self.client.Delete(ctx, key.String(), clientv3.WithPrefix()); err != nil {
 		return err
 	}
-	key.Reset()
 
+	var routeSign string
 	// 写入路由
 	for routeGroupID, v := range routes {
+		key.Reset()
 		for routePath, vv := range v {
 			for routeMethod, upstreamID := range vv {
 				if routeMethod == "" {
 					continue
 				}
-				key.WriteString(self.KeyPrefix)
-				key.WriteString("/routes/")
-				key.WriteString(routeGroupID)
 				key.WriteString(routePath)
 				key.WriteString("/")
 				key.WriteString(routeMethod)
+				routeSign = global.EncodeKey(key.String())
+				key.Reset()
+				key.WriteString(self.KeyPrefix)
+				key.WriteString("/routes/")
+				key.WriteString(routeGroupID)
+				key.WriteString(routeSign)
+
 				ctx2, ctx2Cancel := context.WithTimeout(context.Background(), 5*time.Second)
 				_, err = self.client.Put(ctx2, key.String(), upstreamID)
 				if err != nil {
 					ctx2Cancel()
 					return
 				}
-				key.Reset()
 				ctx2Cancel()
 			}
 		}
@@ -185,7 +188,7 @@ func (self *Etcd) SaveAllHosts() error {
 
 	// 写入路由
 	for hostname, upstreamID := range hosts {
-		key.WriteString(hostname)
+		key.WriteString(global.EncodeKey(hostname))
 		ctx2, ctx2Cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		_, err = self.client.Put(ctx2, key.String(), upstreamID)
 		if err != nil {
@@ -205,7 +208,7 @@ func (self *Etcd) PutHost(hostname, upstreamID string) error {
 
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/hosts/")
-	key.WriteString(hostname)
+	key.WriteString(global.EncodeKey(hostname))
 
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
@@ -221,7 +224,7 @@ func (self *Etcd) DelHost(hostname string) error {
 
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/hosts/")
-	key.WriteString(hostname)
+	key.WriteString(global.EncodeKey(hostname))
 
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
@@ -232,12 +235,12 @@ func (self *Etcd) DelHost(hostname string) error {
 }
 
 // 设置单个upstream，如果不存在则创建
-func (self *Etcd) PutUpstream(id, upstreamConfig string) error {
+func (self *Etcd) PutUpstream(upstreamID, upstreamConfig string) error {
 	var key strings.Builder
 
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/upstreams/")
-	key.WriteString(id)
+	key.WriteString(global.EncodeKey(upstreamID))
 
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
@@ -253,7 +256,7 @@ func (self *Etcd) DelUpstream(upstreamID string) error {
 
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/upstreams/")
-	key.WriteString(upstreamID)
+	key.WriteString(global.EncodeKey(upstreamID))
 
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
@@ -271,12 +274,16 @@ func (self *Etcd) PutRoute(routeGroupID, routePath, routeMethod, upstreamID stri
 	}
 
 	var key strings.Builder
-	key.WriteString(self.KeyPrefix)
-	key.WriteString("/routes/")
-	key.WriteString(routeGroupID)
 	key.WriteString(routePath)
 	key.WriteString("/")
 	key.WriteString(routeMethod)
+	keyName := global.EncodeKey(key.String())
+
+	key.Reset()
+	key.WriteString(self.KeyPrefix)
+	key.WriteString("/routes/")
+	key.WriteString(routeGroupID)
+	key.WriteString(keyName)
 
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
@@ -289,13 +296,16 @@ func (self *Etcd) PutRoute(routeGroupID, routePath, routeMethod, upstreamID stri
 // 删除单个route
 func (self *Etcd) DelRoute(routeGroupID, routePath, routeMethod string) error {
 	var key strings.Builder
-
-	key.WriteString(self.KeyPrefix)
-	key.WriteString("/routes/")
-	key.WriteString(routeGroupID)
 	key.WriteString(routePath)
 	key.WriteString("/")
 	key.WriteString(routeMethod)
+	keyName := global.EncodeKey(key.String())
+
+	key.Reset()
+	key.WriteString(self.KeyPrefix)
+	key.WriteString("/routes/")
+	key.WriteString(routeGroupID)
+	key.WriteString(keyName)
 
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()

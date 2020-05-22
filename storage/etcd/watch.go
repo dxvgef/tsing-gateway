@@ -40,7 +40,12 @@ func (self *Etcd) putDataToLocal(key, value []byte) error {
 		keyStr = global.BytesToStr(key)
 	)
 	if strings.HasPrefix(keyStr, self.KeyPrefix+"/hosts/") {
-		if err = proxy.SetHost(path.Base(keyStr), global.BytesToStr(value)); err != nil {
+		var hostname string
+		hostname, err = global.DecodeKey(path.Base(keyStr))
+		if err != nil {
+			return err
+		}
+		if err = proxy.SetHost(hostname, global.BytesToStr(value)); err != nil {
 			return err
 		}
 		return nil
@@ -82,13 +87,23 @@ func (self *Etcd) delDataToLocal(key []byte) error {
 		keyStr = global.BytesToStr(key)
 	)
 	if strings.HasPrefix(keyStr, self.KeyPrefix+"/hosts/") {
-		if err = proxy.DelHost(path.Base(keyStr)); err != nil {
+		var mapKey string
+		mapKey, err = global.DecodeKey(path.Base(keyStr))
+		if err != nil {
+			return err
+		}
+		if err = proxy.DelHost(mapKey); err != nil {
 			return err
 		}
 		return nil
 	}
 	if strings.HasPrefix(keyStr, self.KeyPrefix+"/upstreams/") {
-		if err = proxy.DelUpstream(path.Base(keyStr)); err != nil {
+		var mapKey string
+		mapKey, err = global.DecodeKey(path.Base(keyStr))
+		if err != nil {
+			return err
+		}
+		if err = proxy.DelUpstream(mapKey); err != nil {
 			return err
 		}
 		return nil

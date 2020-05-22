@@ -117,6 +117,7 @@ func (self *Etcd) LoadAllRoutes() error {
 
 // 加载所有host
 func (self *Etcd) LoadAllHosts() error {
+	var hostname string
 	var key strings.Builder
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/hosts/")
@@ -128,10 +129,12 @@ func (self *Etcd) LoadAllHosts() error {
 		return err
 	}
 	for k := range resp.Kvs {
-		err = proxy.SetHost(
-			strings.TrimPrefix(global.BytesToStr(resp.Kvs[k].Key), "/hosts/"),
-			global.BytesToStr(resp.Kvs[k].Value),
-		)
+		hostname = strings.TrimPrefix(global.BytesToStr(resp.Kvs[k].Key), "/hosts/")
+		hostname, err = global.DecodeKey(hostname)
+		if err != nil {
+			return err
+		}
+		err = proxy.SetHost(hostname, global.BytesToStr(resp.Kvs[k].Value))
 		if err != nil {
 			return err
 		}
