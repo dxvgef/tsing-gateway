@@ -3,9 +3,10 @@ package global
 import (
 	"encoding/base64"
 	"errors"
-	"path"
 	"strings"
 	"unsafe"
+
+	"github.com/rs/zerolog/log"
 )
 
 func BytesToStr(value []byte) string {
@@ -46,58 +47,61 @@ func FormatTime(str string) string {
 func ParseRoute(key, keyPrefix string) (routeGroupID, routePath, routeMethod string, err error) {
 	var pos int
 
-	// 如果有前缀
+	// 裁剪前缀
 	if keyPrefix != "" {
 		keyPrefix += "/routes/"
-
-		// 确定第一次要裁剪的位置，为了去掉前缀
-		pos = strings.Index(key, keyPrefix)
-		if pos == -1 {
-			err = errors.New("键名前缀处理失败")
-			return
-		}
-		key = key[pos+len(keyPrefix):]
+		key = strings.TrimPrefix(key, keyPrefix)
 	}
+	// 为了可以解析没有前缀的本地key
+	key = strings.TrimPrefix(key, "/")
 
-	// 去掉第一位的/字符，适用于key解析没有前缀的key
-	if key[0:1] == "/" {
-		key = key[1:]
-	}
-
-	// 确定第二次要裁剪的位置，为了获得路由组ID
+	// 解析路由组ID
 	pos = strings.Index(key, "/")
-
 	if pos == -1 {
 		err = errors.New("路由解析失败")
+		log.Err(err).Str("key", key).Int("pos", pos).Caller().Send()
 		return
 	}
 	routeGroupID = key[:pos]
 	if routeGroupID == "" {
 		err = errors.New("路由组ID解析失败")
+		log.Err(err).Str("key", key).Int("pos", pos).Caller().Send()
 		return
 	}
-	key = key[pos:]
-
-	// 解码键名
-	key, err = DecodeKey(key)
+	// 解码路由组ID
+	routeGroupID, err = DecodeKey(routeGroupID)
 	if err != nil {
+		log.Err(err).Str("routeGroupID", routeGroupID).Caller().Msg("解码路由组ID失败")
 		return
 	}
 
-	// 获取方法(最后一个路径)
-	routeMethod = path.Base(key)
+	// 裁剪掉key里的路由组ID部份
+	key = strings.TrimPrefix(key, key[:pos+1])
+
+	// 获取最后一次出现#符号(用于分隔路径和方法)的位置
+	pos = strings.LastIndex(key, "#")
+	if pos == -1 {
+		err = errors.New("没有找到路径和方法的分隔符")
+		log.Err(err).Str("key", key).Int("pos", pos).Caller().Send()
+		return
+	}
+	// 解析出路径
+	routePath = key[:pos]
+	// 解码路径
+	routePath, err = DecodeKey(routePath)
+	if err != nil {
+		log.Err(err).Str("path", routePath).Caller().Msg("路径解码失败")
+		return
+	}
+
+	// 获取方法
+	routeMethod = key[pos+1:]
 	if !InStr(Methods, routeMethod) {
 		err = errors.New("路由方法解析失败")
+		log.Err(err).Str("method", routeMethod).Caller().Msg("路径解码失败")
 		return
 	}
 
-	// 确定第三次要裁剪的位置，为了去掉方法
-	pos = strings.LastIndex(key, "/"+routeMethod)
-	if pos == -1 {
-		err = errors.New("获取方法的位置失败")
-		return
-	}
-	routePath = key[:pos]
 	return
 }
 
