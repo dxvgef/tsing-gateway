@@ -20,9 +20,6 @@ func SetRoute(routeGroupID, routePath, routeMethod, upstreamID string) error {
 	if routeMethod == "" {
 		return errors.New("HTTP方法不能为空")
 	}
-	if routeMethod != "*" {
-		routeMethod = strings.ToUpper(routeMethod)
-	}
 	if !global.InStr(global.Methods, routeMethod) {
 		return errors.New("HTTP方法无效")
 	}
@@ -119,7 +116,7 @@ func matchMethod(routeGroupID, routePath, routeMethod string) (string, bool) {
 	if _, exist := global.Routes[routeGroupID][routePath][routeMethod]; exist {
 		return routeMethod, true
 	}
-	routeMethod = "*"
+	routeMethod = "ANY"
 	if _, exist := global.Routes[routeGroupID][routePath][routeMethod]; exist {
 		return routeMethod, true
 	}

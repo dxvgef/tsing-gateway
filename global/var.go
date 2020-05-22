@@ -19,7 +19,7 @@ var (
 	UpstreamMiddleware = make(map[string][]MiddlewareType)             // 所有上游的中间件实例
 	// HTTP方法允许的值
 	Methods = []string{
-		"*", "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "TRACE", "CONNECT",
+		"ANY", "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "TRACE", "CONNECT",
 	}
 	// 负载均衡算数允许的值
 	LoadBalance = []string{"discover", "wred"}
