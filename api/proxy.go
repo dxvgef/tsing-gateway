@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 
 	"github.com/dxvgef/tsing"
-	"github.com/rs/zerolog/log"
 
 	"github.com/dxvgef/tsing-gateway/global"
 )
@@ -35,8 +34,6 @@ func (self *Proxy) OutputAll(ctx *tsing.Context) error {
 	self.Routes = nil
 	self.Upstreams = nil
 	self.Middleware = ""
-	log.Debug().Caller().Interface("globalMiddleware", global.GlobalMiddleware).Send()
-	log.Debug().Caller().Interface("upstreamMiddleware", global.UpstreamMiddleware).Send()
 	return err
 }
 
