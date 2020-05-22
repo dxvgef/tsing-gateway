@@ -1,6 +1,7 @@
 package global
 
 import (
+	"encoding/base64"
 	"errors"
 	"path"
 	"strings"
@@ -9,6 +10,20 @@ import (
 
 func BytesToStr(value []byte) string {
 	return *(*string)(unsafe.Pointer(&value)) // nolint
+}
+
+// 编码键名
+func EncodeKey(value string) string {
+	return base64.RawURLEncoding.EncodeToString(StrToBytes(value))
+}
+
+// 解码键名
+func DecodeKey(value string) (string, error) {
+	keyBytes, err := base64.RawURLEncoding.DecodeString(value)
+	if err != nil {
+		return "", err
+	}
+	return BytesToStr(keyBytes), nil
 }
 
 func StrToBytes(s string) []byte {
@@ -27,6 +42,7 @@ func FormatTime(str string) string {
 	return str
 }
 
+// 从键名解析路由信息
 func ParseRoute(key, keyPrefix string) (routeGroupID, routePath, routeMethod string, err error) {
 	var pos int
 
@@ -61,6 +77,12 @@ func ParseRoute(key, keyPrefix string) (routeGroupID, routePath, routeMethod str
 		return
 	}
 	key = key[pos:]
+
+	// 解码键名
+	key, err = DecodeKey(key)
+	if err != nil {
+		return
+	}
 
 	// 获取方法(最后一个路径)
 	routeMethod = path.Base(key)
