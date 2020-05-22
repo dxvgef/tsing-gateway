@@ -20,10 +20,10 @@ func (self *Route) Add(ctx *tsing.Context) error {
 		upstreamID string
 	}
 	err := filter.MSet(
-		filter.El(&req.groupID, filter.FromString(ctx.Post("group_id")).Required()),
-		filter.El(&req.path, filter.FromString(ctx.Post("path")).Required()),
-		filter.El(&req.method, filter.FromString(ctx.Post("method")).Required().EnumString(global.Methods)),
-		filter.El(&req.upstreamID, filter.FromString(ctx.Post("upstream_id")).Required()),
+		filter.El(&req.groupID, filter.FromString(ctx.Post("group_id"), "group_id").Required()),
+		filter.El(&req.path, filter.FromString(ctx.Post("path"), "path").Required()),
+		filter.El(&req.method, filter.FromString(ctx.Post("method"), "method").Required().EnumString(global.Methods)),
+		filter.El(&req.upstreamID, filter.FromString(ctx.Post("upstream_id"), "upstream_id").Required()),
 	)
 	if err != nil {
 		resp["error"] = err.Error()
