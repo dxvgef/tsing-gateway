@@ -279,7 +279,7 @@ func (self *Etcd) PutRoute(routeGroupID, routePath, routeMethod, upstreamID stri
 	key.WriteString(global.EncodeKey(routeGroupID))
 	key.WriteString("/")
 	key.WriteString(global.EncodeKey(routePath))
-	key.WriteString("#")
+	key.WriteString("/")
 	key.WriteString(routeMethod)
 
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
