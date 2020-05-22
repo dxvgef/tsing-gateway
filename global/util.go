@@ -77,7 +77,6 @@ func ParseRoute(key, keyPrefix string) (routeGroupID, routePath, routeMethod str
 
 	// 裁剪掉key里的路由组ID部份
 	key = strings.TrimPrefix(key, key[:pos+1])
-
 	// 获取最后一次出现/符号(用于分隔路径和方法)的位置
 	pos = strings.LastIndex(key, "/")
 	if pos == -1 {

@@ -67,6 +67,6 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	// }
 
 	// 这里使用的servHTTP是一个使用新协程的非阻塞处理方式
-	// resp.Header().Put("X-Power-By", "Tsing Gateway")
+	// resp.Header().Update("X-Power-By", "Tsing Gateway")
 	// p.ServeHTTP(resp, req)
 }

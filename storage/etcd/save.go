@@ -3,6 +3,7 @@ package etcd
 import (
 	"context"
 	"errors"
+	"path"
 	"strings"
 	"time"
 
@@ -129,24 +130,21 @@ func (self *Etcd) SaveAllRoutes() (err error) {
 		return err
 	}
 
-	var routeSign string
 	// 写入路由
 	for routeGroupID, v := range routes {
-		key.Reset()
 		for routePath, vv := range v {
 			for routeMethod, upstreamID := range vv {
 				if routeMethod == "" {
 					continue
 				}
-				key.WriteString(routePath)
-				key.WriteString("/")
-				key.WriteString(routeMethod)
-				routeSign = global.EncodeKey(key.String())
 				key.Reset()
 				key.WriteString(self.KeyPrefix)
 				key.WriteString("/routes/")
-				key.WriteString(routeGroupID)
-				key.WriteString(routeSign)
+				key.WriteString(global.EncodeKey(routeGroupID))
+				key.WriteString("/")
+				key.WriteString(global.EncodeKey(routePath))
+				key.WriteString("/")
+				key.WriteString(routeMethod)
 
 				ctx2, ctx2Cancel := context.WithTimeout(context.Background(), 5*time.Second)
 				_, err = self.client.Put(ctx2, key.String(), upstreamID)
@@ -203,12 +201,14 @@ func (self *Etcd) SaveAllHosts() error {
 }
 
 // 设置单个host，如果不存在则创建
-func (self *Etcd) PutHost(hostname, upstreamID string) error {
+func (self *Etcd) PutHost(hostname, upstreamID string, encoded bool) error {
+	if !encoded {
+		hostname = global.EncodeKey(hostname)
+	}
 	var key strings.Builder
-
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/hosts/")
-	key.WriteString(global.EncodeKey(hostname))
+	key.WriteString(hostname)
 
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
@@ -219,12 +219,14 @@ func (self *Etcd) PutHost(hostname, upstreamID string) error {
 }
 
 // 删除host
-func (self *Etcd) DelHost(hostname string) error {
+func (self *Etcd) DelHost(hostname string, encoded bool) error {
+	if !encoded {
+		hostname = global.EncodeKey(hostname)
+	}
 	var key strings.Builder
-
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/hosts/")
-	key.WriteString(global.EncodeKey(hostname))
+	key.WriteString(hostname)
 
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
@@ -235,12 +237,14 @@ func (self *Etcd) DelHost(hostname string) error {
 }
 
 // 设置单个upstream，如果不存在则创建
-func (self *Etcd) PutUpstream(upstreamID, upstreamConfig string) error {
+func (self *Etcd) PutUpstream(upstreamID, upstreamConfig string, encoded bool) error {
+	if !encoded {
+		upstreamID = global.EncodeKey(upstreamID)
+	}
 	var key strings.Builder
-
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/upstreams/")
-	key.WriteString(global.EncodeKey(upstreamID))
+	key.WriteString(upstreamID)
 
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
@@ -251,12 +255,14 @@ func (self *Etcd) PutUpstream(upstreamID, upstreamConfig string) error {
 }
 
 // 删除upstream
-func (self *Etcd) DelUpstream(upstreamID string) error {
+func (self *Etcd) DelUpstream(upstreamID string, encoded bool) error {
+	if !encoded {
+		upstreamID = global.EncodeKey(upstreamID)
+	}
 	var key strings.Builder
-
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/upstreams/")
-	key.WriteString(global.EncodeKey(upstreamID))
+	key.WriteString(upstreamID)
 
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
@@ -267,20 +273,25 @@ func (self *Etcd) DelUpstream(upstreamID string) error {
 }
 
 // 设置单个route，如果不存在则创建
-func (self *Etcd) PutRoute(routeGroupID, routePath, routeMethod, upstreamID string) error {
+func (self *Etcd) PutRoute(routeGroupID, routePath, routeMethod, upstreamID string, encoded bool) error {
 	routeMethod = strings.ToUpper(routeMethod)
 	if !global.InStr(global.Methods, routeMethod) {
 		return errors.New("HTTP方法无效")
 	}
 
+	if !encoded {
+		routeGroupID = global.EncodeKey(routeGroupID)
+		routePath = global.EncodeKey(routePath)
+	}
 	var key strings.Builder
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/routes/")
-	key.WriteString(global.EncodeKey(routeGroupID))
+	key.WriteString(routeGroupID)
 	key.WriteString("/")
-	key.WriteString(global.EncodeKey(routePath))
+	key.WriteString(routePath)
 	key.WriteString("/")
 	key.WriteString(routeMethod)
+	path.Join()
 
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
@@ -291,21 +302,39 @@ func (self *Etcd) PutRoute(routeGroupID, routePath, routeMethod, upstreamID stri
 }
 
 // 删除单个route
-func (self *Etcd) DelRoute(routeGroupID, routePath, routeMethod string) error {
-	var key strings.Builder
-	key.WriteString(routePath)
-	key.WriteString("/")
-	key.WriteString(routeMethod)
-	keyName := global.EncodeKey(key.String())
+func (self *Etcd) DelRoute(routeGroupID, routePath, routeMethod string, encoded bool) error {
+	if routeMethod != "" {
+		routeMethod = strings.ToUpper(routeMethod)
+		if !global.InStr(global.Methods, routeMethod) {
+			return errors.New("HTTP方法无效")
+		}
+	}
 
-	key.Reset()
+	var key strings.Builder
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/routes/")
-	key.WriteString(routeGroupID)
-	key.WriteString(keyName)
+	if !encoded && routeGroupID != "" {
+		routeGroupID = global.EncodeKey(routeGroupID)
+		key.WriteString(routeGroupID)
+		key.WriteString("/")
+	}
+	if !encoded && routePath != "" {
+		routePath = global.EncodeKey(routePath)
+		key.WriteString(routePath)
+		key.WriteString("/")
+	}
+	if routeMethod != "" {
+		key.WriteString(routeMethod)
+	}
 
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
+	if routeMethod == "" {
+		if _, err := self.client.Delete(ctx, key.String(), clientv3.WithPrefix()); err != nil {
+			return err
+		}
+		return nil
+	}
 	if _, err := self.client.Delete(ctx, key.String()); err != nil {
 		return err
 	}

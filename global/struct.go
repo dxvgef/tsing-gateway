@@ -59,14 +59,14 @@ type StorageType interface {
 
 	Watch() error // 监听数据变更
 
-	PutHost(string, string) error // 设置单个主机
-	DelHost(string) error         // 删除单个主机
+	PutHost(string, string, bool) error // 设置单个主机
+	DelHost(string, bool) error         // 删除单个主机
 
-	PutUpstream(string, string) error // 设置单个上游
-	DelUpstream(string) error         // 删除单个上游
+	PutUpstream(string, string, bool) error // 设置单个上游
+	DelUpstream(string, bool) error         // 删除单个上游
 
-	PutRoute(string, string, string, string) error // 设置单个路由
-	DelRoute(string, string, string) error         // 删除单个路嵋
+	PutRoute(string, string, string, string, bool) error // 设置单个路由
+	DelRoute(string, string, string, bool) error         // 删除路由
 
 	PutMiddleware(string) error // 设置全局中间件
 }
