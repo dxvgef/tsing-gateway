@@ -26,10 +26,6 @@ func (self *SetHeader) GetName() string {
 	return "set_header"
 }
 
-func (self *SetHeader) GetConfig() ([]byte, error) {
-	return self.MarshalJSON()
-}
-
 // 中间件行为
 func (self *SetHeader) Action(resp http.ResponseWriter, req *http.Request) (bool, error) {
 	for k, v := range self.Request {

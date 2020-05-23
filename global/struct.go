@@ -43,7 +43,6 @@ type DiscoverType interface {
 type MiddlewareType interface {
 	Action(http.ResponseWriter, *http.Request) (bool, error)
 	GetName() string
-	GetConfig() ([]byte, error)
 }
 
 // 存储器

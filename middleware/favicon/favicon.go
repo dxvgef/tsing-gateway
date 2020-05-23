@@ -29,10 +29,6 @@ func (self *Favicon) GetName() string {
 	return "favicon"
 }
 
-func (self *Favicon) GetConfig() ([]byte, error) {
-	return self.MarshalJSON()
-}
-
 func (self *Favicon) Action(resp http.ResponseWriter, req *http.Request) (bool, error) {
 	log.Debug().Msg("执行了favicon中间件")
 	if req.RequestURI != "/favicon.ico" {
