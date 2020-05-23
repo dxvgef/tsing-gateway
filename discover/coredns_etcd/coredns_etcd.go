@@ -24,11 +24,11 @@ func New(config string) (*CoreDNSEtcd, error) {
 }
 
 // 获取单个endpoint
-func (self *CoreDNSEtcd) Fetch() (endpoint global.EndpointType, err error) {
+func (self *CoreDNSEtcd) Fetch(upstreamID string) (endpoint global.EndpointType, err error) {
 	return
 }
 
 // 获取所有endpoint
-func (self *CoreDNSEtcd) FetchAll() (endpoints []global.EndpointType, err error) {
+func (self *CoreDNSEtcd) FetchAll(upstreamID string) (endpoints []global.EndpointType, err error) {
 	return
 }

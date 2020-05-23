@@ -30,7 +30,6 @@ func (self *Favicon) Action(resp http.ResponseWriter, req *http.Request) (bool, 
 	if req.RequestURI != "/favicon.ico" {
 		return false, nil
 	}
-	// if Status is 301 or 302, Target is the URL of the favicon.ico file
 	if self.Status == http.StatusMovedPermanently || self.Status == http.StatusFound {
 		fileURL, err := url.Parse(self.Target)
 		if err != nil {
@@ -43,7 +42,6 @@ func (self *Favicon) Action(resp http.ResponseWriter, req *http.Request) (bool, 
 		resp.WriteHeader(self.Status)
 		return false, nil
 	}
-	// if Status is 200, Target is the absolute path of the favicon.ico file
 	if self.Status == http.StatusOK {
 		fileInfo, err := os.Stat(self.Target)
 		if err != nil {

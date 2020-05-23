@@ -34,8 +34,8 @@ type EndpointType struct {
 
 // 端点发现
 type DiscoverType interface {
-	Fetch() (EndpointType, error)
-	FetchAll() ([]EndpointType, error)
+	Fetch(string) (EndpointType, error)
+	FetchAll(string) ([]EndpointType, error)
 }
 
 // 中间件接口
