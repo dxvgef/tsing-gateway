@@ -129,7 +129,7 @@ func (self *Etcd) LoadAllHosts() error {
 		return err
 	}
 	for k := range resp.Kvs {
-		hostname = strings.TrimPrefix(global.BytesToStr(resp.Kvs[k].Key), "/hosts/")
+		hostname = strings.TrimPrefix(global.BytesToStr(resp.Kvs[k].Key), key.String())
 		hostname, err = global.DecodeKey(hostname)
 		if err != nil {
 			return err

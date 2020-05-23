@@ -182,10 +182,12 @@ func (self *Etcd) SaveAllHosts() error {
 	if err != nil {
 		return err
 	}
-	key.Reset()
 
 	// 写入路由
 	for hostname, upstreamID := range hosts {
+		key.Reset()
+		key.WriteString(self.KeyPrefix)
+		key.WriteString("/hosts/")
 		key.WriteString(global.EncodeKey(hostname))
 		ctx2, ctx2Cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		_, err = self.client.Put(ctx2, key.String(), upstreamID)
@@ -193,7 +195,6 @@ func (self *Etcd) SaveAllHosts() error {
 			ctx2Cancel()
 			return err
 		}
-		key.Reset()
 		ctx2Cancel()
 	}
 
@@ -303,6 +304,9 @@ func (self *Etcd) PutRoute(routeGroupID, routePath, routeMethod, upstreamID stri
 
 // 删除单个route
 func (self *Etcd) DelRoute(routeGroupID, routePath, routeMethod string, encoded bool) error {
+	if routeGroupID == "" {
+		return errors.New("路由组ID不能为空")
+	}
 	if routeMethod != "" {
 		routeMethod = strings.ToUpper(routeMethod)
 		if !global.InStr(global.Methods, routeMethod) {
@@ -313,11 +317,9 @@ func (self *Etcd) DelRoute(routeGroupID, routePath, routeMethod string, encoded 
 	var key strings.Builder
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/routes/")
-	if !encoded && routeGroupID != "" {
-		routeGroupID = global.EncodeKey(routeGroupID)
-		key.WriteString(routeGroupID)
-		key.WriteString("/")
-	}
+	routeGroupID = global.EncodeKey(routeGroupID)
+	key.WriteString(routeGroupID)
+	key.WriteString("/")
 	if !encoded && routePath != "" {
 		routePath = global.EncodeKey(routePath)
 		key.WriteString(routePath)
