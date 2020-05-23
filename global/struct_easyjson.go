@@ -61,14 +61,10 @@ func easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal(in *jlexer.Lexer, o
 				}
 				in.Delim(']')
 			}
+		case "static_endpoint":
+			out.StaticEndpoint = string(in.String())
 		case "discover":
 			(out.Discover).UnmarshalEasyJSON(in)
-		case "cache":
-			out.Cache = bool(in.Bool())
-		case "cache_retry":
-			out.CacheRetry = int(in.Int())
-		case "load_balance":
-			out.LoadBalance = string(in.String())
 		default:
 			in.SkipRecursive()
 		}
@@ -102,25 +98,15 @@ func easyjson9f2eff5fEncodeGithubComDxvgefTsingGatewayGlobal(out *jwriter.Writer
 			out.RawByte(']')
 		}
 	}
-	{
+	if in.StaticEndpoint != "" {
+		const prefix string = ",\"static_endpoint\":"
+		out.RawString(prefix)
+		out.String(string(in.StaticEndpoint))
+	}
+	if true {
 		const prefix string = ",\"discover\":"
 		out.RawString(prefix)
 		(in.Discover).MarshalEasyJSON(out)
-	}
-	{
-		const prefix string = ",\"cache\":"
-		out.RawString(prefix)
-		out.Bool(bool(in.Cache))
-	}
-	{
-		const prefix string = ",\"cache_retry\":"
-		out.RawString(prefix)
-		out.Int(int(in.CacheRetry))
-	}
-	if in.LoadBalance != "" {
-		const prefix string = ",\"load_balance\":"
-		out.RawString(prefix)
-		out.String(string(in.LoadBalance))
 	}
 	out.RawByte('}')
 }

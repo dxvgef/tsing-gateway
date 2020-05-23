@@ -17,6 +17,7 @@ var (
 	Routes             = make(map[string]map[string]map[string]string) // 路由列表
 	Upstreams          = make(map[string]UpstreamType)                 // 上游列表
 	UpstreamMiddleware = make(map[string][]MiddlewareType)             // 所有上游的中间件实例
+	Endpoints          = make(map[string][]EndpointType)               // 所有端点列表
 	// HTTP方法允许的值
 	Methods = []string{
 		"ANY", "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "TRACE", "CONNECT",

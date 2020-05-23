@@ -31,6 +31,14 @@ func New(config string) (*Health, error) {
 	return &instance, nil
 }
 
+func (self *Health) GetName() string {
+	return "health"
+}
+
+func (self *Health) GetConfig() ([]byte, error) {
+	return self.MarshalJSON()
+}
+
 // 中间件行为
 func (self *Health) Action(resp http.ResponseWriter, req *http.Request) (bool, error) {
 	log.Debug().Msg("执行了中间件：health")

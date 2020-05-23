@@ -2,8 +2,6 @@ package etcd
 
 import (
 	"encoding/json"
-
-	"github.com/dxvgef/tsing-gateway/global"
 )
 
 // etcd
@@ -20,14 +18,4 @@ func New(config string) (*Etcd, error) {
 		return nil, err
 	}
 	return &e, nil
-}
-
-// 获取单个Endpoint
-func (self *Etcd) Fetch() (endpoint global.EndpointType, err error) {
-	return
-}
-
-// 获取所有Endpoint
-func (self *Etcd) FetchAll() (endpoints []global.EndpointType, err error) {
-	return
 }

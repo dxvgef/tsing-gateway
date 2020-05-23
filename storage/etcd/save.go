@@ -202,10 +202,9 @@ func (self *Etcd) SaveAllHosts() error {
 }
 
 // 设置单个host，如果不存在则创建
-func (self *Etcd) PutHost(hostname, upstreamID string, encoded bool) error {
-	if !encoded {
-		hostname = global.EncodeKey(hostname)
-	}
+func (self *Etcd) PutHost(hostname, upstreamID string) error {
+	hostname = global.EncodeKey(hostname)
+
 	var key strings.Builder
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/hosts/")
@@ -220,10 +219,9 @@ func (self *Etcd) PutHost(hostname, upstreamID string, encoded bool) error {
 }
 
 // 删除host
-func (self *Etcd) DelHost(hostname string, encoded bool) error {
-	if !encoded {
-		hostname = global.EncodeKey(hostname)
-	}
+func (self *Etcd) DelHost(hostname string) error {
+	hostname = global.EncodeKey(hostname)
+
 	var key strings.Builder
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/hosts/")
@@ -238,10 +236,9 @@ func (self *Etcd) DelHost(hostname string, encoded bool) error {
 }
 
 // 设置单个upstream，如果不存在则创建
-func (self *Etcd) PutUpstream(upstreamID, upstreamConfig string, encoded bool) error {
-	if !encoded {
-		upstreamID = global.EncodeKey(upstreamID)
-	}
+func (self *Etcd) PutUpstream(upstreamID, upstreamConfig string) error {
+	upstreamID = global.EncodeKey(upstreamID)
+
 	var key strings.Builder
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/upstreams/")
@@ -256,10 +253,9 @@ func (self *Etcd) PutUpstream(upstreamID, upstreamConfig string, encoded bool) e
 }
 
 // 删除upstream
-func (self *Etcd) DelUpstream(upstreamID string, encoded bool) error {
-	if !encoded {
-		upstreamID = global.EncodeKey(upstreamID)
-	}
+func (self *Etcd) DelUpstream(upstreamID string) error {
+	upstreamID = global.EncodeKey(upstreamID)
+
 	var key strings.Builder
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/upstreams/")
@@ -274,16 +270,15 @@ func (self *Etcd) DelUpstream(upstreamID string, encoded bool) error {
 }
 
 // 设置单个route，如果不存在则创建
-func (self *Etcd) PutRoute(routeGroupID, routePath, routeMethod, upstreamID string, encoded bool) error {
+func (self *Etcd) PutRoute(routeGroupID, routePath, routeMethod, upstreamID string) error {
 	routeMethod = strings.ToUpper(routeMethod)
 	if !global.InStr(global.Methods, routeMethod) {
 		return errors.New("HTTP方法无效")
 	}
 
-	if !encoded {
-		routeGroupID = global.EncodeKey(routeGroupID)
-		routePath = global.EncodeKey(routePath)
-	}
+	routeGroupID = global.EncodeKey(routeGroupID)
+	routePath = global.EncodeKey(routePath)
+
 	var key strings.Builder
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/routes/")
@@ -303,7 +298,7 @@ func (self *Etcd) PutRoute(routeGroupID, routePath, routeMethod, upstreamID stri
 }
 
 // 删除单个route
-func (self *Etcd) DelRoute(routeGroupID, routePath, routeMethod string, encoded bool) error {
+func (self *Etcd) DelRoute(routeGroupID, routePath, routeMethod string) error {
 	if routeGroupID == "" {
 		return errors.New("路由组ID不能为空")
 	}
@@ -320,11 +315,10 @@ func (self *Etcd) DelRoute(routeGroupID, routePath, routeMethod string, encoded 
 	routeGroupID = global.EncodeKey(routeGroupID)
 	key.WriteString(routeGroupID)
 	key.WriteString("/")
-	if !encoded && routePath != "" {
-		routePath = global.EncodeKey(routePath)
-		key.WriteString(routePath)
-		key.WriteString("/")
-	}
+	routePath = global.EncodeKey(routePath)
+	key.WriteString(routePath)
+	key.WriteString("/")
+
 	if routeMethod != "" {
 		key.WriteString(routeMethod)
 	}

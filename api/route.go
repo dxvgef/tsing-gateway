@@ -33,7 +33,7 @@ func (self *Route) Add(ctx *tsing.Context) error {
 		resp["error"] = "路由已存在"
 		return JSON(ctx, 400, &resp)
 	}
-	if err = global.Storage.PutRoute(req.groupID, req.path, req.method, req.upstreamID, false); err != nil {
+	if err = global.Storage.PutRoute(req.groupID, req.path, req.method, req.upstreamID); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -62,7 +62,7 @@ func (self *Route) Update(ctx *tsing.Context) error {
 	if _, exist := global.Routes[routeGroupID][routePath][routeMethod]; !exist {
 		return Status(ctx, 404)
 	}
-	if err = global.Storage.PutRoute(routeGroupID, routePath, routeMethod, ctx.Post("upstream_id"), false); err != nil {
+	if err = global.Storage.PutRoute(routeGroupID, routePath, routeMethod, ctx.Post("upstream_id")); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -89,7 +89,7 @@ func (self *Route) DeleteMethod(ctx *tsing.Context) error {
 	if _, exist := global.Routes[routeGroupID][routePath][routeMethod]; !exist {
 		return Status(ctx, 404)
 	}
-	err = global.Storage.DelRoute(routeGroupID, routePath, routeMethod, false)
+	err = global.Storage.DelRoute(routeGroupID, routePath, routeMethod)
 	if err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
@@ -118,7 +118,7 @@ func (self *Route) DeletePath(ctx *tsing.Context) error {
 	if len(global.Routes[routeGroupID][routePath]) == 0 {
 		return Status(ctx, 404)
 	}
-	err = global.Storage.DelRoute(routeGroupID, routePath, "", false)
+	err = global.Storage.DelRoute(routeGroupID, routePath, "")
 	if err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
@@ -139,7 +139,7 @@ func (self *Route) DeleteGroup(ctx *tsing.Context) error {
 	if _, exist := global.Routes[routeGroupID]; !exist {
 		return Status(ctx, 404)
 	}
-	err = global.Storage.DelRoute(routeGroupID, "", "", false)
+	err = global.Storage.DelRoute(routeGroupID, "", "")
 	if err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
@@ -153,7 +153,7 @@ func (self *Route) Delete(ctx *tsing.Context) error {
 		resp = make(map[string]string)
 	)
 	global.Routes = make(map[string]map[string]map[string]string)
-	err = global.Storage.DelRoute("", "", "", false)
+	err = global.Storage.DelRoute("", "", "")
 	if err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)

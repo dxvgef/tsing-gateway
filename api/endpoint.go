@@ -6,32 +6,9 @@ import (
 	"github.com/dxvgef/tsing-gateway/global"
 )
 
-type Host struct{}
+type Endpoint struct{}
 
-func (self *Host) Add(ctx *tsing.Context) error {
-	var resp = make(map[string]string)
-	hostname := ctx.Post("hostname")
-	upstreamID := ctx.Post("upstream_id")
-	if hostname == "" {
-		resp["error"] = "hostname参数不能为空"
-		return JSON(ctx, 400, &resp)
-	}
-	if upstreamID == "" {
-		resp["error"] = "upstream_id参数不能为空"
-		return JSON(ctx, 400, &resp)
-	}
-	if _, exists := global.Hosts[hostname]; exists {
-		resp["error"] = "主机名已存在"
-		return JSON(ctx, 400, &resp)
-	}
-	if err := global.Storage.PutHost(hostname, ctx.Post("upstream_id")); err != nil {
-		resp["error"] = err.Error()
-		return JSON(ctx, 500, &resp)
-	}
-	return Status(ctx, 204)
-}
-
-func (self *Host) Put(ctx *tsing.Context) error {
+func (self *Endpoint) Put(ctx *tsing.Context) error {
 	var (
 		err      error
 		hostname string
@@ -48,7 +25,7 @@ func (self *Host) Put(ctx *tsing.Context) error {
 	return Status(ctx, 204)
 }
 
-func (self *Host) Delete(ctx *tsing.Context) error {
+func (self *Endpoint) Delete(ctx *tsing.Context) error {
 	var (
 		err      error
 		hostname string
