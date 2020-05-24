@@ -8,8 +8,8 @@ import (
 
 // header数据处理
 type SetHeader struct {
-	Request  map[string]string `json:"request,omitempty"`
-	Response map[string]string `json:"response,omitempty"`
+	RequestHeader  map[string]string `json:"request_header,omitempty"`
+	ResponseHeader map[string]string `json:"response_header,omitempty"`
 }
 
 // 新建中间件实例
@@ -28,10 +28,10 @@ func (self *SetHeader) GetName() string {
 
 // 中间件行为
 func (self *SetHeader) Action(resp http.ResponseWriter, req *http.Request) (bool, error) {
-	for k, v := range self.Request {
+	for k, v := range self.RequestHeader {
 		req.Header.Set(k, v)
 	}
-	for k, v := range self.Response {
+	for k, v := range self.ResponseHeader {
 		resp.Header().Set(k, v)
 	}
 	return true, nil
