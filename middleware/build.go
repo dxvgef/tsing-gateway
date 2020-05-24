@@ -7,7 +7,6 @@ import (
 
 	"github.com/dxvgef/tsing-gateway/global"
 	"github.com/dxvgef/tsing-gateway/middleware/favicon"
-	"github.com/dxvgef/tsing-gateway/middleware/health"
 	"github.com/dxvgef/tsing-gateway/middleware/set_header"
 	"github.com/dxvgef/tsing-gateway/middleware/url_rewrite"
 )
@@ -18,19 +17,6 @@ func Build(name, config string, test bool) (global.MiddlewareType, error) {
 	switch name {
 	case "favicon":
 		f, err := favicon.New(config)
-		if err != nil {
-			log.Error().Caller().Msg(err.Error())
-			return nil, err
-		}
-		if test {
-			return nil, nil
-		}
-		return f, nil
-	case "health":
-		if test {
-			return nil, nil
-		}
-		f, err := health.New(config)
 		if err != nil {
 			log.Error().Caller().Msg(err.Error())
 			return nil, err
