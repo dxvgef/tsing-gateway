@@ -1,4 +1,4 @@
-package set_header
+package url_rewrite
 
 import (
 	"net/http"
@@ -9,7 +9,7 @@ import (
 
 // url rewrite
 type URLRewrite struct {
-	Rule map[string]string `json:"rule"`
+	Path map[string]string `json:"path"`
 }
 
 // 新建中间件实例
@@ -28,9 +28,9 @@ func (self *URLRewrite) GetName() string {
 
 // 中间件行为
 func (self *URLRewrite) Action(resp http.ResponseWriter, req *http.Request) (bool, error) {
-	for k := range self.Rule {
-		if req.URL.Path == k {
-			req.URL.Path = strings.Replace(req.URL.Path, k, self.Rule[k], 1)
+	for k := range self.Path {
+		if strings.HasPrefix(req.URL.Path, k) {
+			req.URL.Path = strings.Replace(req.URL.Path, k, self.Path[k], 1)
 			req.RequestURI = req.URL.RequestURI()
 		}
 	}

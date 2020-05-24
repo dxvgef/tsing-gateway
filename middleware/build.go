@@ -9,6 +9,7 @@ import (
 	"github.com/dxvgef/tsing-gateway/middleware/favicon"
 	"github.com/dxvgef/tsing-gateway/middleware/health"
 	"github.com/dxvgef/tsing-gateway/middleware/set_header"
+	"github.com/dxvgef/tsing-gateway/middleware/url_rewrite"
 )
 
 // 构建多个中间件实例
@@ -43,6 +44,19 @@ func Build(name, config string, test bool) (global.MiddlewareType, error) {
 			return nil, nil
 		}
 		f, err := set_header.New(config)
+		if err != nil {
+			log.Error().Caller().Msg(err.Error())
+			return nil, err
+		}
+		if test {
+			return nil, nil
+		}
+		return f, nil
+	case "url_rewrite":
+		if test {
+			return nil, nil
+		}
+		f, err := url_rewrite.New(config)
 		if err != nil {
 			log.Error().Caller().Msg(err.Error())
 			return nil, err
