@@ -18,10 +18,8 @@ type Engine struct{}
 // 下游请求入口
 func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	var (
-		err         error
-		upstream    global.UpstreamType
-		status      int
-		endpointURL *url.URL
+		upstream global.UpstreamType
+		status   int
 	)
 	// 通过路由匹配到上游
 	upstream, status = matchRoute(req)
@@ -32,9 +30,14 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	var (
+		next bool
+		err  error
+	)
 	// 执行全局中间件
 	for k := range global.GlobalMiddleware {
-		next, err := global.GlobalMiddleware[k].Action(resp, req)
+		next = false
+		next, err = global.GlobalMiddleware[k].Action(resp, req)
 		if err != nil {
 			log.Err(err).Caller().Str("name", global.GlobalMiddleware[k].GetName()).Msg("执行全局中间件时出错")
 			return
@@ -46,8 +49,9 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	// 执行上游中间件
 	for k := range global.UpstreamMiddleware[upstream.ID] {
+		next = false
 		// 执行中间件逻辑
-		next, err := global.UpstreamMiddleware[upstream.ID][k].Action(resp, req)
+		next, err = global.UpstreamMiddleware[upstream.ID][k].Action(resp, req)
 		if err != nil {
 			log.Err(err).Caller().Str("upstream id", upstream.ID).Str("middleware name", global.UpstreamMiddleware[upstream.ID][k].GetName()).Msg("执行上游中间件时出错")
 			return
@@ -57,6 +61,7 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	var endpointURL *url.URL
 	// 如果有静态端点
 	if upstream.StaticEndpoint != "" {
 		endpointURL, err = url.Parse(upstream.StaticEndpoint)
@@ -73,7 +78,7 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			log.Error().Caller().Str("name", upstream.Discover.Name).Str("config", upstream.Discover.Config).Err(err).Msg("构建探测器时出错")
 			resp.WriteHeader(http.StatusInternalServerError)
-			_, _ = resp.Write(global.StrToBytes(http.StatusText(http.StatusInternalServerError))) // nolint
+			resp.Write(global.StrToBytes(http.StatusText(http.StatusInternalServerError))) // nolint
 			return
 		}
 	}

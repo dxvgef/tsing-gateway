@@ -18,17 +18,19 @@ func (self *Upstream) Add(ctx *tsing.Context) error {
 		err  error
 		resp = make(map[string]string)
 		req  struct {
-			id         string
-			middleware string
-			discover   string
+			id             string
+			middleware     string
+			discover       string
+			staticEndpoint string
 		}
 		upstream      global.UpstreamType
 		upstreamBytes []byte
 	)
 	if err = filter.MSet(
 		filter.El(&req.id, filter.FromString(ctx.Post("id"), "id").Required()),
-		filter.El(&req.discover, filter.FromString(ctx.Post("discover"), "discover").Required().IsJSON()),
+		filter.El(&req.discover, filter.FromString(ctx.Post("discover"), "discover").IsJSON()),
 		filter.El(&req.middleware, filter.FromString(ctx.Post("middleware"), "middleware").IsJSON()),
+		filter.El(&req.staticEndpoint, filter.FromString(ctx.Post("static_endpoint"), "static_endpoint").IsURL()),
 	); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 400, &resp)
@@ -39,9 +41,19 @@ func (self *Upstream) Add(ctx *tsing.Context) error {
 		return JSON(ctx, 400, &resp)
 	}
 
-	if err = upstream.Discover.UnmarshalJSON(global.StrToBytes(req.discover)); err != nil {
-		resp["error"] = "探测器配置解析失败"
+	if req.staticEndpoint == "" && req.discover == "" {
+		resp["error"] = "static_endpoint和discover参数不能同时为空"
 		return JSON(ctx, 400, &resp)
+	}
+	if req.staticEndpoint != "" && req.discover != "" {
+		req.discover = ""
+	}
+
+	if req.discover != "" {
+		if err = upstream.Discover.UnmarshalJSON(global.StrToBytes(req.discover)); err != nil {
+			resp["error"] = "探测器配置解析失败"
+			return JSON(ctx, 400, &resp)
+		}
 	}
 
 	if req.middleware != "" {
@@ -52,6 +64,7 @@ func (self *Upstream) Add(ctx *tsing.Context) error {
 	}
 
 	upstream.ID = req.id
+	upstream.StaticEndpoint = req.staticEndpoint
 
 	if upstreamBytes, err = upstream.MarshalJSON(); err != nil {
 		log.Err(err).Caller().Msg("对upstream序列化成JSON字符串失败")
@@ -67,31 +80,40 @@ func (self *Upstream) Add(ctx *tsing.Context) error {
 }
 func (self *Upstream) Put(ctx *tsing.Context) error {
 	var (
-		err error
-		req struct {
-			id         []byte
-			middleware string
-			discover   string
+		err  error
+		resp = make(map[string]string)
+		req  struct {
+			id             string
+			middleware     string
+			discover       string
+			staticEndpoint string
 		}
-		resp          = make(map[string]string)
 		upstream      global.UpstreamType
 		upstreamBytes []byte
 	)
-	req.id, err = base64.RawURLEncoding.DecodeString(ctx.PathParams.Value("id"))
-	if err != nil {
-		return Status(ctx, 404)
-	}
 	if err = filter.MSet(
-		filter.El(&req.discover, filter.FromString(ctx.Post("discover"), "discover").Required().IsJSON()),
+		filter.El(&req.id, filter.FromString(ctx.PathParams.Value("id"), "id").Required().Base64RawURLDecode()),
+		filter.El(&req.discover, filter.FromString(ctx.Post("discover"), "discover").IsJSON()),
 		filter.El(&req.middleware, filter.FromString(ctx.Post("middleware"), "middleware").IsJSON()),
+		filter.El(&req.staticEndpoint, filter.FromString(ctx.Post("static_endpoint"), "static_endpoint").IsURL()),
 	); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 400, &resp)
 	}
 
-	if err = upstream.Discover.UnmarshalJSON(global.StrToBytes(req.discover)); err != nil {
-		resp["error"] = "探测器配置解析失败"
+	if req.staticEndpoint == "" && req.discover == "" {
+		resp["error"] = "static_endpoint和discover参数不能同时为空"
 		return JSON(ctx, 400, &resp)
+	}
+	if req.staticEndpoint != "" && req.discover != "" {
+		req.discover = ""
+	}
+
+	if req.discover != "" {
+		if err = upstream.Discover.UnmarshalJSON(global.StrToBytes(req.discover)); err != nil {
+			resp["error"] = "探测器配置解析失败"
+			return JSON(ctx, 400, &resp)
+		}
 	}
 
 	if req.middleware != "" {
@@ -101,7 +123,8 @@ func (self *Upstream) Put(ctx *tsing.Context) error {
 		}
 	}
 
-	upstream.ID = global.BytesToStr(req.id)
+	upstream.ID = req.id
+	upstream.StaticEndpoint = req.staticEndpoint
 
 	if upstreamBytes, err = upstream.MarshalJSON(); err != nil {
 		log.Err(err).Caller().Msg("对upstream序列化成JSON字符串失败")
@@ -109,7 +132,7 @@ func (self *Upstream) Put(ctx *tsing.Context) error {
 		return JSON(ctx, 500, &resp)
 	}
 
-	if err = global.Storage.PutUpstream(upstream.ID, global.BytesToStr(upstreamBytes)); err != nil {
+	if err = global.Storage.PutUpstream(req.id, global.BytesToStr(upstreamBytes)); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}

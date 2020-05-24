@@ -103,7 +103,6 @@ func matchPath(routeGroupID, routePath string) (string, bool) {
 		pos := strings.LastIndex(routePath, path.Base(routePath))
 		routePath = routePath[:pos]
 	}
-	// todo 可能要将*号换成别的符号，因为和api(tsing)的路由规则冲突
 	routePath = routePath + "*"
 	if _, exist := global.Routes[routeGroupID][routePath]; exist {
 		return routePath, true
