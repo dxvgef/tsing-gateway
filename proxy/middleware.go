@@ -60,15 +60,15 @@ func SetUpstreamMiddleware(upstreamID string, mwConfig []global.ModuleConfig) er
 		err error
 		m   global.MiddlewareType
 	)
-	// nolint:prealloc
-	var mw []global.MiddlewareType
+
+	mw := make([]global.MiddlewareType, mwConfigLen)
 	// 根据配置构建中间件实例
 	for k := range mwConfig {
 		m, err = middleware.Build(mwConfig[k].Name, mwConfig[k].Config, false)
 		if err != nil {
 			return err
 		}
-		mw = append(mw, m)
+		mw[k] = m
 	}
 	global.UpstreamMiddleware[upstreamID] = mw
 	return nil

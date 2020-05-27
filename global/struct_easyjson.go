@@ -228,8 +228,8 @@ func easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal2(in *jlexer.Lexer, 
 		switch key {
 		case "upstream_id":
 			out.UpstreamID = string(in.String())
-		case "url":
-			out.URL = string(in.String())
+		case "addr":
+			out.Addr = string(in.String())
 		case "weight":
 			out.Weight = int(in.Int())
 		default:
@@ -252,9 +252,9 @@ func easyjson9f2eff5fEncodeGithubComDxvgefTsingGatewayGlobal2(out *jwriter.Write
 		out.String(string(in.UpstreamID))
 	}
 	{
-		const prefix string = ",\"url\":"
+		const prefix string = ",\"addr\":"
 		out.RawString(prefix)
-		out.String(string(in.URL))
+		out.String(string(in.Addr))
 	}
 	{
 		const prefix string = ",\"weight\":"
