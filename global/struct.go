@@ -21,22 +21,29 @@ type UpstreamType struct {
 		在缓存中失败达到指定次数后，重新从discover中获取endpoints来更新缓存
 	*/
 	// CacheRetry   int            `json:"cache_retry"`
-	// Endpoints []EndpointType `json:"-"` // 终点列表
+	// EndpointCaches []EndpointType `json:"-"` // 终点列表
 	// LoadBalance  string         `json:"load_balance,omitempty"` // 负载均衡算法
 	// LastEndpoint string         `json:"-"`                      // 最后使用的端点，用于防止连续命中同一个
+}
+
+// 负载均衡接口
+type LoadBalance interface {
+	Add(string, int) error
+	Put(string, int)
+	Next() string
+	Total() int
 }
 
 // 端点
 type EndpointType struct {
 	UpstreamID string `json:"upstream_id"`
-	URL        string `json:"url"`
+	Addr       string `json:"addr"`
 	Weight     int    `json:"weight"`
 }
 
 // 端点发现
 type DiscoverType interface {
-	Fetch(string) (EndpointType, error)
-	FetchAll(string) ([]EndpointType, error)
+	Fetch(string) ([]EndpointType, error)
 }
 
 // 中间件接口
