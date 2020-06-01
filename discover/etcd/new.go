@@ -11,6 +11,7 @@ import (
 type Etcd struct {
 	EtcdEndpoints []string         `json:"etcd_endpoints"` // etcd的endpoints
 	KeyPrefix     string           `json:"key_prefix"`     // 键名前缀
+	LoadBalance   string           `json:"load_balance"`   // 负载均衡算法
 	client        *clientv3.Client // etcd客户端
 }
 
