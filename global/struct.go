@@ -14,6 +14,7 @@ type UpstreamType struct {
 	Middleware     []ModuleConfig `json:"middleware,omitempty"`      // 中间件配置
 	StaticEndpoint string         `json:"static_endpoint,omitempty"` // 静态端点地址，如果有值，则不使用探测器发现节点
 	Discover       ModuleConfig   `json:"discover,omitempty"`        // 探测器配置
+	LoadBalance    string         `json:"load_balance"`              // 负载均衡算法名称
 	// 启用缓存，如果关闭，则每次请求都从etcd中获取端点
 	// Cache bool `json:"cache"`
 	/*
@@ -22,16 +23,15 @@ type UpstreamType struct {
 	*/
 	// CacheRetry   int            `json:"cache_retry"`
 	// EndpointCaches []EndpointType `json:"-"` // 终点列表
-	// LoadBalance  string         `json:"load_balance,omitempty"` // 负载均衡算法
 	// LastEndpoint string         `json:"-"`                      // 最后使用的端点，用于防止连续命中同一个
 }
 
 // 负载均衡接口
 type LoadBalance interface {
-	Add(string, int) error
-	Put(string, int)
-	Next() string
-	Total() int
+	Add(string, string, int) error
+	Put(string, string, int)
+	Next(string) string
+	Total(string) int
 }
 
 // 端点

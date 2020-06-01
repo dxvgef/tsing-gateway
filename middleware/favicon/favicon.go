@@ -46,7 +46,7 @@ func (self *Favicon) Action(resp http.ResponseWriter, req *http.Request) (bool, 
 		resp.WriteHeader(self.Status)
 		return false, nil
 	}
-	if self.Status == http.StatusOK {
+	if self.Status == 0 {
 		fileInfo, err := os.Stat(self.Target)
 		if err != nil {
 			resp.WriteHeader(http.StatusInternalServerError)

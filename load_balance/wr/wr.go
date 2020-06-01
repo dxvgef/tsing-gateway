@@ -15,27 +15,29 @@ type NodeType struct {
 }
 
 type PoolType struct {
-	nodes        []*NodeType // 节点列表
-	nodeTotal    int         // 节点总数
-	sumOfWeights int         // 所有节点权重值的总和
-	rnd          *rand.Rand
+	nodes        map[string][]*NodeType // 节点列表 map[upstreamID]
+	nodeTotal    map[string]int         // 节点总数 map[upstreamID]
+	sumOfWeights map[string]int         // 所有节点权重值的总和 map[upstreamID]
+	rnd          map[string]*rand.Rand  // map[upstreamID]
 }
 
-func New() *PoolType {
+func Init() *PoolType {
 	if Pool != nil {
 		return Pool
 	}
-	var pool PoolType
-	pool.nodes = []*NodeType{}
-	pool.nodeTotal = 0
-	pool.rnd = rand.New(rand.NewSource(time.Now().UnixNano()))
-	Pool = &pool
+	Pool.nodes = map[string][]*NodeType{}
+	Pool.nodeTotal = map[string]int{}
+	Pool.sumOfWeights = map[string]int{}
+	Pool.rnd = map[string]*rand.Rand{}
 	return Pool
 }
 
-func (p *PoolType) Add(addr string, weight int) error {
-	for i := range p.nodes {
-		if p.nodes[i].Addr == addr {
+func (p *PoolType) Add(upstreamID, addr string, weight int) error {
+	if _, ok := p.nodes[upstreamID]; !ok {
+		p.nodes[upstreamID] = []*NodeType{}
+	}
+	for i := range p.nodes[upstreamID] {
+		if p.nodes[upstreamID][i].Addr == addr {
 			return errors.New("节点地址已存在")
 		}
 	}
@@ -44,68 +46,70 @@ func (p *PoolType) Add(addr string, weight int) error {
 		Addr:   addr,
 		Weight: weight,
 	}
-	p.nodes = append(p.nodes, node)
-	p.sumOfWeights += weight
-	p.nodeTotal++
+	p.nodes[upstreamID] = append(p.nodes[upstreamID], node)
+	p.sumOfWeights[upstreamID] += weight
+	p.nodeTotal[upstreamID]++
 	return nil
 }
 
-func (p *PoolType) Put(addr string, weight int) {
-	if p.nodes == nil {
-		p.nodes = []*NodeType{}
+func (p *PoolType) Put(upstreamID, addr string, weight int) {
+	if _, ok := p.nodes[upstreamID]; !ok {
+		p.nodes[upstreamID] = []*NodeType{}
 	}
-	for i := range p.nodes {
-		if p.nodes[i].Addr == addr {
-			p.nodes[i].Weight = weight
+	for i := range p.nodes[upstreamID] {
+		if p.nodes[upstreamID][i].Addr == addr {
+			p.nodes[upstreamID][i].Weight = weight
 			return
 		}
 	}
-
 	node := &NodeType{
 		Addr:   addr,
 		Weight: weight,
 	}
-	p.nodes = append(p.nodes, node)
-	p.sumOfWeights += weight
-	p.nodeTotal++
+	p.nodes[upstreamID] = append(p.nodes[upstreamID], node)
+	p.sumOfWeights[upstreamID] += weight
+	p.nodeTotal[upstreamID]++
 }
 
 // 节点总数
-func (p *PoolType) Total() int {
-	return p.nodeTotal
+func (p *PoolType) Total(upstreamID string) int {
+	return p.nodeTotal[upstreamID]
 }
 
 // 移除所有节点
-func (p *PoolType) Remove(addr string) {
-	for i := range p.nodes {
-		if p.nodes[i].Addr == addr {
-			p.nodes = append(p.nodes[:i], p.nodes[i+1:]...)
-			p.nodeTotal--
-			p.sumOfWeights -= p.nodes[i].Weight
+func (p *PoolType) Remove(upstreamID, addr string) {
+	for i := range p.nodes[upstreamID] {
+		if p.nodes[upstreamID][i].Addr == addr {
+			p.nodes[upstreamID] = append(p.nodes[upstreamID][:i], p.nodes[upstreamID][i+1:]...)
+			p.nodeTotal[upstreamID]--
+			p.sumOfWeights[upstreamID] -= p.nodes[upstreamID][i].Weight
 		}
 	}
 }
 
 // 重设所有节点当前的权重值
-func (p *PoolType) Reset() {
-	p.rnd = rand.New(rand.NewSource(time.Now().UnixNano()))
+func (p *PoolType) Reset(upstreamID string) {
+	p.rnd[upstreamID] = rand.New(rand.NewSource(time.Now().UnixNano()))
 }
 
 // 选举出下一个命中的节点
-func (p *PoolType) Next() string {
-	if p.nodeTotal == 0 {
+func (p *PoolType) Next(upstreamID string) string {
+	if p.nodeTotal[upstreamID] == 0 {
 		return ""
 	}
 
-	if p.nodeTotal == 1 {
-		return p.nodes[0].Addr
+	if p.nodeTotal[upstreamID] == 1 {
+		return p.nodes[upstreamID][0].Addr
 	}
 
-	randomWeight := p.rnd.Intn(p.sumOfWeights)
-	for k := range p.nodes {
-		randomWeight = randomWeight - p.nodes[k].Weight
+	if p.rnd[upstreamID] == nil {
+		p.rnd[upstreamID] = rand.New(rand.NewSource(time.Now().UnixNano()))
+	}
+	randomWeight := p.rnd[upstreamID].Intn(p.sumOfWeights[upstreamID])
+	for k := range p.nodes[upstreamID] {
+		randomWeight = randomWeight - p.nodes[upstreamID][k].Weight
 		if randomWeight <= 0 {
-			return p.nodes[k].Addr
+			return p.nodes[upstreamID][k].Addr
 		}
 	}
 	return ""

@@ -84,7 +84,6 @@ func matchRoute(req *http.Request) (upstream global.UpstreamType, status int) {
 		status = http.StatusNotImplemented
 		return
 	}
-	status = http.StatusOK
 	return
 }
 

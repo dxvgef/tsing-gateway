@@ -19,16 +19,16 @@ type Engine struct{}
 // 下游请求入口
 func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	var (
-		next      bool
-		err       error
-		endpoints []global.EndpointType
+		next bool
+		err  error
 	)
-	// 通过路由匹配到上游
+	// 匹配到上游
 	upstream, status := matchRoute(req)
-	if status != http.StatusOK {
+	if status > 0 {
 		resp.WriteHeader(status)
-		// nolint
-		resp.Write(global.StrToBytes(http.StatusText(status)))
+		if _, err = resp.Write(global.StrToBytes(http.StatusText(status))); err != nil {
+			log.Err(err).Caller().Send()
+		}
 		return
 	}
 
@@ -59,50 +59,67 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	// 获得所有端点列表
-	endpoints, status = FetchEndpoints(upstream)
-	if status > 0 {
-		resp.WriteHeader(status)
-		// nolint
-		resp.Write(global.StrToBytes(http.StatusText(status)))
-	}
-
-	// 使用负载均衡算法选取一个
-	lb := load_balance.Build("WR")
-	for i := range endpoints {
-		lb.Put(endpoints[i].Addr, endpoints[i].Weight)
-	}
-	var (
-		endpointAddr string
-		endpointURL  *url.URL
-	)
-	endpointAddr = lb.Next()
-	endpointURL, err = url.Parse(endpointAddr)
+	// 获得端点
+	var endpointURL *url.URL
+	endpointURL, status, err = getEndpointURL(upstream)
 	if err != nil {
-		log.Err(err).Str("addr", endpointAddr).Caller().Msg("解析端点地址失败")
-		resp.WriteHeader(http.StatusInternalServerError)
-		// nolint
-		resp.Write(global.StrToBytes(http.StatusText(http.StatusInternalServerError)))
+		log.Err(err).Caller().Msg("获得端点失败")
+		resp.WriteHeader(status)
+		if _, err = resp.Write(global.StrToBytes(http.StatusText(status))); err != nil {
+			log.Err(err).Caller().Send()
+		}
 		return
 	}
 
-	log.Debug().Caller().Str("addr", endpointAddr).Msg("目标端点")
 	// 转发请求到端点
 	p := httputil.NewSingleHostReverseProxy(endpointURL)
 	req.URL.Host = endpointURL.Host
 	req.URL.Scheme = endpointURL.Scheme
 	p.ErrorHandler = func(resp http.ResponseWriter, req *http.Request, err error) {
-
+		log.Debug().Err(err).Caller().Msg("向端点发起请求出错")
 	}
 	p.ServeHTTP(resp, req)
 }
 
-// 使用上游的探测器获得最新的端点列表
-func FetchEndpoints(upstream global.UpstreamType) (endpoints []global.EndpointType, status int) {
-	var (
-		err error
-		dc  global.DiscoverType
-	)
+// 获得端点url
+func getEndpointURL(upstream global.UpstreamType) (endpointURL *url.URL, status int, err error) {
+	// 获得所有端点列表
+	var endpoints []global.EndpointType
+	endpoints, status, err = fetchEndpoints(upstream)
+	if status > 0 {
+		return
+	}
+
+	if len(endpoints) == 1 {
+		endpointURL, err = url.Parse(endpoints[0].Addr)
+		if err != nil {
+			status = http.StatusInternalServerError
+			log.Err(err).Str("addr", endpoints[0].Addr).Caller().Msg("解析端点地址失败")
+			return
+
+		}
+		return
+	}
+
+	// 使用负载均衡算法选取一个最终的端点
+	lb := load_balance.Use(upstream.LoadBalance)
+	for i := range endpoints {
+		lb.Put(upstream.ID, endpoints[i].Addr, endpoints[i].Weight)
+	}
+	endpointAddr := lb.Next(upstream.ID)
+	endpointURL, err = url.Parse(endpointAddr)
+	if err != nil {
+		status = http.StatusInternalServerError
+		log.Err(err).Str("addr", endpointAddr).Caller().Msg("解析端点地址失败")
+		return
+	}
+
+	log.Debug().Caller().Str("addr", endpointURL.String()).Msg("目标端点")
+	return
+}
+
+// 从上游获得所有端点
+func fetchEndpoints(upstream global.UpstreamType) (endpoints []global.EndpointType, status int, err error) {
 	// 如果有静态端点则静态优先
 	if upstream.StaticEndpoint != "" {
 		endpoints = append(endpoints, global.EndpointType{
@@ -112,19 +129,19 @@ func FetchEndpoints(upstream global.UpstreamType) (endpoints []global.EndpointTy
 		})
 		return
 	}
-
 	// 构建探测器
+	var dc global.DiscoverType
 	dc, err = discover.Build(upstream.Discover.Name, upstream.Discover.Config)
 	if err != nil {
-		log.Err(err).Caller().Str("name", upstream.Discover.Name).Str("config", upstream.Discover.Config).Msg("构建探测器时出错")
 		status = http.StatusInternalServerError
+		log.Err(err).Caller().Str("name", upstream.Discover.Name).Str("config", upstream.Discover.Config).Msg("构建探测器时出错")
 		return
 	}
-	// 获得所有站点
+	// 获得所有端点
 	endpoints, err = dc.Fetch(upstream.ID)
 	if err != nil {
-		log.Err(err).Caller().Str("name", upstream.Discover.Name).Str("config", upstream.Discover.Config).Msg("获得端点列表时出错")
 		status = http.StatusServiceUnavailable
+		log.Err(err).Caller().Str("name", upstream.Discover.Name).Str("config", upstream.Discover.Config).Msg("获得端点列表时出错")
 	}
 	return
 }
