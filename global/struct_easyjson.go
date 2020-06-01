@@ -65,6 +65,8 @@ func easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal(in *jlexer.Lexer, o
 			out.StaticEndpoint = string(in.String())
 		case "discover":
 			(out.Discover).UnmarshalEasyJSON(in)
+		case "load_balance":
+			out.LoadBalance = string(in.String())
 		default:
 			in.SkipRecursive()
 		}
@@ -107,6 +109,11 @@ func easyjson9f2eff5fEncodeGithubComDxvgefTsingGatewayGlobal(out *jwriter.Writer
 		const prefix string = ",\"discover\":"
 		out.RawString(prefix)
 		(in.Discover).MarshalEasyJSON(out)
+	}
+	{
+		const prefix string = ",\"load_balance\":"
+		out.RawString(prefix)
+		out.String(string(in.LoadBalance))
 	}
 	out.RawByte('}')
 }
