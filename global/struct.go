@@ -1,6 +1,8 @@
 package global
 
-import "net/http"
+import (
+	"net/http"
+)
 
 // 用于构建上游、中间件、存储器模块时的参数配置
 type ModuleConfig struct {
@@ -12,18 +14,15 @@ type ModuleConfig struct {
 type UpstreamType struct {
 	ID             string         `json:"id"`                        // 上游ID
 	Middleware     []ModuleConfig `json:"middleware,omitempty"`      // 中间件配置
-	StaticEndpoint string         `json:"static_endpoint,omitempty"` // 静态端点地址，如果有值，则不使用探测器发现节点
+	StaticEndpoint string         `json:"static_endpoint,omitempty"` // 静态端点地址，优先级高于Discover
 	Discover       ModuleConfig   `json:"discover,omitempty"`        // 探测器配置
 	LoadBalance    string         `json:"load_balance"`              // 负载均衡算法名称
-	// 启用缓存，如果关闭，则每次请求都从etcd中获取端点
-	// Cache bool `json:"cache"`
+
 	/*
-		缓存重试次数
-		在缓存中失败达到指定次数后，重新从discover中获取endpoints来更新缓存
+		最大缓存容错次数
+		缓存中的端点不可用数超过此值，则自动从上游重新获取端点列表来更新希尔顿
 	*/
-	// CacheRetry   int            `json:"cache_retry"`
-	// EndpointCaches []EndpointType `json:"-"` // 终点列表
-	// LastEndpoint string         `json:"-"`                      // 最后使用的端点，用于防止连续命中同一个
+	MaxCacheFault int `json:"max_cache_fault"`
 }
 
 // 负载均衡接口

@@ -22,6 +22,7 @@ func (self *Upstream) Add(ctx *tsing.Context) error {
 			middleware     string
 			discover       string
 			staticEndpoint string
+			loadBalance    string
 		}
 		upstream      global.UpstreamType
 		upstreamBytes []byte
@@ -30,13 +31,14 @@ func (self *Upstream) Add(ctx *tsing.Context) error {
 		filter.El(&req.id, filter.FromString(ctx.Post("id"), "id").Required()),
 		filter.El(&req.discover, filter.FromString(ctx.Post("discover"), "discover").IsJSON()),
 		filter.El(&req.middleware, filter.FromString(ctx.Post("middleware"), "middleware").IsJSON()),
-		filter.El(&req.staticEndpoint, filter.FromString(ctx.Post("static_endpoint"), "static_endpoint").IsURL()),
+		filter.El(&req.staticEndpoint, filter.FromString(ctx.Post("static_endpoint"), "static_endpoint")),
+		filter.El(&req.loadBalance, filter.FromString(ctx.Post("load_balance"), "load_balance")),
 	); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 400, &resp)
 	}
 
-	if _, exists := global.Upstreams[req.id]; exists {
+	if _, exists := global.Upstreams.Load(req.id); exists {
 		resp["error"] = "上游ID已存在"
 		return JSON(ctx, 400, &resp)
 	}
@@ -87,6 +89,7 @@ func (self *Upstream) Put(ctx *tsing.Context) error {
 			middleware     string
 			discover       string
 			staticEndpoint string
+			loadBalance    string
 		}
 		upstream      global.UpstreamType
 		upstreamBytes []byte
@@ -95,7 +98,8 @@ func (self *Upstream) Put(ctx *tsing.Context) error {
 		filter.El(&req.id, filter.FromString(ctx.PathParams.Value("id"), "id").Required().Base64RawURLDecode()),
 		filter.El(&req.discover, filter.FromString(ctx.Post("discover"), "discover").IsJSON()),
 		filter.El(&req.middleware, filter.FromString(ctx.Post("middleware"), "middleware").IsJSON()),
-		filter.El(&req.staticEndpoint, filter.FromString(ctx.Post("static_endpoint"), "static_endpoint").IsURL()),
+		filter.El(&req.staticEndpoint, filter.FromString(ctx.Post("static_endpoint"), "static_endpoint")),
+		filter.El(&req.loadBalance, filter.FromString(ctx.Post("load_balance"), "load_balance")),
 	); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 400, &resp)

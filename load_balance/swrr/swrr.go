@@ -24,9 +24,10 @@ func Init() *PoolType {
 	if Pool != nil {
 		return Pool
 	}
-	Pool.nodes = map[string][]*NodeType{}
-	Pool.nodeTotal = map[string]int{}
-	return Pool
+	var pool PoolType
+	pool.nodes = map[string][]*NodeType{}
+	pool.nodeTotal = map[string]int{}
+	return &pool
 }
 
 // // 降权

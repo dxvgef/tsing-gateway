@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"strings"
+	"sync"
 	"unsafe"
 
 	"github.com/rs/zerolog/log"
@@ -112,4 +113,27 @@ func InStr(s []string, str string) bool {
 		}
 	}
 	return false
+}
+
+// 计算sync.Map的长度
+func SyncMapLen(m *sync.Map) (count int) {
+	if m == nil {
+		return
+	}
+	m.Range(func(key, value interface{}) bool {
+		count++
+		return true
+	})
+	return
+}
+
+// 清空sync.Map
+func SyncMapClean(m *sync.Map) {
+	if m == nil {
+		return
+	}
+	m.Range(func(key, _ interface{}) bool {
+		m.Delete(key)
+		return true
+	})
 }

@@ -38,7 +38,7 @@ func main() {
 	flag.Parse()
 	err = global.LoadConfigFile(configFile)
 	if err != nil {
-		log.Fatal().Caller().Msg(err.Error())
+		log.Fatal().Err(err).Caller().Msg("加载配置文件失败")
 		return
 	}
 
@@ -46,19 +46,19 @@ func main() {
 	snowflake.Epoch = time.Now().Unix()
 	global.SnowflakeNode, err = snowflake.NewNode(int64(time.Now().Hour()))
 	if err != nil {
-		log.Fatal().Caller().Msg(err.Error())
+		log.Fatal().Err(err).Caller().Msg("配置snowflake失败")
 		return
 	}
 
 	// --------------------- 根据配置构建存储器 ----------------------
 	global.Storage, err = storage.Build(global.Config.Storage.Name, global.Config.Storage.Config)
 	if err != nil {
-		log.Fatal().Caller().Msg(err.Error())
+		log.Fatal().Err(err).Caller().Msg("构建存储器失败")
 		return
 	}
 	// 从存储器中加载所有数据
 	if err = global.Storage.LoadAll(); err != nil {
-		log.Fatal().Caller().Msg(err.Error())
+		log.Fatal().Err(err).Caller().Msg("加载数据失败")
 		return
 	}
 
@@ -66,7 +66,7 @@ func main() {
 	go func() {
 		log.Info().Msg("开始监听数据变更")
 		if err = global.Storage.Watch(); err != nil {
-			log.Fatal().Msg(err.Error())
+			log.Fatal().Err(err).Caller().Msg("启动存储器监听失败")
 			return
 		}
 	}()
@@ -88,7 +88,7 @@ func main() {
 					log.Info().Msg("HTTP代理服务已关闭")
 					return
 				}
-				log.Fatal().Caller().Msg(err.Error())
+				log.Fatal().Err(err).Caller().Msg("启动网关HTTP服务失败")
 				return
 			}
 		}()
@@ -107,7 +107,7 @@ func main() {
 			}
 			if global.Config.Proxy.HTTPS.HTTP2 {
 				if err = http2.ConfigureServer(proxyHttpsServer, &http2.Server{}); err != nil {
-					log.Fatal().Caller().Msg(err.Error())
+					log.Fatal().Err(err).Caller().Msg("启动网关HTTP2支持失败")
 					return
 				}
 			}
@@ -117,7 +117,7 @@ func main() {
 					log.Info().Msg("HTTPS代理服务已关闭")
 					return
 				}
-				log.Fatal().Caller().Caller().Msg(err.Error())
+				log.Fatal().Err(err).Caller().Msg("启动网关HTTPS服务失败")
 				return
 			}
 		}()
@@ -159,7 +159,7 @@ func main() {
 						log.Info().Msg("API HTTP服务已关闭")
 						return
 					}
-					log.Fatal().Caller().Msg(err.Error())
+					log.Fatal().Err(err).Caller().Msg("启动API HTTP服务失败")
 					return
 				}
 			}()
@@ -178,7 +178,7 @@ func main() {
 				}
 				if global.Config.API.HTTPS.HTTP2 {
 					if err = http2.ConfigureServer(apiHttpsServer, &http2.Server{}); err != nil {
-						log.Fatal().Caller().Msg(err.Error())
+						log.Fatal().Err(err).Caller().Msg("启动API HTTP2支持失败")
 						return
 					}
 				}
@@ -188,7 +188,7 @@ func main() {
 						log.Info().Msg("API HTTPS服务已关闭")
 						return
 					}
-					log.Fatal().Caller().Msg(err.Error())
+					log.Fatal().Err(err).Caller().Msg("启动API HTTPS服务失败")
 					return
 				}
 			}()
@@ -206,14 +206,14 @@ func main() {
 	// 关闭网关HTTP服务
 	if global.Config.Proxy.HTTP.Port > 0 {
 		if err := proxyHttpServer.Shutdown(ctx); err != nil {
-			log.Fatal().Caller().Msg(err.Error())
+			log.Fatal().Err(err).Caller().Msg("关闭网关HTTP服务失败")
 			return
 		}
 	}
 	// 关闭网关HTTPS服务
 	if global.Config.Proxy.HTTPS.Port > 0 {
 		if err := proxyHttpsServer.Shutdown(ctx); err != nil {
-			log.Fatal().Caller().Msg(err.Error())
+			log.Fatal().Err(err).Caller().Msg("关闭网关HTTPS服务失败")
 			return
 		}
 	}
@@ -221,14 +221,14 @@ func main() {
 	// 关闭API HTTP服务
 	if global.Config.API.HTTP.Port > 0 {
 		if err := apiHttpServer.Shutdown(ctx); err != nil {
-			log.Fatal().Caller().Msg(err.Error())
+			log.Fatal().Err(err).Caller().Msg("启动API HTTP服务失败")
 			return
 		}
 	}
 	// 关闭API HTTPS服务
 	if global.Config.API.HTTPS.Port > 0 {
 		if err := apiHttpsServer.Shutdown(ctx); err != nil {
-			log.Fatal().Caller().Msg(err.Error())
+			log.Fatal().Err(err).Caller().Msg("启动API HTTPS服务失败")
 			return
 		}
 	}

@@ -20,7 +20,7 @@ func (self *Host) Add(ctx *tsing.Context) error {
 		resp["error"] = "upstream_id参数不能为空"
 		return JSON(ctx, 400, &resp)
 	}
-	if _, exists := global.Hosts[hostname]; exists {
+	if _, exists := global.Hosts.Load(hostname); exists {
 		resp["error"] = "主机名已存在"
 		return JSON(ctx, 400, &resp)
 	}

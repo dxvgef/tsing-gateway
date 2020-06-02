@@ -10,7 +10,7 @@ func SetUpstream(upstream global.UpstreamType) error {
 	if upstream.ID == "" {
 		return errors.New("upstream ID不能为空")
 	}
-	global.Upstreams[upstream.ID] = upstream
+	global.Upstreams.Store(upstream.ID, upstream)
 	if err := SetUpstreamMiddleware(upstream.ID, upstream.Middleware); err != nil {
 		return err
 	}
@@ -21,18 +21,18 @@ func DelUpstream(upstreamID string) error {
 	if upstreamID == "" {
 		return errors.New("upstream ID不能为空")
 	}
-	delete(global.Upstreams, upstreamID)
-	delete(global.UpstreamMiddleware, upstreamID)
+	global.Upstreams.Delete(upstreamID)
+	global.UpstreamMiddleware.Delete(upstreamID)
 	return nil
 }
 
-func matchUpstream(upstreamID string) (upstream global.UpstreamType, exist bool) {
+func matchUpstream(upstreamID string) (global.UpstreamType, bool) {
 	if upstreamID == "" {
-		return
+		return global.UpstreamType{}, false
 	}
-	_, exist = global.Upstreams[upstreamID]
+	upstream, exist := global.Upstreams.Load(upstreamID)
 	if !exist {
-		return
+		return global.UpstreamType{}, false
 	}
-	return global.Upstreams[upstreamID], true
+	return upstream.(global.UpstreamType), true
 }

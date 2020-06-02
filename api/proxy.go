@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"sync"
 
 	"github.com/dxvgef/tsing"
 
@@ -10,9 +11,10 @@ import (
 
 type Proxy struct {
 	Middleware string                                  `json:"middleware"`
-	Hosts      map[string]string                       `json:"hosts"`
+	Hosts      sync.Map                                `json:"-"`
 	Routes     map[string]map[string]map[string]string `json:"routes"`
-	Upstreams  map[string]global.UpstreamType          `json:"upstreams"`
+	// Upstreams  map[string]global.UpstreamType          `json:"upstreams"`
+	Upstreams sync.Map `json:"-"`
 }
 
 func (self *Proxy) OutputAll(ctx *tsing.Context) error {
@@ -30,9 +32,9 @@ func (self *Proxy) OutputAll(ctx *tsing.Context) error {
 	self.Upstreams = global.Upstreams
 	err := JSON(ctx, 200, self)
 
-	self.Hosts = nil
+	global.SyncMapClean(&self.Hosts)
 	self.Routes = nil
-	self.Upstreams = nil
+	global.SyncMapClean(&self.Upstreams)
 	self.Middleware = ""
 	return err
 }

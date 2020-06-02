@@ -59,19 +59,20 @@ func (self *Etcd) SaveAllUpstreams() error {
 	key.WriteString("/upstreams/")
 
 	// 将配置保存到临时变量中
-	upstreams := make(map[string]string, len(global.Upstreams))
-	for k := range global.Upstreams {
+	upstreams := make(map[string]string, global.SyncMapLen(&global.Upstreams))
+	global.Upstreams.Range(func(k, v interface{}) bool {
 		if k == "" {
-			continue
+			return true
 		}
-		jsonBytes, err = global.Upstreams[k].MarshalJSON()
+		jsonBytes, err = v.(global.UpstreamType).MarshalJSON()
 		if err != nil {
-			continue
+			return true
 		}
-		upstreams[k] = global.BytesToStr(jsonBytes)
-	}
+		upstreams[k.(string)] = global.BytesToStr(jsonBytes)
+		return true
+	})
 
-	// 清空原来的配置
+	// 清空存储器中原来的配置
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
 	_, err = self.client.Delete(ctx, key.String(), clientv3.WithPrefix())
@@ -164,13 +165,14 @@ func (self *Etcd) SaveAllRoutes() (err error) {
 func (self *Etcd) SaveAllHosts() error {
 	var (
 		key   strings.Builder
-		hosts = make(map[string]string)
+		hosts = map[string]string{}
 	)
 
 	// 将配置保存到临时变量中
-	for hostname, upstreamID := range global.Hosts {
-		hosts[hostname] = upstreamID
-	}
+	global.Hosts.Range(func(k, v interface{}) bool {
+		hosts[k.(string)] = v.(string)
+		return true
+	})
 
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/hosts/")

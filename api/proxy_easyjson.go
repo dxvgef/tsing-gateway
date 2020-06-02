@@ -4,7 +4,6 @@ package api
 
 import (
 	json "encoding/json"
-	global "github.com/dxvgef/tsing-gateway/global"
 	easyjson "github.com/mailru/easyjson"
 	jlexer "github.com/mailru/easyjson/jlexer"
 	jwriter "github.com/mailru/easyjson/jwriter"
@@ -39,22 +38,6 @@ func easyjson6fc2bfdaDecodeGithubComDxvgefTsingGatewayApi(in *jlexer.Lexer, out 
 		switch key {
 		case "middleware":
 			out.Middleware = string(in.String())
-		case "hosts":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				in.Delim('{')
-				out.Hosts = make(map[string]string)
-				for !in.IsDelim('}') {
-					key := string(in.String())
-					in.WantColon()
-					var v1 string
-					v1 = string(in.String())
-					(out.Hosts)[key] = v1
-					in.WantComma()
-				}
-				in.Delim('}')
-			}
 		case "routes":
 			if in.IsNull() {
 				in.Skip()
@@ -64,53 +47,37 @@ func easyjson6fc2bfdaDecodeGithubComDxvgefTsingGatewayApi(in *jlexer.Lexer, out 
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
-					var v2 map[string]map[string]string
+					var v1 map[string]map[string]string
 					if in.IsNull() {
 						in.Skip()
 					} else {
 						in.Delim('{')
-						v2 = make(map[string]map[string]string)
+						v1 = make(map[string]map[string]string)
 						for !in.IsDelim('}') {
 							key := string(in.String())
 							in.WantColon()
-							var v3 map[string]string
+							var v2 map[string]string
 							if in.IsNull() {
 								in.Skip()
 							} else {
 								in.Delim('{')
-								v3 = make(map[string]string)
+								v2 = make(map[string]string)
 								for !in.IsDelim('}') {
 									key := string(in.String())
 									in.WantColon()
-									var v4 string
-									v4 = string(in.String())
-									(v3)[key] = v4
+									var v3 string
+									v3 = string(in.String())
+									(v2)[key] = v3
 									in.WantComma()
 								}
 								in.Delim('}')
 							}
-							(v2)[key] = v3
+							(v1)[key] = v2
 							in.WantComma()
 						}
 						in.Delim('}')
 					}
-					(out.Routes)[key] = v2
-					in.WantComma()
-				}
-				in.Delim('}')
-			}
-		case "upstreams":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				in.Delim('{')
-				out.Upstreams = make(map[string]global.UpstreamType)
-				for !in.IsDelim('}') {
-					key := string(in.String())
-					in.WantColon()
-					var v5 global.UpstreamType
-					(v5).UnmarshalEasyJSON(in)
-					(out.Upstreams)[key] = v5
+					(out.Routes)[key] = v1
 					in.WantComma()
 				}
 				in.Delim('}')
@@ -135,96 +102,54 @@ func easyjson6fc2bfdaEncodeGithubComDxvgefTsingGatewayApi(out *jwriter.Writer, i
 		out.String(string(in.Middleware))
 	}
 	{
-		const prefix string = ",\"hosts\":"
-		out.RawString(prefix)
-		if in.Hosts == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
-			out.RawString(`null`)
-		} else {
-			out.RawByte('{')
-			v6First := true
-			for v6Name, v6Value := range in.Hosts {
-				if v6First {
-					v6First = false
-				} else {
-					out.RawByte(',')
-				}
-				out.String(string(v6Name))
-				out.RawByte(':')
-				out.String(string(v6Value))
-			}
-			out.RawByte('}')
-		}
-	}
-	{
 		const prefix string = ",\"routes\":"
 		out.RawString(prefix)
 		if in.Routes == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
 			out.RawString(`null`)
 		} else {
 			out.RawByte('{')
-			v7First := true
-			for v7Name, v7Value := range in.Routes {
-				if v7First {
-					v7First = false
+			v4First := true
+			for v4Name, v4Value := range in.Routes {
+				if v4First {
+					v4First = false
 				} else {
 					out.RawByte(',')
 				}
-				out.String(string(v7Name))
+				out.String(string(v4Name))
 				out.RawByte(':')
-				if v7Value == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
+				if v4Value == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
 					out.RawString(`null`)
 				} else {
 					out.RawByte('{')
-					v8First := true
-					for v8Name, v8Value := range v7Value {
-						if v8First {
-							v8First = false
+					v5First := true
+					for v5Name, v5Value := range v4Value {
+						if v5First {
+							v5First = false
 						} else {
 							out.RawByte(',')
 						}
-						out.String(string(v8Name))
+						out.String(string(v5Name))
 						out.RawByte(':')
-						if v8Value == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
+						if v5Value == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
 							out.RawString(`null`)
 						} else {
 							out.RawByte('{')
-							v9First := true
-							for v9Name, v9Value := range v8Value {
-								if v9First {
-									v9First = false
+							v6First := true
+							for v6Name, v6Value := range v5Value {
+								if v6First {
+									v6First = false
 								} else {
 									out.RawByte(',')
 								}
-								out.String(string(v9Name))
+								out.String(string(v6Name))
 								out.RawByte(':')
-								out.String(string(v9Value))
+								out.String(string(v6Value))
 							}
 							out.RawByte('}')
 						}
 					}
 					out.RawByte('}')
 				}
-			}
-			out.RawByte('}')
-		}
-	}
-	{
-		const prefix string = ",\"upstreams\":"
-		out.RawString(prefix)
-		if in.Upstreams == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
-			out.RawString(`null`)
-		} else {
-			out.RawByte('{')
-			v10First := true
-			for v10Name, v10Value := range in.Upstreams {
-				if v10First {
-					v10First = false
-				} else {
-					out.RawByte(',')
-				}
-				out.String(string(v10Name))
-				out.RawByte(':')
-				(v10Value).MarshalEasyJSON(out)
 			}
 			out.RawByte('}')
 		}

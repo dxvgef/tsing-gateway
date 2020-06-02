@@ -67,6 +67,8 @@ func easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal(in *jlexer.Lexer, o
 			(out.Discover).UnmarshalEasyJSON(in)
 		case "load_balance":
 			out.LoadBalance = string(in.String())
+		case "max_cache_fault":
+			out.MaxCacheFault = int(in.Int())
 		default:
 			in.SkipRecursive()
 		}
@@ -114,6 +116,11 @@ func easyjson9f2eff5fEncodeGithubComDxvgefTsingGatewayGlobal(out *jwriter.Writer
 		const prefix string = ",\"load_balance\":"
 		out.RawString(prefix)
 		out.String(string(in.LoadBalance))
+	}
+	{
+		const prefix string = ",\"max_cache_fault\":"
+		out.RawString(prefix)
+		out.Int(int(in.MaxCacheFault))
 	}
 	out.RawByte('}')
 }

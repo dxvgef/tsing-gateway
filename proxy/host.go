@@ -9,14 +9,14 @@ import (
 // 写入主机，如果存在则覆盖，不存在则创建
 func SetHost(hostname, routeGroupID string) error {
 	hostname = strings.ToLower(hostname)
-	global.Hosts[hostname] = routeGroupID
+	global.Hosts.Store(hostname, routeGroupID)
 	return nil
 }
 
 // 删除主机
 func DelHost(hostname string) error {
 	hostname = strings.ToLower(hostname)
-	delete(global.Hosts, hostname)
+	global.Hosts.Delete(hostname)
 	return nil
 }
 
@@ -26,12 +26,14 @@ func matchHost(reqHost string) (string, bool) {
 	if pos > -1 {
 		reqHost = reqHost[:pos]
 	}
-	if _, exist := global.Hosts[reqHost]; exist {
-		return global.Hosts[reqHost], true
+	if v, exist := global.Hosts.Load(reqHost); exist {
+		return v.(string), true
 	}
 	reqHost = "*"
-	if _, exist := global.Hosts[reqHost]; exist {
-		return global.Hosts[reqHost], true
+	if v, exist := global.Hosts.Load(reqHost); exist {
+		return v.(string), true
 	}
-	return global.Hosts[reqHost], false
+
+	v, exist := global.Hosts.Load(reqHost)
+	return v.(string), exist
 }

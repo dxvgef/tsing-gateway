@@ -25,11 +25,12 @@ func Init() *PoolType {
 	if Pool != nil {
 		return Pool
 	}
-	Pool.nodes = map[string][]*NodeType{}
-	Pool.nodeTotal = map[string]int{}
-	Pool.sumOfWeights = map[string]int{}
-	Pool.rnd = map[string]*rand.Rand{}
-	return Pool
+	var pool PoolType
+	pool.nodes = map[string][]*NodeType{}
+	pool.nodeTotal = map[string]int{}
+	pool.sumOfWeights = map[string]int{}
+	pool.rnd = map[string]*rand.Rand{}
+	return &pool
 }
 
 func (p *PoolType) Add(upstreamID, addr string, weight int) error {

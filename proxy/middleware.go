@@ -53,7 +53,7 @@ func SetUpstreamMiddleware(upstreamID string, mwConfig []global.ModuleConfig) er
 	}
 	mwConfigLen := len(mwConfig)
 	if mwConfigLen == 0 {
-		global.UpstreamMiddleware[upstreamID] = nil
+		global.UpstreamMiddleware.Delete(upstreamID)
 		return nil
 	}
 	var (
@@ -70,6 +70,6 @@ func SetUpstreamMiddleware(upstreamID string, mwConfig []global.ModuleConfig) er
 		}
 		mw[k] = m
 	}
-	global.UpstreamMiddleware[upstreamID] = mw
+	global.UpstreamMiddleware.Store(upstreamID, mw)
 	return nil
 }
