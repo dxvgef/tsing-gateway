@@ -8,7 +8,7 @@ func SetRouter(engine *tsing.Engine) {
 	router := engine.Group("", checkSecretFromHeader)
 
 	var proxyHandler Proxy
-	router.GET("/proxy/", proxyHandler.OutputAll)
+	router.GET("/proxy/", proxyHandler.OutputJSON)
 	router.PUT("/proxy/load/", proxyHandler.LoadAll)
 	router.PUT("/proxy/save/", proxyHandler.SaveAll)
 

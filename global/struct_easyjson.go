@@ -221,7 +221,110 @@ func (v *ModuleConfig) UnmarshalJSON(data []byte) error {
 func (v *ModuleConfig) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal1(l, v)
 }
-func easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal2(in *jlexer.Lexer, out *EndpointType) {
+func easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal2(in *jlexer.Lexer, out *HostType) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeString()
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "upstream_id":
+			out.UpstreamID = string(in.String())
+		case "middleware":
+			if in.IsNull() {
+				in.Skip()
+				out.Middleware = nil
+			} else {
+				in.Delim('[')
+				if out.Middleware == nil {
+					if !in.IsDelim(']') {
+						out.Middleware = make([]ModuleConfig, 0, 2)
+					} else {
+						out.Middleware = []ModuleConfig{}
+					}
+				} else {
+					out.Middleware = (out.Middleware)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v4 ModuleConfig
+					(v4).UnmarshalEasyJSON(in)
+					out.Middleware = append(out.Middleware, v4)
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson9f2eff5fEncodeGithubComDxvgefTsingGatewayGlobal2(out *jwriter.Writer, in HostType) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"upstream_id\":"
+		out.RawString(prefix[1:])
+		out.String(string(in.UpstreamID))
+	}
+	if len(in.Middleware) != 0 {
+		const prefix string = ",\"middleware\":"
+		out.RawString(prefix)
+		{
+			out.RawByte('[')
+			for v5, v6 := range in.Middleware {
+				if v5 > 0 {
+					out.RawByte(',')
+				}
+				(v6).MarshalEasyJSON(out)
+			}
+			out.RawByte(']')
+		}
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v HostType) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson9f2eff5fEncodeGithubComDxvgefTsingGatewayGlobal2(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v HostType) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson9f2eff5fEncodeGithubComDxvgefTsingGatewayGlobal2(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *HostType) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal2(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *HostType) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal2(l, v)
+}
+func easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal3(in *jlexer.Lexer, out *EndpointType) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -256,7 +359,7 @@ func easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal2(in *jlexer.Lexer, 
 		in.Consumed()
 	}
 }
-func easyjson9f2eff5fEncodeGithubComDxvgefTsingGatewayGlobal2(out *jwriter.Writer, in EndpointType) {
+func easyjson9f2eff5fEncodeGithubComDxvgefTsingGatewayGlobal3(out *jwriter.Writer, in EndpointType) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -281,23 +384,23 @@ func easyjson9f2eff5fEncodeGithubComDxvgefTsingGatewayGlobal2(out *jwriter.Write
 // MarshalJSON supports json.Marshaler interface
 func (v EndpointType) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson9f2eff5fEncodeGithubComDxvgefTsingGatewayGlobal2(&w, v)
+	easyjson9f2eff5fEncodeGithubComDxvgefTsingGatewayGlobal3(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v EndpointType) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson9f2eff5fEncodeGithubComDxvgefTsingGatewayGlobal2(w, v)
+	easyjson9f2eff5fEncodeGithubComDxvgefTsingGatewayGlobal3(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *EndpointType) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal2(&r, v)
+	easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal3(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *EndpointType) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal2(l, v)
+	easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal3(l, v)
 }

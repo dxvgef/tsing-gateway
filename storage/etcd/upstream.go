@@ -2,6 +2,8 @@ package etcd
 
 import (
 	"context"
+	"encoding/json"
+	"path"
 	"strings"
 	"time"
 
@@ -13,8 +15,35 @@ import (
 	"github.com/coreos/etcd/clientv3"
 )
 
-// 加载所有upstream
-func (self *Etcd) LoadAllUpstreams() error {
+// 将本地上游数据保存到存储器
+func (self *Etcd) SaveUpstream(upstreamID, config string) error {
+	upstreamID = global.EncodeKey(upstreamID)
+	var key strings.Builder
+	key.WriteString(self.KeyPrefix)
+	key.WriteString("/upstreams/")
+	key.WriteString(upstreamID)
+
+	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer ctxCancel()
+	if _, err := self.client.Put(ctx, key.String(), config); err != nil {
+		return err
+	}
+	return nil
+}
+
+// 从存储器加载上游数据到本地
+func (self *Etcd) LoadUpstream(data []byte) error {
+	var upstream global.UpstreamType
+	err := upstream.UnmarshalJSON(data)
+	if err != nil {
+		log.Err(err).Caller().Msg("加载上游时出错")
+		return err
+	}
+	return proxy.SetUpstream(upstream)
+}
+
+// 从存储器加载所有上游数据到本地
+func (self *Etcd) LoadAllUpstream() error {
 	var key strings.Builder
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/upstreams/")
@@ -27,24 +56,26 @@ func (self *Etcd) LoadAllUpstreams() error {
 		return err
 	}
 	for k := range resp.Kvs {
-		var upstream global.UpstreamType
-		err = upstream.UnmarshalJSON(resp.Kvs[k].Value)
+		err = self.LoadUpstream(resp.Kvs[k].Value)
 		if err != nil {
-			return err
-		}
-		if upstream.ID == "" {
-			continue
-		}
-		err = proxy.SetUpstream(upstream)
-		if err != nil {
+			log.Err(err).Caller().Msg("加载所有上游时出错")
 			return err
 		}
 	}
 	return nil
 }
 
-// 存储所有upstream数据
-func (self *Etcd) SaveAllUpstreams() error {
+// 删除本地上游数据
+func (self *Etcd) DelLocalUpstream(key string) error {
+	upstreamID, err := global.DecodeKey(path.Base(key))
+	if err != nil {
+		return err
+	}
+	return proxy.DelUpstream(upstreamID)
+}
+
+// 将本地所有上游数据保存到存储器
+func (self *Etcd) SaveAllUpstream() error {
 	var (
 		err         error
 		key         strings.Builder
@@ -54,13 +85,12 @@ func (self *Etcd) SaveAllUpstreams() error {
 
 	// 将数据保存到临时变量中
 	global.Upstreams.Range(func(k, v interface{}) bool {
-		u, ok := v.(global.UpstreamType)
+		upstream, ok := v.(global.UpstreamType)
 		if !ok {
 			log.Err(err).Caller().Msg("上游配置的类型断言失败")
 			return false
 		}
-		configBytes, err = u.MarshalJSON()
-		if err != nil {
+		if configBytes, err = json.Marshal(&upstream); err != nil {
 			log.Err(err).Caller().Msg("上游配置序列化成JSON失败")
 			return false
 		}
@@ -81,16 +111,9 @@ func (self *Etcd) SaveAllUpstreams() error {
 
 	// 将内存中的数据写入到存储器中
 	for k := range upstreams {
-		key.Reset()
-		key.WriteString(self.KeyPrefix)
-		key.WriteString("/upstreams/")
-		key.WriteString(global.EncodeKey(k))
-		ctxTmp, ctxTmpCancel := context.WithTimeout(context.Background(), 5*time.Second)
-		if _, err = self.client.Put(ctxTmp, key.String(), upstreams[k]); err != nil {
-			ctxTmpCancel()
+		if err = self.SaveUpstream(k, upstreams[k]); err != nil {
 			return err
 		}
-		ctxTmpCancel()
 	}
 	return nil
 }

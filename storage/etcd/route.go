@@ -13,8 +13,49 @@ import (
 	"github.com/coreos/etcd/clientv3"
 )
 
-// 加载所有route
-func (self *Etcd) LoadAllRoutes() error {
+// 保存本地路由到存储器，如果不存在则创建
+func (self *Etcd) SaveRoute(routeGroupID, routePath, routeMethod, upstreamID string) error {
+	routeMethod = strings.ToUpper(routeMethod)
+	if !global.InStr(global.HTTPMethods, routeMethod) {
+		return errors.New("HTTP方法无效")
+	}
+
+	routeGroupID = global.EncodeKey(routeGroupID)
+	routePath = global.EncodeKey(routePath)
+
+	var key strings.Builder
+	key.WriteString(self.KeyPrefix)
+	key.WriteString("/routes/")
+	key.WriteString(routeGroupID)
+	key.WriteString("@")
+	key.WriteString(routePath)
+	key.WriteString("@")
+	key.WriteString(routeMethod)
+	path.Join()
+
+	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer ctxCancel()
+	if _, err := self.client.Put(ctx, key.String(), upstreamID); err != nil {
+		return err
+	}
+	return nil
+}
+
+// 从存储器加载路由到本地
+func (self *Etcd) LoadRoute(key string, data []byte) error {
+	routeGroupID, routePath, routeMethod, err := global.ParseRoute(key, self.KeyPrefix)
+	if err != nil {
+		return err
+	}
+	if !global.InStr(global.HTTPMethods, routeMethod) {
+		return errors.New("HTTP方法无效")
+	}
+
+	return proxy.SetRoute(routeGroupID, routePath, routeMethod, global.BytesToStr(data))
+}
+
+// 从存储器加载所有路由到本地
+func (self *Etcd) LoadAllRoute() error {
 	var key strings.Builder
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/routes/")
@@ -26,24 +67,18 @@ func (self *Etcd) LoadAllRoutes() error {
 	if err != nil {
 		return err
 	}
+
+	// 将所有路由都加载到缓存
 	for k := range resp.Kvs {
-		routeGroupID, routePath, routeMethod, err := global.ParseRoute(global.BytesToStr(resp.Kvs[k].Key), self.KeyPrefix)
-		if err != nil {
-			return err
-		}
-		if routeMethod == "" {
-			return nil
-		}
-		err = proxy.SetRoute(routeGroupID, routePath, routeMethod, global.BytesToStr(resp.Kvs[k].Value))
-		if err != nil {
+		if err = self.LoadRoute(global.BytesToStr(resp.Kvs[k].Key), resp.Kvs[k].Value); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// 存储所有route数据
-func (self *Etcd) SaveAllRoutes() (err error) {
+// 将本地所有路由保存到存储器
+func (self *Etcd) SaveAllRoute() (err error) {
 	var (
 		key    strings.Builder
 		routes = make(map[string]string, global.SyncMapLen(&global.Routes))
@@ -71,7 +106,7 @@ func (self *Etcd) SaveAllRoutes() (err error) {
 		if err != nil {
 			return
 		}
-		err = self.PutRoute(routeGroupID, routePath, routeMethod, v)
+		err = self.SaveRoute(routeGroupID, routePath, routeMethod, v)
 		if err != nil {
 			return
 		}
@@ -80,70 +115,11 @@ func (self *Etcd) SaveAllRoutes() (err error) {
 	return
 }
 
-// 设置单个route，如果不存在则创建
-func (self *Etcd) PutRoute(routeGroupID, routePath, routeMethod, upstreamID string) error {
-	routeMethod = strings.ToUpper(routeMethod)
-	if !global.InStr(global.HTTPMethods, routeMethod) {
-		return errors.New("HTTP方法无效")
-	}
-
-	routeGroupID = global.EncodeKey(routeGroupID)
-	routePath = global.EncodeKey(routePath)
-
-	var key strings.Builder
-	key.WriteString(self.KeyPrefix)
-	key.WriteString("/routes/")
-	key.WriteString(routeGroupID)
-	key.WriteString("@")
-	key.WriteString(routePath)
-	key.WriteString("@")
-	key.WriteString(routeMethod)
-	path.Join()
-
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer ctxCancel()
-	if _, err := self.client.Put(ctx, key.String(), upstreamID); err != nil {
+// 删除本地路由数据
+func (self *Etcd) DeleteLocalRoute(keyStr string) error {
+	routeGroupID, routePath, routeMethod, err := global.ParseRoute(keyStr, self.KeyPrefix)
+	if err != nil {
 		return err
 	}
-	return nil
-}
-
-// 删除单个route
-func (self *Etcd) DelRoute(routeGroupID, routePath, routeMethod string) error {
-	if routeGroupID == "" {
-		return errors.New("路由组ID不能为空")
-	}
-	if routeMethod != "" {
-		routeMethod = strings.ToUpper(routeMethod)
-		if !global.InStr(global.HTTPMethods, routeMethod) {
-			return errors.New("HTTP方法无效")
-		}
-	}
-
-	var key strings.Builder
-	key.WriteString(self.KeyPrefix)
-	key.WriteString("/routes/")
-	routeGroupID = global.EncodeKey(routeGroupID)
-	key.WriteString(routeGroupID)
-	key.WriteString("/")
-	routePath = global.EncodeKey(routePath)
-	key.WriteString(routePath)
-	key.WriteString("/")
-
-	if routeMethod != "" {
-		key.WriteString(routeMethod)
-	}
-
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer ctxCancel()
-	if routeMethod == "" {
-		if _, err := self.client.Delete(ctx, key.String(), clientv3.WithPrefix()); err != nil {
-			return err
-		}
-		return nil
-	}
-	if _, err := self.client.Delete(ctx, key.String()); err != nil {
-		return err
-	}
-	return nil
+	return proxy.DeleteRoute(routeGroupID, routePath, routeMethod)
 }

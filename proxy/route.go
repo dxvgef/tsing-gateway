@@ -34,7 +34,7 @@ func SetRoute(routeGroupID, routePath, routeMethod, upstreamID string) error {
 }
 
 // 删除路由
-func DelRoute(routeGroupID, routePath, routeMethod string) error {
+func DeleteRoute(routeGroupID, routePath, routeMethod string) error {
 	if routeGroupID == "" {
 		return errors.New("routeGroupID不能为空")
 	}

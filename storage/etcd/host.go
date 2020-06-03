@@ -4,6 +4,7 @@ import (
 	"context"
 	json "encoding/json"
 	"errors"
+	"path"
 	"strings"
 	"time"
 
@@ -14,9 +15,49 @@ import (
 	"github.com/dxvgef/tsing-gateway/proxy"
 )
 
-// 加载所有host
-func (self *Etcd) LoadAllHosts() error {
-	var hostname string
+// 将本地主机数据保存到存储器中，如果不存在则创建
+func (self *Etcd) SaveHost(hostname, config string) error {
+	hostname = global.EncodeKey(hostname)
+
+	var key strings.Builder
+	key.WriteString(self.KeyPrefix)
+	key.WriteString("/hosts/")
+	key.WriteString(hostname)
+
+	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer ctxCancel()
+	if _, err := self.client.Put(ctx, key.String(), config); err != nil {
+		return err
+	}
+	return nil
+}
+
+// 从存储器加载主机数据到本地，如果不存在则创建
+func (self *Etcd) LoadHost(key string, data []byte) error {
+	hostname, err := global.DecodeKey(path.Base(key))
+	if err != nil {
+		return err
+	}
+	var host global.HostType
+	err = host.UnmarshalJSON(data)
+	if err != nil {
+		return err
+	}
+	return proxy.SetHost(hostname, host)
+}
+
+// 删除本地主机数据
+func (self *Etcd) DeleteLocalHost(key string) error {
+	hostname, err := global.DecodeKey(path.Base(key))
+	if err != nil {
+		return err
+	}
+	hostname = global.EncodeKey(hostname)
+	return proxy.DelHost(hostname)
+}
+
+// 从存储器加载所有主机数据到本地
+func (self *Etcd) LoadAllHost() error {
 	var key strings.Builder
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/hosts/")
@@ -28,12 +69,7 @@ func (self *Etcd) LoadAllHosts() error {
 		return err
 	}
 	for k := range resp.Kvs {
-		hostname = strings.TrimPrefix(global.BytesToStr(resp.Kvs[k].Key), key.String())
-		hostname, err = global.DecodeKey(hostname)
-		if err != nil {
-			return err
-		}
-		err = proxy.SetHost(hostname, global.BytesToStr(resp.Kvs[k].Value))
+		err = self.LoadHost(global.BytesToStr(resp.Kvs[k].Key), resp.Kvs[k].Value)
 		if err != nil {
 			return err
 		}
@@ -41,8 +77,8 @@ func (self *Etcd) LoadAllHosts() error {
 	return nil
 }
 
-// 将内存中所有的host数据写入到存储器
-func (self *Etcd) SaveAllHosts() error {
+// 将本地中所有主机数据保存到存储器
+func (self *Etcd) SaveAllHost() error {
 	var (
 		err         error
 		key         strings.Builder
@@ -82,44 +118,10 @@ func (self *Etcd) SaveAllHosts() error {
 
 	// 将内存中的数据写入到存储器中
 	for hostname, config := range hosts {
-		if err = self.PutHost(hostname, config); err != nil {
+		if err = self.SaveHost(hostname, config); err != nil {
 			return err
 		}
 	}
 
-	return nil
-}
-
-// 设置单个host，如果不存在则创建
-func (self *Etcd) PutHost(hostname, config string) error {
-	hostname = global.EncodeKey(hostname)
-
-	var key strings.Builder
-	key.WriteString(self.KeyPrefix)
-	key.WriteString("/hosts/")
-	key.WriteString(hostname)
-
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer ctxCancel()
-	if _, err := self.client.Put(ctx, key.String(), config); err != nil {
-		return err
-	}
-	return nil
-}
-
-// 删除host
-func (self *Etcd) DelHost(hostname string) error {
-	hostname = global.EncodeKey(hostname)
-
-	var key strings.Builder
-	key.WriteString(self.KeyPrefix)
-	key.WriteString("/hosts/")
-	key.WriteString(hostname)
-
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer ctxCancel()
-	if _, err := self.client.Delete(ctx, key.String()); err != nil {
-		return err
-	}
 	return nil
 }

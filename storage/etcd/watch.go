@@ -2,14 +2,12 @@ package etcd
 
 import (
 	"context"
-	"path"
 	"strings"
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/rs/zerolog/log"
 
 	"github.com/dxvgef/tsing-gateway/global"
-	"github.com/dxvgef/tsing-gateway/proxy"
 )
 
 // 监听变更
@@ -20,11 +18,11 @@ func (self *Etcd) Watch() error {
 			switch event.Type {
 			// 添加key
 			case clientv3.EventTypePut:
-				if err := self.putDataToLocal(event.Kv.Key, event.Kv.Value); err != nil {
+				if err := self.watchLoadData(event.Kv.Key, event.Kv.Value); err != nil {
 					log.Err(err).Caller().Msg("更新本地数据时出错")
 				}
 			case clientv3.EventTypeDelete:
-				if err := self.delDataToLocal(event.Kv.Key); err != nil {
+				if err := self.watchDeleteData(event.Kv.Key); err != nil {
 					log.Err(err).Caller().Msg("删除本地数据时出错")
 				}
 			}
@@ -33,83 +31,35 @@ func (self *Etcd) Watch() error {
 	return nil
 }
 
-// 写数据的操作
-func (self *Etcd) putDataToLocal(key, value []byte) error {
-	var (
-		err      error
-		storeKey = global.BytesToStr(key)
-		hostname string
-	)
-	if strings.HasPrefix(storeKey, self.KeyPrefix+"/hosts/") {
-		hostname, err = global.DecodeKey(path.Base(storeKey))
-		if err != nil {
-			return err
-		}
-		if err = proxy.SetHost(hostname, global.BytesToStr(value)); err != nil {
-			return err
-		}
-		return nil
+// 监听存储器数据更新，同步本地数据
+func (self *Etcd) watchLoadData(key, value []byte) error {
+	keyStr := global.BytesToStr(key)
+	// 加载主机
+	if strings.HasPrefix(keyStr, self.KeyPrefix+"/hosts/") {
+		return self.LoadHost(keyStr, value)
 	}
-	if strings.HasPrefix(storeKey, self.KeyPrefix+"/upstreams/") {
-		var upstream global.UpstreamType
-		if err = upstream.UnmarshalJSON(value); err != nil {
-			return err
-		}
-		if err = proxy.SetUpstream(upstream); err != nil {
-			return err
-		}
-		return nil
+	// 加载上游
+	if strings.HasPrefix(keyStr, self.KeyPrefix+"/upstreams/") {
+		return self.LoadUpstream(value)
 	}
-	if strings.HasPrefix(storeKey, self.KeyPrefix+"/routes/") {
-		routeID, routePath, routeMethod, errTmp := global.ParseRoute(storeKey, self.KeyPrefix)
-		if errTmp != nil {
-			return err
-		}
-		if err = proxy.SetRoute(routeID, routePath, routeMethod, global.BytesToStr(value)); err != nil {
-			return err
-		}
-		return nil
+	// 加载路由
+	if strings.HasPrefix(keyStr, self.KeyPrefix+"/routes/") {
+		return self.LoadRoute(keyStr, value)
 	}
 	return nil
 }
 
-// del数据的操作
-func (self *Etcd) delDataToLocal(key []byte) error {
-	var (
-		err    error
-		keyStr = global.BytesToStr(key)
-	)
+// 监听存储器数据删除，同步本地数据
+func (self *Etcd) watchDeleteData(key []byte) error {
+	keyStr := global.BytesToStr(key)
 	if strings.HasPrefix(keyStr, self.KeyPrefix+"/hosts/") {
-		var mapKey string
-		mapKey, err = global.DecodeKey(path.Base(keyStr))
-		if err != nil {
-			return err
-		}
-		if err = proxy.DelHost(mapKey); err != nil {
-			return err
-		}
-		return nil
+		return self.DeleteLocalHost(keyStr)
 	}
 	if strings.HasPrefix(keyStr, self.KeyPrefix+"/upstreams/") {
-		var mapKey string
-		mapKey, err = global.DecodeKey(path.Base(keyStr))
-		if err != nil {
-			return err
-		}
-		if err = proxy.DelUpstream(mapKey); err != nil {
-			return err
-		}
-		return nil
+		return self.DelLocalUpstream(keyStr)
 	}
 	if strings.HasPrefix(keyStr, self.KeyPrefix+"/routes/") {
-		routeID, routePath, routeMethod, err := global.ParseRoute(keyStr, self.KeyPrefix)
-		if err != nil {
-			return err
-		}
-		if err = proxy.DelRoute(routeID, routePath, routeMethod); err != nil {
-			return err
-		}
-		return nil
+		return self.DeleteLocalRoute(keyStr)
 	}
 	return nil
 }

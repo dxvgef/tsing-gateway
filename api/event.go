@@ -27,7 +27,6 @@ func EventHandler(event *tsing.Event) {
 		e := log.Error()
 		e.Str("caller", " "+event.Source.File+":"+strconv.Itoa(event.Source.Line)+" ").
 			Str("func", event.Source.Func)
-
 		var trace []string
 		for k := range event.Trace {
 			trace = append(trace, event.Trace[k])
