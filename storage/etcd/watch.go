@@ -56,7 +56,7 @@ func (self *Etcd) watchDeleteData(key []byte) error {
 		return self.DeleteLocalHost(keyStr)
 	}
 	if strings.HasPrefix(keyStr, self.KeyPrefix+"/upstreams/") {
-		return self.DelLocalUpstream(keyStr)
+		return self.DeleteLocalUpstream(keyStr)
 	}
 	if strings.HasPrefix(keyStr, self.KeyPrefix+"/routes/") {
 		return self.DeleteLocalRoute(keyStr)
