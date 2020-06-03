@@ -59,24 +59,26 @@ type MiddlewareType interface {
 
 // 存储器
 type StorageType interface {
-	LoadAll() error          // 加载所有数据
-	LoadAllHosts() error     // 加载所有主机数据
-	LoadAllUpstreams() error // 加载所有上游数据
-	LoadAllRoutes() error    // 加载所有路由数据
+	LoadAll() error // 从存储器加载所有数据到本地
+	SaveAll() error // 将本地所有数据保存到存储器
 
-	SaveAll() error          // 存储所有数据
-	SaveAllUpstreams() error // 存储所有上游数据
-	SaveAllRoutes() error    // 存储所有路由数据
-	SaveAllHosts() error     // 存储所有主机数据
+	LoadAllHost() error            // 从存储器加载所有主机数据到本地
+	SaveAllHost() error            // 将本地所有主机数据保存到存储器
+	LoadHost(string, []byte) error // 从存储器加载单个主机数据
+	SaveHost(string, string) error // 将本地单个主机数据保存到存储器
+	DeleteLocalHost(string) error  // 删除本地单个主机数据
 
-	PutHost(string, string) error // 设置单个主机
-	DelHost(string) error         // 删除单个主机
+	LoadAllUpstream() error            // 从存储器加载所有上游到本地
+	LoadUpstream([]byte) error         // 从存储器加载单个上游数据
+	SaveAllUpstream() error            // 将本地所有上游数据保存到存储器
+	SaveUpstream(string, string) error // 将本地单个上游数据保存到存储器
+	DeleteLocalUpstream(string) error  // 删除本地单个上游数据
 
-	PutUpstream(string, string) error // 设置单个上游
-	DelUpstream(string) error         // 删除单个上游
+	LoadAllRoute() error                            // 从存储器加载所有路由数据到本地
+	LoadRoute(string, []byte) error                 // 从存储器加载单个路由数据
+	SaveAllRoute() error                            // 将本地所有路由保存到存储器
+	SaveRoute(string, string, string, string) error // 将本地单个路由数据保存到存储器
+	DeleteLocalRoute(string) error                  // 删除本地单个路由数据
 
-	PutRoute(string, string, string, string) error // 设置单个路由
-	DelRoute(string, string, string) error         // 删除单个路由
-
-	Watch() error // 监听数据变更
+	Watch() error // 监听存储器的数据变更
 }

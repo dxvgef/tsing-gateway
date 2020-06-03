@@ -13,34 +13,6 @@ import (
 	"github.com/coreos/etcd/clientv3"
 )
 
-// 保存本地路由到存储器，如果不存在则创建
-func (self *Etcd) SaveRoute(routeGroupID, routePath, routeMethod, upstreamID string) error {
-	routeMethod = strings.ToUpper(routeMethod)
-	if !global.InStr(global.HTTPMethods, routeMethod) {
-		return errors.New("HTTP方法无效")
-	}
-
-	routeGroupID = global.EncodeKey(routeGroupID)
-	routePath = global.EncodeKey(routePath)
-
-	var key strings.Builder
-	key.WriteString(self.KeyPrefix)
-	key.WriteString("/routes/")
-	key.WriteString(routeGroupID)
-	key.WriteString("@")
-	key.WriteString(routePath)
-	key.WriteString("@")
-	key.WriteString(routeMethod)
-	path.Join()
-
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer ctxCancel()
-	if _, err := self.client.Put(ctx, key.String(), upstreamID); err != nil {
-		return err
-	}
-	return nil
-}
-
 // 从存储器加载路由到本地
 func (self *Etcd) LoadRoute(key string, data []byte) error {
 	routeGroupID, routePath, routeMethod, err := global.ParseRoute(key, self.KeyPrefix)
@@ -73,6 +45,34 @@ func (self *Etcd) LoadAllRoute() error {
 		if err = self.LoadRoute(global.BytesToStr(resp.Kvs[k].Key), resp.Kvs[k].Value); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+// 保存本地路由到存储器，如果不存在则创建
+func (self *Etcd) SaveRoute(routeGroupID, routePath, routeMethod, upstreamID string) error {
+	routeMethod = strings.ToUpper(routeMethod)
+	if !global.InStr(global.HTTPMethods, routeMethod) {
+		return errors.New("HTTP方法无效")
+	}
+
+	routeGroupID = global.EncodeKey(routeGroupID)
+	routePath = global.EncodeKey(routePath)
+
+	var key strings.Builder
+	key.WriteString(self.KeyPrefix)
+	key.WriteString("/routes/")
+	key.WriteString(routeGroupID)
+	key.WriteString("@")
+	key.WriteString(routePath)
+	key.WriteString("@")
+	key.WriteString(routeMethod)
+	path.Join()
+
+	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer ctxCancel()
+	if _, err := self.client.Put(ctx, key.String(), upstreamID); err != nil {
+		return err
 	}
 	return nil
 }

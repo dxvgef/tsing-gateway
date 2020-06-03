@@ -15,23 +15,6 @@ import (
 	"github.com/dxvgef/tsing-gateway/proxy"
 )
 
-// 将本地主机数据保存到存储器中，如果不存在则创建
-func (self *Etcd) SaveHost(hostname, config string) error {
-	hostname = global.EncodeKey(hostname)
-
-	var key strings.Builder
-	key.WriteString(self.KeyPrefix)
-	key.WriteString("/hosts/")
-	key.WriteString(hostname)
-
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer ctxCancel()
-	if _, err := self.client.Put(ctx, key.String(), config); err != nil {
-		return err
-	}
-	return nil
-}
-
 // 从存储器加载主机数据到本地，如果不存在则创建
 func (self *Etcd) LoadHost(key string, data []byte) error {
 	hostname, err := global.DecodeKey(path.Base(key))
@@ -44,16 +27,6 @@ func (self *Etcd) LoadHost(key string, data []byte) error {
 		return err
 	}
 	return proxy.SetHost(hostname, host)
-}
-
-// 删除本地主机数据
-func (self *Etcd) DeleteLocalHost(key string) error {
-	hostname, err := global.DecodeKey(path.Base(key))
-	if err != nil {
-		return err
-	}
-	hostname = global.EncodeKey(hostname)
-	return proxy.DelHost(hostname)
 }
 
 // 从存储器加载所有主机数据到本地
@@ -73,6 +46,23 @@ func (self *Etcd) LoadAllHost() error {
 		if err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+// 将本地主机数据保存到存储器中，如果不存在则创建
+func (self *Etcd) SaveHost(hostname, config string) error {
+	hostname = global.EncodeKey(hostname)
+
+	var key strings.Builder
+	key.WriteString(self.KeyPrefix)
+	key.WriteString("/hosts/")
+	key.WriteString(hostname)
+
+	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer ctxCancel()
+	if _, err := self.client.Put(ctx, key.String(), config); err != nil {
+		return err
 	}
 	return nil
 }
@@ -124,4 +114,14 @@ func (self *Etcd) SaveAllHost() error {
 	}
 
 	return nil
+}
+
+// 删除本地主机数据
+func (self *Etcd) DeleteLocalHost(key string) error {
+	hostname, err := global.DecodeKey(path.Base(key))
+	if err != nil {
+		return err
+	}
+	hostname = global.EncodeKey(hostname)
+	return proxy.DelHost(hostname)
 }

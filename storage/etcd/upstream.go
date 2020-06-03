@@ -15,22 +15,6 @@ import (
 	"github.com/coreos/etcd/clientv3"
 )
 
-// 将本地上游数据保存到存储器
-func (self *Etcd) SaveUpstream(upstreamID, config string) error {
-	upstreamID = global.EncodeKey(upstreamID)
-	var key strings.Builder
-	key.WriteString(self.KeyPrefix)
-	key.WriteString("/upstreams/")
-	key.WriteString(upstreamID)
-
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer ctxCancel()
-	if _, err := self.client.Put(ctx, key.String(), config); err != nil {
-		return err
-	}
-	return nil
-}
-
 // 从存储器加载上游数据到本地
 func (self *Etcd) LoadUpstream(data []byte) error {
 	var upstream global.UpstreamType
@@ -65,13 +49,20 @@ func (self *Etcd) LoadAllUpstream() error {
 	return nil
 }
 
-// 删除本地上游数据
-func (self *Etcd) DelLocalUpstream(key string) error {
-	upstreamID, err := global.DecodeKey(path.Base(key))
-	if err != nil {
+// 将本地上游数据保存到存储器
+func (self *Etcd) SaveUpstream(upstreamID, config string) error {
+	upstreamID = global.EncodeKey(upstreamID)
+	var key strings.Builder
+	key.WriteString(self.KeyPrefix)
+	key.WriteString("/upstreams/")
+	key.WriteString(upstreamID)
+
+	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer ctxCancel()
+	if _, err := self.client.Put(ctx, key.String(), config); err != nil {
 		return err
 	}
-	return proxy.DelUpstream(upstreamID)
+	return nil
 }
 
 // 将本地所有上游数据保存到存储器
@@ -116,4 +107,13 @@ func (self *Etcd) SaveAllUpstream() error {
 		}
 	}
 	return nil
+}
+
+// 删除本地上游数据
+func (self *Etcd) DeleteLocalUpstream(key string) error {
+	upstreamID, err := global.DecodeKey(path.Base(key))
+	if err != nil {
+		return err
+	}
+	return proxy.DelUpstream(upstreamID)
 }
