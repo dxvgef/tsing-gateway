@@ -134,6 +134,8 @@ func (self *Etcd) DeleteStorageRoute(routeGroupID, routePath, routeMethod string
 	var key strings.Builder
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/routes/")
+	key.WriteString(routeGroupID)
+	key.WriteString("/")
 	key.WriteString(routePath)
 	key.WriteString("/")
 	key.WriteString(routeMethod)
