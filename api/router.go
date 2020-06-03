@@ -9,8 +9,8 @@ func SetRouter(engine *tsing.Engine) {
 
 	var proxyHandler Proxy
 	router.GET("/proxy/", proxyHandler.OutputJSON)
-	router.PUT("/proxy/load/", proxyHandler.LoadAll)
-	router.PUT("/proxy/save/", proxyHandler.SaveAll)
+	router.POST("/proxy/load", proxyHandler.LoadAll)
+	router.POST("/proxy/save", proxyHandler.SaveAll)
 
 	var hostHandler Host
 	router.POST("/host/", hostHandler.Add)
