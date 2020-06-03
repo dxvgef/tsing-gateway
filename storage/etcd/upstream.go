@@ -117,3 +117,21 @@ func (self *Etcd) DeleteLocalUpstream(key string) error {
 	}
 	return proxy.DelUpstream(upstreamID)
 }
+
+// 删除本地上游数据
+func (self *Etcd) DeleteStorageUpstream(upstreamID string) error {
+	upstreamID = global.EncodeKey(upstreamID)
+
+	var key strings.Builder
+	key.WriteString(self.KeyPrefix)
+	key.WriteString("/routes/")
+	key.WriteString(upstreamID)
+	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer ctxCancel()
+	_, err := self.client.Delete(ctx, key.String())
+	if err != nil {
+		log.Err(err).Caller().Msg("删除存储器中的上游数据失败")
+		return err
+	}
+	return nil
+}

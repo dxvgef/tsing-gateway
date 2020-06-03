@@ -125,3 +125,24 @@ func (self *Etcd) DeleteLocalHost(key string) error {
 	hostname = global.EncodeKey(hostname)
 	return proxy.DelHost(hostname)
 }
+
+// 删除存储器中主机数据
+func (self *Etcd) DeleteStorageHost(hostname string) error {
+	if hostname == "" {
+		return errors.New("主机名不能为空")
+	}
+	hostname = global.EncodeKey(strings.ToLower(hostname))
+
+	var key strings.Builder
+	key.WriteString(self.KeyPrefix)
+	key.WriteString("/hosts/")
+	key.WriteString(hostname)
+	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer ctxCancel()
+	_, err := self.client.Delete(ctx, key.String())
+	if err != nil {
+		log.Err(err).Caller().Msg("删除存储器中的主机数据失败")
+		return err
+	}
+	return nil
+}

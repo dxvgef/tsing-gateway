@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rs/zerolog/log"
+
 	"github.com/dxvgef/tsing-gateway/global"
 	"github.com/dxvgef/tsing-gateway/proxy"
 
@@ -122,4 +124,25 @@ func (self *Etcd) DeleteLocalRoute(keyStr string) error {
 		return err
 	}
 	return proxy.DeleteRoute(routeGroupID, routePath, routeMethod)
+}
+
+// 删除存储器中路由数据
+func (self *Etcd) DeleteStorageRoute(routeGroupID, routePath, routeMethod string) error {
+	routeGroupID = global.EncodeKey(routeGroupID)
+	routePath = global.EncodeKey(routePath)
+
+	var key strings.Builder
+	key.WriteString(self.KeyPrefix)
+	key.WriteString("/routes/")
+	key.WriteString(routePath)
+	key.WriteString("/")
+	key.WriteString(routeMethod)
+	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer ctxCancel()
+	_, err := self.client.Delete(ctx, key.String())
+	if err != nil {
+		log.Err(err).Caller().Msg("删除存储器中的路由数据失败")
+		return err
+	}
+	return nil
 }

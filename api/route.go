@@ -41,7 +41,7 @@ func (self *Route) Add(ctx *tsing.Context) error {
 		resp["error"] = "路由已存在"
 		return JSON(ctx, 400, &resp)
 	}
-	if err = global.Storage.PutRoute(req.groupID, req.path, req.method, req.upstreamID); err != nil {
+	if err = global.Storage.SaveRoute(req.groupID, req.path, req.method, req.upstreamID); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -69,7 +69,7 @@ func (self *Route) Update(ctx *tsing.Context) error {
 	if _, exist := global.Routes.Load(key.String()); !exist {
 		return Status(ctx, 404)
 	}
-	if err = global.Storage.PutRoute(routeGroupID, routePath, routeMethod, ctx.Post("upstream_id")); err != nil {
+	if err = global.Storage.SaveRoute(routeGroupID, routePath, routeMethod, ctx.Post("upstream_id")); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -102,7 +102,7 @@ func (self *Route) DeleteMethod(ctx *tsing.Context) error {
 	if _, exist := global.Routes.Load(key.String()); !exist {
 		return Status(ctx, 404)
 	}
-	err = global.Storage.DelRoute(routeGroupID, routePath, routeMethod)
+	err = global.Storage.DeleteStorageRoute(routeGroupID, routePath, routeMethod)
 	if err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
@@ -141,7 +141,7 @@ func (self *Route) DeletePath(ctx *tsing.Context) error {
 	if !exist {
 		return Status(ctx, 404)
 	}
-	err = global.Storage.DelRoute(routeGroupID, routePath, "")
+	err = global.Storage.DeleteStorageRoute(routeGroupID, routePath, "")
 	if err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
@@ -173,7 +173,7 @@ func (self *Route) DeleteGroup(ctx *tsing.Context) error {
 	if !exist {
 		return Status(ctx, 404)
 	}
-	err = global.Storage.DelRoute(routeGroupID, "", "")
+	err = global.Storage.DeleteStorageRoute(routeGroupID, "", "")
 	if err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
@@ -187,7 +187,7 @@ func (self *Route) Delete(ctx *tsing.Context) error {
 		resp = make(map[string]string)
 	)
 	global.SyncMapClean(&global.Routes)
-	err = global.Storage.DelRoute("", "", "")
+	err = global.Storage.DeleteStorageRoute("", "", "")
 	if err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)

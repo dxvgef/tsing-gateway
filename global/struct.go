@@ -62,23 +62,26 @@ type StorageType interface {
 	LoadAll() error // 从存储器加载所有数据到本地
 	SaveAll() error // 将本地所有数据保存到存储器
 
-	LoadAllHost() error            // 从存储器加载所有主机数据到本地
-	SaveAllHost() error            // 将本地所有主机数据保存到存储器
-	LoadHost(string, []byte) error // 从存储器加载单个主机数据
-	SaveHost(string, string) error // 将本地单个主机数据保存到存储器
-	DeleteLocalHost(string) error  // 删除本地单个主机数据
+	LoadAllHost() error             // 从存储器加载所有主机数据到本地
+	SaveAllHost() error             // 将本地所有主机数据保存到存储器
+	LoadHost(string, []byte) error  // 从存储器加载单个主机数据
+	SaveHost(string, string) error  // 将本地单个主机数据保存到存储器
+	DeleteLocalHost(string) error   // 删除本地单个主机数据
+	DeleteStorageHost(string) error // 删除存储器中单个主机数据
 
-	LoadAllUpstream() error            // 从存储器加载所有上游到本地
-	LoadUpstream([]byte) error         // 从存储器加载单个上游数据
-	SaveAllUpstream() error            // 将本地所有上游数据保存到存储器
-	SaveUpstream(string, string) error // 将本地单个上游数据保存到存储器
-	DeleteLocalUpstream(string) error  // 删除本地单个上游数据
+	LoadAllUpstream() error             // 从存储器加载所有上游到本地
+	LoadUpstream([]byte) error          // 从存储器加载单个上游数据
+	SaveAllUpstream() error             // 将本地所有上游数据保存到存储器
+	SaveUpstream(string, string) error  // 将本地单个上游数据保存到存储器
+	DeleteLocalUpstream(string) error   // 删除本地单个上游数据
+	DeleteStorageUpstream(string) error // 删除存储器中单个上游数据
 
-	LoadAllRoute() error                            // 从存储器加载所有路由数据到本地
-	LoadRoute(string, []byte) error                 // 从存储器加载单个路由数据
-	SaveAllRoute() error                            // 将本地所有路由保存到存储器
-	SaveRoute(string, string, string, string) error // 将本地单个路由数据保存到存储器
-	DeleteLocalRoute(string) error                  // 删除本地单个路由数据
+	LoadAllRoute() error                             // 从存储器加载所有路由数据到本地
+	LoadRoute(string, []byte) error                  // 从存储器加载单个路由数据
+	SaveAllRoute() error                             // 将本地所有路由保存到存储器
+	SaveRoute(string, string, string, string) error  // 将本地单个路由数据保存到存储器
+	DeleteLocalRoute(string) error                   // 删除本地单个路由数据
+	DeleteStorageRoute(string, string, string) error // 删除存储器中单个路由数据
 
 	Watch() error // 监听存储器的数据变更
 }
