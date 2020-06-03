@@ -1,43 +1,48 @@
 package api
 
 import (
-	"encoding/json"
-	"sync"
-
 	"github.com/dxvgef/tsing"
 
 	"github.com/dxvgef/tsing-gateway/global"
 )
 
 type Proxy struct {
-	Middleware string                                  `json:"middleware"`
-	Hosts      sync.Map                                `json:"-"`
+	Middleware map[string]global.MiddlewareType        `json:"middleware"`
+	Hosts      map[string]string                       `json:"hosts"`
 	Routes     map[string]map[string]map[string]string `json:"routes"`
-	// Upstreams  map[string]global.UpstreamType          `json:"upstreams"`
-	Upstreams sync.Map `json:"-"`
+	Upstreams  map[string]global.UpstreamType          `json:"upstreams"`
 }
 
 func (self *Proxy) OutputAll(ctx *tsing.Context) error {
-	self.Hosts = global.Hosts
-	self.Routes = global.Routes
+	global.UpstreamMiddleware.Range(func(k, v interface{}) bool {
 
-	if global.GlobalMiddleware != nil && len(global.GlobalMiddleware) > 0 {
-		mw, err := json.Marshal(&global.GlobalMiddleware)
-		if err != nil {
-			return err
-		}
-		self.Middleware = global.BytesToStr(mw)
-	}
-
-	self.Upstreams = global.Upstreams
-	err := JSON(ctx, 200, self)
-
-	global.SyncMapClean(&self.Hosts)
-	self.Routes = nil
-	global.SyncMapClean(&self.Upstreams)
-	self.Middleware = ""
-	return err
+		return true
+	})
+	return nil
 }
+
+// func (self *Proxy) OutputAll(ctx *tsing.Context) error {
+// 	// self.Hosts = global.Hosts
+// 	// self.Routes = global.Routes
+// 	//
+// 	// if global.HostMiddleware != nil && len(global.HostMiddleware) > 0 {
+// 	// 	mw, err := json.Marshal(&global.HostMiddleware)
+// 	// 	if err != nil {
+// 	// 		return err
+// 	// 	}
+// 	// 	self.HostMiddleware = global.BytesToStr(mw)
+// 	// }
+// 	//
+// 	// self.Upstreams = global.Upstreams
+// 	// err := JSON(ctx, 200, self)
+// 	//
+// 	// global.SyncMapClean(&self.Hosts)
+// 	// self.Routes = nil
+// 	// global.SyncMapClean(&self.Upstreams)
+// 	// self.HostMiddleware = ""
+// 	// return err
+// 	return nil
+// }
 
 func (*Proxy) LoadAll(ctx *tsing.Context) error {
 	resp := make(map[string]string)

@@ -10,6 +10,12 @@ type ModuleConfig struct {
 	Config string `json:"config"`
 }
 
+// 主机
+type HostType struct {
+	UpstreamID string         `json:"upstream_id"`          // 上游ID
+	Middleware []ModuleConfig `json:"middleware,omitempty"` // 中间件配置
+}
+
 // 上游
 type UpstreamType struct {
 	ID             string         `json:"id"`                        // 上游ID
@@ -54,18 +60,14 @@ type MiddlewareType interface {
 // 存储器
 type StorageType interface {
 	LoadAll() error          // 加载所有数据
+	LoadAllHosts() error     // 加载所有主机数据
 	LoadAllUpstreams() error // 加载所有上游数据
 	LoadAllRoutes() error    // 加载所有路由数据
-	LoadAllHosts() error     // 加载所有主机数据
-	LoadMiddleware() error   // 加载全局中间件数据
 
 	SaveAll() error          // 存储所有数据
 	SaveAllUpstreams() error // 存储所有上游数据
 	SaveAllRoutes() error    // 存储所有路由数据
 	SaveAllHosts() error     // 存储所有主机数据
-	SaveMiddleware() error   // 存储全局中间件
-
-	Watch() error // 监听数据变更
 
 	PutHost(string, string) error // 设置单个主机
 	DelHost(string) error         // 删除单个主机
@@ -74,7 +76,7 @@ type StorageType interface {
 	DelUpstream(string) error         // 删除单个上游
 
 	PutRoute(string, string, string, string) error // 设置单个路由
-	DelRoute(string, string, string) error         // 删除路由
+	DelRoute(string, string, string) error         // 删除单个路由
 
-	PutMiddleware(string) error // 设置全局中间件
+	Watch() error // 监听数据变更
 }

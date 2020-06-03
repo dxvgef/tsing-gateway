@@ -10,15 +10,21 @@ import (
 	"github.com/dxvgef/tsing-gateway/middleware"
 )
 
-// 设置全局中间件，同时构建并更新所有全局中间件的实例
-func SetGlobalMiddleware(config string) error {
+// 设置主机中间件，同时构建并更新所有主机中间件的实例
+func SetHostMiddleware(hostname, config string) error {
+	if hostname == "" {
+		return errors.New("主机名不能为空")
+	}
+	if _, exist := global.Hosts.Load(hostname); !exist {
+		return errors.New("主机名不存在")
+	}
 	if config == "" {
-		global.GlobalMiddleware = nil
+		global.HostMiddleware.Delete(hostname)
 		return nil
 	}
 	var (
 		err      error
-		resp     = make(map[string]string)
+		resp     = map[string]string{}
 		mwConfig []global.ModuleConfig
 		m        global.MiddlewareType
 	)
@@ -28,8 +34,9 @@ func SetGlobalMiddleware(config string) error {
 		return err
 	}
 	mwConfigLen := len(mwConfig)
+	// 如果中间件数量为0，则删除该主机的所有中间件
 	if mwConfigLen == 0 {
-		global.GlobalMiddleware = nil
+		global.HostMiddleware.Delete(hostname)
 		return nil
 	}
 	mw := make([]global.MiddlewareType, mwConfigLen)
@@ -42,7 +49,7 @@ func SetGlobalMiddleware(config string) error {
 		}
 		mw = append(mw, m)
 	}
-	global.GlobalMiddleware = mw
+	global.HostMiddleware.Store(hostname, mw)
 	return nil
 }
 

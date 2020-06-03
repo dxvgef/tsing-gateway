@@ -27,7 +27,7 @@ func (self *Middleware) Put(ctx *tsing.Context) error {
 			return JSON(ctx, 400, &resp)
 		}
 	}
-	if err = global.Storage.PutMiddleware(ctx.Post("middleware")); err != nil {
+	if err = global.Storage.PutHostMiddleware(ctx.Post("middleware")); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}

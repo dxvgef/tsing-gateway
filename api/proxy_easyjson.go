@@ -36,52 +36,6 @@ func easyjson6fc2bfdaDecodeGithubComDxvgefTsingGatewayApi(in *jlexer.Lexer, out 
 			continue
 		}
 		switch key {
-		case "middleware":
-			out.Middleware = string(in.String())
-		case "routes":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				in.Delim('{')
-				out.Routes = make(map[string]map[string]map[string]string)
-				for !in.IsDelim('}') {
-					key := string(in.String())
-					in.WantColon()
-					var v1 map[string]map[string]string
-					if in.IsNull() {
-						in.Skip()
-					} else {
-						in.Delim('{')
-						v1 = make(map[string]map[string]string)
-						for !in.IsDelim('}') {
-							key := string(in.String())
-							in.WantColon()
-							var v2 map[string]string
-							if in.IsNull() {
-								in.Skip()
-							} else {
-								in.Delim('{')
-								v2 = make(map[string]string)
-								for !in.IsDelim('}') {
-									key := string(in.String())
-									in.WantColon()
-									var v3 string
-									v3 = string(in.String())
-									(v2)[key] = v3
-									in.WantComma()
-								}
-								in.Delim('}')
-							}
-							(v1)[key] = v2
-							in.WantComma()
-						}
-						in.Delim('}')
-					}
-					(out.Routes)[key] = v1
-					in.WantComma()
-				}
-				in.Delim('}')
-			}
 		default:
 			in.SkipRecursive()
 		}
@@ -96,64 +50,6 @@ func easyjson6fc2bfdaEncodeGithubComDxvgefTsingGatewayApi(out *jwriter.Writer, i
 	out.RawByte('{')
 	first := true
 	_ = first
-	{
-		const prefix string = ",\"middleware\":"
-		out.RawString(prefix[1:])
-		out.String(string(in.Middleware))
-	}
-	{
-		const prefix string = ",\"routes\":"
-		out.RawString(prefix)
-		if in.Routes == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
-			out.RawString(`null`)
-		} else {
-			out.RawByte('{')
-			v4First := true
-			for v4Name, v4Value := range in.Routes {
-				if v4First {
-					v4First = false
-				} else {
-					out.RawByte(',')
-				}
-				out.String(string(v4Name))
-				out.RawByte(':')
-				if v4Value == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
-					out.RawString(`null`)
-				} else {
-					out.RawByte('{')
-					v5First := true
-					for v5Name, v5Value := range v4Value {
-						if v5First {
-							v5First = false
-						} else {
-							out.RawByte(',')
-						}
-						out.String(string(v5Name))
-						out.RawByte(':')
-						if v5Value == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
-							out.RawString(`null`)
-						} else {
-							out.RawByte('{')
-							v6First := true
-							for v6Name, v6Value := range v5Value {
-								if v6First {
-									v6First = false
-								} else {
-									out.RawByte(',')
-								}
-								out.String(string(v6Name))
-								out.RawByte(':')
-								out.String(string(v6Value))
-							}
-							out.RawByte('}')
-						}
-					}
-					out.RawByte('}')
-				}
-			}
-			out.RawByte('}')
-		}
-	}
 	out.RawByte('}')
 }
 

@@ -16,7 +16,7 @@ func Build(name, config string) (global.StorageType, error) {
 		if err != nil {
 			return nil, err
 		}
-		global.StorageKeyPrefix = sa.KeyPrefix
+		// global.StorageKeyPrefix = sa.KeyPrefix
 		return sa, nil
 	}
 	return nil, errors.New("根据名称没有找到对应的存储器")

@@ -57,7 +57,7 @@ func ParseRoute(key, keyPrefix string) (routeGroupID, routePath, routeMethod str
 	key = strings.TrimPrefix(key, "/")
 
 	// 解析路由组ID
-	pos = strings.Index(key, "/")
+	pos = strings.Index(key, "@")
 	if pos == -1 {
 		err = errors.New("路由解析失败")
 		log.Err(err).Str("key", key).Int("pos", pos).Caller().Send()
@@ -78,8 +78,8 @@ func ParseRoute(key, keyPrefix string) (routeGroupID, routePath, routeMethod str
 
 	// 裁剪掉key里的路由组ID部份
 	key = strings.TrimPrefix(key, key[:pos+1])
-	// 获取最后一次出现/符号(用于分隔路径和方法)的位置
-	pos = strings.LastIndex(key, "/")
+	// 获取最后一次出现@符号(用于分隔路径和方法)的位置
+	pos = strings.LastIndex(key, "@")
 	if pos == -1 {
 		err = errors.New("没有找到路径和方法的分隔符")
 		log.Err(err).Str("key", key).Int("pos", pos).Caller().Send()
@@ -96,7 +96,7 @@ func ParseRoute(key, keyPrefix string) (routeGroupID, routePath, routeMethod str
 
 	// 获取方法
 	routeMethod = key[pos+1:]
-	if !InStr(Methods, routeMethod) {
+	if !InStr(HTTPMethods, routeMethod) {
 		err = errors.New("路由方法解析失败")
 		log.Err(err).Str("method", routeMethod).Caller().Msg("路径解码失败")
 		return

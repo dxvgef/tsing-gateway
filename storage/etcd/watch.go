@@ -33,15 +33,15 @@ func (self *Etcd) Watch() error {
 	return nil
 }
 
-// put数据的操作
+// 写数据的操作
 func (self *Etcd) putDataToLocal(key, value []byte) error {
 	var (
-		err    error
-		keyStr = global.BytesToStr(key)
+		err      error
+		storeKey = global.BytesToStr(key)
+		hostname string
 	)
-	if strings.HasPrefix(keyStr, self.KeyPrefix+"/hosts/") {
-		var hostname string
-		hostname, err = global.DecodeKey(path.Base(keyStr))
+	if strings.HasPrefix(storeKey, self.KeyPrefix+"/hosts/") {
+		hostname, err = global.DecodeKey(path.Base(storeKey))
 		if err != nil {
 			return err
 		}
@@ -50,7 +50,7 @@ func (self *Etcd) putDataToLocal(key, value []byte) error {
 		}
 		return nil
 	}
-	if strings.HasPrefix(keyStr, self.KeyPrefix+"/upstreams/") {
+	if strings.HasPrefix(storeKey, self.KeyPrefix+"/upstreams/") {
 		var upstream global.UpstreamType
 		if err = upstream.UnmarshalJSON(value); err != nil {
 			return err
@@ -60,20 +60,12 @@ func (self *Etcd) putDataToLocal(key, value []byte) error {
 		}
 		return nil
 	}
-	if strings.HasPrefix(keyStr, self.KeyPrefix+"/routes/") {
-		// todo 这里的parseRoute函数好像没有正确的解码key，所以数据都写不进去
-		routeID, routePath, routeMethod, errTmp := global.ParseRoute(keyStr, self.KeyPrefix)
+	if strings.HasPrefix(storeKey, self.KeyPrefix+"/routes/") {
+		routeID, routePath, routeMethod, errTmp := global.ParseRoute(storeKey, self.KeyPrefix)
 		if errTmp != nil {
 			return err
 		}
 		if err = proxy.SetRoute(routeID, routePath, routeMethod, global.BytesToStr(value)); err != nil {
-			return err
-		}
-		return nil
-	}
-	if strings.HasPrefix(keyStr, self.KeyPrefix+"/middleware") {
-		if err = proxy.SetGlobalMiddleware(global.BytesToStr(value)); err != nil {
-			log.Err(err).Caller().Msg("更新本地路由数据时出错")
 			return err
 		}
 		return nil

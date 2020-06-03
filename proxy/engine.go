@@ -24,7 +24,7 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		err  error
 	)
 	// 匹配到上游
-	upstream, status := matchRoute(req)
+	hostname, upstream, status := matchRoute(req)
 	if status > 0 {
 		resp.WriteHeader(status)
 		if _, err = resp.Write(global.StrToBytes(http.StatusText(status))); err != nil {
@@ -33,40 +33,48 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// 执行全局中间件
-	for k := range global.GlobalMiddleware {
-		next = false
-		next, err = global.GlobalMiddleware[k].Action(resp, req)
-		if err != nil {
-			log.Err(err).Caller().Str("name", global.GlobalMiddleware[k].GetName()).Msg("执行全局中间件时出错")
+	// 执行主机中间件
+	hostMW, hostMWExist := global.HostMiddleware.Load(hostname)
+	if hostMWExist {
+		mw, ok := hostMW.([]global.MiddlewareType)
+		if !ok {
+			log.Error().Str("hostname", hostname).Caller().Msg("主机中间件类型断言失败")
 			return
 		}
-		if !next {
-			return
+		for k := range mw {
+			next = false
+			// 执行中间件逻辑
+			next, err = mw[k].Action(resp, req)
+			if err != nil {
+				log.Err(err).Caller().Str("hostname", hostname).Str("middleware name", mw[k].GetName()).Msg("执行主机中间件时出错")
+				return
+			}
+			if !next {
+				return
+			}
 		}
 	}
 
 	// 执行上游中间件
-	// k := 0
-	global.UpstreamMiddleware.Range(func(k, v interface{}) bool {
-		if k.(string) != upstream.ID {
-			return true
+	upstreamMW, upstreamMWExist := global.UpstreamMiddleware.Load(upstream.ID)
+	if upstreamMWExist {
+		mw, ok := upstreamMW.([]global.MiddlewareType)
+		if !ok {
+			log.Error().Str("upstream id", upstream.ID).Caller().Msg("上游中间件类型断言失败")
+			return
 		}
-		mw := v.(global.MiddlewareType)
-		next = false
-		// 执行中间件逻辑
-		next, err = mw.Action(resp, req)
-		if err != nil {
-			log.Err(err).Caller().Str("upstream id", upstream.ID).Str("middleware name", mw.GetName()).Msg("执行上游中间件时出错")
-			return false
+		for k := range mw {
+			next = false
+			// 执行中间件逻辑
+			next, err = mw[k].Action(resp, req)
+			if err != nil {
+				log.Err(err).Caller().Str("upstream id", upstream.ID).Str("middleware name", mw[k].GetName()).Msg("执行上游中间件时出错")
+				return
+			}
+			if !next {
+				return
+			}
 		}
-		if !next {
-			return false
-		}
-		return true
-	})
-	if err != nil {
-		return
 	}
 
 	// 获得端点

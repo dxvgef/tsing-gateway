@@ -9,7 +9,7 @@ import (
 	"github.com/dxvgef/tsing-gateway/global"
 )
 
-// 设置路由组及路由，如果存在则更新，不存在则新建
+// 设置路由组及路由
 func SetRoute(routeGroupID, routePath, routeMethod, upstreamID string) error {
 	if routeGroupID == "" {
 		return errors.New("路由组ID不能为空")
@@ -20,24 +20,21 @@ func SetRoute(routeGroupID, routePath, routeMethod, upstreamID string) error {
 	if routeMethod == "" {
 		return errors.New("HTTP方法不能为空")
 	}
-	if !global.InStr(global.Methods, routeMethod) {
+	if !global.InStr(global.HTTPMethods, routeMethod) {
 		return errors.New("HTTP方法无效")
 	}
-	if _, exist := global.Routes[routeGroupID]; !exist {
-		global.Routes[routeGroupID] = make(map[string]map[string]string)
-	}
-	if _, exist := global.Routes[routeGroupID][routePath]; !exist {
-		global.Routes[routeGroupID][routePath] = make(map[string]string)
-	}
-	global.Routes[routeGroupID][routePath][routeMethod] = upstreamID
+	var key strings.Builder
+	key.WriteString(routeGroupID)
+	key.WriteString("@")
+	key.WriteString(routePath)
+	key.WriteString("@")
+	key.WriteString(routeMethod)
+	global.Routes.Store(key.String(), upstreamID)
 	return nil
 }
 
 // 删除路由
 func DelRoute(routeGroupID, routePath, routeMethod string) error {
-	if routeGroupID == "" {
-		routeGroupID = global.SnowflakeNode.Generate().String()
-	}
 	if routeGroupID == "" {
 		return errors.New("routeGroupID不能为空")
 	}
@@ -48,75 +45,131 @@ func DelRoute(routeGroupID, routePath, routeMethod string) error {
 		return errors.New("reqMethod不能为空")
 	}
 	routeMethod = strings.ToUpper(routeMethod)
-	delete(global.Routes[routeGroupID][routePath], routeMethod)
+	var key strings.Builder
+	key.WriteString(routeGroupID)
+	key.WriteString("@")
+	key.WriteString(routePath)
+	key.WriteString("@")
+	key.WriteString(routeMethod)
+	global.Routes.Delete(key.String())
 	return nil
 }
 
 // 匹配路由，返回集群ID和匹配结果的HTTP状态码
-func matchRoute(req *http.Request) (upstream global.UpstreamType, status int) {
-	routeGroupID := ""
-	reqPath := req.URL.Path
-	reqMethod := req.Method
-	matchResult := false
+func matchRoute(req *http.Request) (hostname string, upstream global.UpstreamType, status int) {
+	var (
+		routeGroupID string
+		routePath    = req.URL.Path
+		routeMethod  = req.Method
+		matchResult  bool
+		upstreamID   string
+	)
 
 	// 匹配主机
-	routeGroupID, matchResult = matchHost(req.Host)
+	hostname, routeGroupID, matchResult = matchHost(req.Host)
 	if !matchResult {
 		status = http.StatusServiceUnavailable
 		return
 	}
-	// 匹配路径
-	reqPath, matchResult = matchPath(routeGroupID, reqPath)
-	if !matchResult {
+	if routePath == "" {
+		routePath = "/"
+	}
+	var key strings.Builder
+	var exist bool
+	// 先尝试直接匹配upstream
+	key.WriteString(routeGroupID)
+	key.WriteString("@")
+	key.WriteString(routePath)
+	key.WriteString("@")
+	key.WriteString(routeMethod)
+	if v, e := global.Routes.Load(key.String()); e {
+		upstream, exist = matchUpstream(v.(string))
+		if exist {
+			return
+		}
+	}
+
+	// --------------- 以下用于路径和方法的模糊匹配，并且判断要返回哪种http状态码 -----------------------
+	// 先尝试匹配精确路径
+	key.WriteString(routeGroupID)
+	key.WriteString("@")
+	key.WriteString(routePath)
+	key.WriteString("@")
+	paths := map[string]string{}
+	global.Routes.Range(func(k, v interface{}) bool {
+		path := k.(string)
+		if strings.HasPrefix(path, key.String()) {
+			paths[path] = v.(string)
+		}
+		return true
+	})
+	// 如果没有匹配到精确路径，开始尝试匹配模糊路径
+	if len(paths) == 0 {
+		pathLastChar := routePath[len(routePath)-1]
+		// 如果路径的最后一个字符是/
+		if pathLastChar != 47 {
+			pos := strings.LastIndex(routePath, path.Base(routePath))
+			routePath = routePath[:pos]
+		}
+		routePath = routePath + "*"
+		key.Reset()
+		key.WriteString(routeGroupID)
+		key.WriteString("@")
+		key.WriteString(routePath)
+		key.WriteString("@")
+		// 尝试模糊匹配
+		global.Routes.Range(func(k, v interface{}) bool {
+			path := k.(string)
+			if strings.HasPrefix(path, key.String()) {
+				paths[path] = v.(string)
+			}
+			return true
+		})
+	}
+	// 如果精确和模糊路径都没匹配到，返回404错误
+	if len(paths) == 0 {
 		status = http.StatusNotFound
 		return
 	}
-	// 匹配方法
-	reqMethod, matchResult = matchMethod(routeGroupID, reqPath, reqMethod)
-	if !matchResult {
+
+	// 尝试匹配精确方法
+	for k, v := range paths {
+		key.Reset()
+		key.WriteString(routeGroupID)
+		key.WriteString("@")
+		key.WriteString(routePath)
+		key.WriteString("@")
+		key.WriteString(routeMethod)
+		if strings.HasPrefix(k, key.String()) {
+			upstreamID = v
+			break
+		}
+	}
+	// 尝试匹配ANY方法
+	if upstreamID == "" {
+		for k, v := range paths {
+			key.Reset()
+			key.WriteString(routeGroupID)
+			key.WriteString("@")
+			key.WriteString(routePath)
+			key.WriteString("@ANY")
+			if strings.HasPrefix(k, key.String()) {
+				upstreamID = v
+				break
+			}
+		}
+	}
+	if upstreamID == "" {
 		status = http.StatusMethodNotAllowed
 		return
 	}
-	// 匹配上游
-	upstreamID := global.Routes[routeGroupID][reqPath][reqMethod]
-	upstream, matchResult = matchUpstream(upstreamID)
-	if !matchResult {
+
+	// 获得上游
+	exist = false
+	upstream, exist = matchUpstream(upstreamID)
+	if !exist {
 		status = http.StatusNotImplemented
 		return
 	}
 	return
-}
-
-// 匹配路径，返回最终匹配到的路径
-func matchPath(routeGroupID, routePath string) (string, bool) {
-	if routePath == "" {
-		routePath = "/"
-	}
-	// 先尝试完全匹配路径
-	if _, exist := global.Routes[routeGroupID][routePath]; exist {
-		return routePath, true
-	}
-	// 尝试模糊匹配
-	pathLastChar := routePath[len(routePath)-1]
-	if pathLastChar != 47 {
-		pos := strings.LastIndex(routePath, path.Base(routePath))
-		routePath = routePath[:pos]
-	}
-	routePath = routePath + "*"
-	if _, exist := global.Routes[routeGroupID][routePath]; exist {
-		return routePath, true
-	}
-	return routePath, false
-}
-
-// 匹配方法，返回对应的集群ID
-func matchMethod(routeGroupID, routePath, routeMethod string) (string, bool) {
-	if _, exist := global.Routes[routeGroupID][routePath][routeMethod]; exist {
-		return routeMethod, true
-	}
-	routeMethod = "ANY"
-	if _, exist := global.Routes[routeGroupID][routePath][routeMethod]; exist {
-		return routeMethod, true
-	}
-	return routeMethod, false
 }

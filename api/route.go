@@ -12,24 +12,32 @@ import (
 type Route struct{}
 
 func (self *Route) Add(ctx *tsing.Context) error {
-	resp := make(map[string]string)
-	var req struct {
-		groupID    string
-		path       string
-		method     string
-		upstreamID string
-	}
+	var (
+		resp = map[string]string{}
+		req  struct {
+			groupID    string
+			path       string
+			method     string
+			upstreamID string
+		}
+		key strings.Builder
+	)
 	err := filter.MSet(
 		filter.El(&req.groupID, filter.FromString(ctx.Post("group_id"), "group_id").Required()),
 		filter.El(&req.path, filter.FromString(ctx.Post("path"), "path").Required()),
-		filter.El(&req.method, filter.FromString(ctx.Post("method"), "method").Required().ToUpper().EnumString(global.Methods)),
+		filter.El(&req.method, filter.FromString(ctx.Post("method"), "method").Required().ToUpper().EnumString(global.HTTPMethods)),
 		filter.El(&req.upstreamID, filter.FromString(ctx.Post("upstream_id"), "upstream_id").Required()),
 	)
 	if err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 400, &resp)
 	}
-	if _, exist := global.Routes[req.groupID][req.path][req.method]; exist {
+	key.WriteString(req.groupID)
+	key.WriteString("@")
+	key.WriteString(req.path)
+	key.WriteString("@")
+	key.WriteString(req.method)
+	if _, exist := global.Routes.Load(key.String()); exist {
 		resp["error"] = "路由已存在"
 		return JSON(ctx, 400, &resp)
 	}
@@ -49,17 +57,16 @@ func (self *Route) Update(ctx *tsing.Context) error {
 		routePath    string
 		routeMethod  string
 	)
-	key.WriteString("/")
 	key.WriteString(ctx.PathParams.Value("groupID"))
-	key.WriteString("/")
+	key.WriteString("@")
 	key.WriteString(ctx.PathParams.Value("path"))
-	key.WriteString("/")
+	key.WriteString("@")
 	key.WriteString(ctx.PathParams.Value("method"))
 	routeGroupID, routePath, routeMethod, err = global.ParseRoute(key.String(), "")
 	if err != nil {
 		return Status(ctx, 404)
 	}
-	if _, exist := global.Routes[routeGroupID][routePath][routeMethod]; !exist {
+	if _, exist := global.Routes.Load(key.String()); !exist {
 		return Status(ctx, 404)
 	}
 	if err = global.Storage.PutRoute(routeGroupID, routePath, routeMethod, ctx.Post("upstream_id")); err != nil {
@@ -76,17 +83,23 @@ func (self *Route) DeleteMethod(ctx *tsing.Context) error {
 		routeGroupID string
 		routePath    string
 		routeMethod  string
+		key          strings.Builder
 	)
 	err = filter.MSet(
 		filter.El(&routeGroupID, filter.FromString(ctx.PathParams.Value("groupID"), "group_id").Required().Base64RawURLDecode()),
 		filter.El(&routePath, filter.FromString(ctx.PathParams.Value("path"), "path").Required().Base64RawURLDecode()),
-		filter.El(&routeMethod, filter.FromString(ctx.PathParams.Value("method"), "method").Required().ToUpper().EnumString(global.Methods)),
+		filter.El(&routeMethod, filter.FromString(ctx.PathParams.Value("method"), "method").Required().ToUpper().EnumString(global.HTTPMethods)),
 	)
 	if err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 400, &resp)
 	}
-	if _, exist := global.Routes[routeGroupID][routePath][routeMethod]; !exist {
+	key.WriteString(routeGroupID)
+	key.WriteString("@")
+	key.WriteString(routePath)
+	key.WriteString("@")
+	key.WriteString(routeMethod)
+	if _, exist := global.Routes.Load(key.String()); !exist {
 		return Status(ctx, 404)
 	}
 	err = global.Storage.DelRoute(routeGroupID, routePath, routeMethod)
@@ -103,6 +116,8 @@ func (self *Route) DeletePath(ctx *tsing.Context) error {
 		resp         = make(map[string]string)
 		routeGroupID string
 		routePath    string
+		key          strings.Builder
+		exist        bool
 	)
 	err = filter.MSet(
 		filter.El(&routeGroupID, filter.FromString(ctx.PathParams.Value("groupID"), "group_id").Required().Base64RawURLDecode()),
@@ -112,10 +127,18 @@ func (self *Route) DeletePath(ctx *tsing.Context) error {
 		resp["error"] = err.Error()
 		return JSON(ctx, 400, &resp)
 	}
-	if _, exist := global.Routes[routeGroupID][routePath]; !exist {
-		return Status(ctx, 404)
-	}
-	if len(global.Routes[routeGroupID][routePath]) == 0 {
+	key.WriteString(routeGroupID)
+	key.WriteString("@")
+	key.WriteString(routePath)
+	key.WriteString("@")
+	global.Routes.Range(func(k, v interface{}) bool {
+		if strings.HasPrefix(k.(string), key.String()) {
+			exist = true
+			return false
+		}
+		return true
+	})
+	if !exist {
 		return Status(ctx, 404)
 	}
 	err = global.Storage.DelRoute(routeGroupID, routePath, "")
@@ -131,12 +154,23 @@ func (self *Route) DeleteGroup(ctx *tsing.Context) error {
 		err          error
 		resp         = make(map[string]string)
 		routeGroupID = ctx.PathParams.Value("groupID")
+		key          strings.Builder
+		exist        bool
 	)
 	routeGroupID, err = global.DecodeKey(routeGroupID)
 	if err != nil {
 		return Status(ctx, 404)
 	}
-	if _, exist := global.Routes[routeGroupID]; !exist {
+	key.WriteString(routeGroupID)
+	key.WriteString("@")
+	global.Routes.Range(func(k, v interface{}) bool {
+		if strings.HasPrefix(k.(string), key.String()) {
+			exist = true
+			return false
+		}
+		return true
+	})
+	if !exist {
 		return Status(ctx, 404)
 	}
 	err = global.Storage.DelRoute(routeGroupID, "", "")
@@ -152,7 +186,7 @@ func (self *Route) Delete(ctx *tsing.Context) error {
 		err  error
 		resp = make(map[string]string)
 	)
-	global.Routes = make(map[string]map[string]map[string]string)
+	global.SyncMapClean(&global.Routes)
 	err = global.Storage.DelRoute("", "", "")
 	if err != nil {
 		resp["error"] = err.Error()

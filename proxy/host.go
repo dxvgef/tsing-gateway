@@ -7,9 +7,9 @@ import (
 )
 
 // 写入主机，如果存在则覆盖，不存在则创建
-func SetHost(hostname, routeGroupID string) error {
+func SetHost(hostname string, host global.HostType) error {
 	hostname = strings.ToLower(hostname)
-	global.Hosts.Store(hostname, routeGroupID)
+	global.Hosts.Store(hostname, host)
 	return nil
 }
 
@@ -21,19 +21,19 @@ func DelHost(hostname string) error {
 }
 
 // 匹配主机名，返回对应的路由组ID
-func matchHost(reqHost string) (string, bool) {
+func matchHost(reqHost string) (string, string, bool) {
 	pos := strings.LastIndex(reqHost, ":")
 	if pos > -1 {
 		reqHost = reqHost[:pos]
 	}
 	if v, exist := global.Hosts.Load(reqHost); exist {
-		return v.(string), true
+		return reqHost, v.(string), true
 	}
 	reqHost = "*"
 	if v, exist := global.Hosts.Load(reqHost); exist {
-		return v.(string), true
+		return reqHost, v.(string), true
 	}
 
 	v, exist := global.Hosts.Load(reqHost)
-	return v.(string), exist
+	return reqHost, v.(string), exist
 }
