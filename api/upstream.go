@@ -37,18 +37,21 @@ func (self *Upstream) Add(ctx *tsing.Context) error {
 		resp["error"] = err.Error()
 		return JSON(ctx, 400, &resp)
 	}
-
 	if _, exists := global.Upstreams.Load(req.id); exists {
 		resp["error"] = "上游ID已存在"
 		return JSON(ctx, 400, &resp)
 	}
-
 	if req.staticEndpoint == "" && req.discover == "" {
 		resp["error"] = "static_endpoint和discover参数不能同时为空"
 		return JSON(ctx, 400, &resp)
 	}
-	if req.staticEndpoint != "" && req.discover != "" {
+	if req.discover == "" && req.loadBalance == "" {
+		resp["error"] = "discover和load_balance参数不能同时为空"
+		return JSON(ctx, 400, &resp)
+	}
+	if req.staticEndpoint != "" {
 		req.discover = ""
+		req.loadBalance = ""
 	}
 
 	if req.discover != "" {
@@ -109,8 +112,13 @@ func (self *Upstream) Put(ctx *tsing.Context) error {
 		resp["error"] = "static_endpoint和discover参数不能同时为空"
 		return JSON(ctx, 400, &resp)
 	}
-	if req.staticEndpoint != "" && req.discover != "" {
+	if req.discover == "" && req.loadBalance == "" {
+		resp["error"] = "discover和load_balance参数不能同时为空"
+		return JSON(ctx, 400, &resp)
+	}
+	if req.staticEndpoint != "" {
 		req.discover = ""
+		req.loadBalance = ""
 	}
 
 	if req.discover != "" {
