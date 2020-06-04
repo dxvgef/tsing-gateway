@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/base64"
 	"encoding/json"
 
 	"github.com/dxvgef/filter"
@@ -155,13 +154,15 @@ func (self *Upstream) Delete(ctx *tsing.Context) error {
 	var (
 		err  error
 		resp = make(map[string]string)
-		id   []byte
+		id   string
 	)
-	id, err = base64.RawURLEncoding.DecodeString(ctx.PathParams.Value("id"))
-	if err != nil {
+	if id, err = global.DecodeKey(ctx.PathParams.Value("id")); err != nil {
 		return Status(ctx, 404)
 	}
-	err = global.Storage.DeleteStorageUpstream(global.BytesToStr(id))
+	if _, exist := global.Upstreams.Load(id); !exist {
+		return Status(ctx, 404)
+	}
+	err = global.Storage.DeleteStorageUpstream(ctx.PathParams.Value("id"))
 	if err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
