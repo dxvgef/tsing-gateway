@@ -106,6 +106,7 @@ func (self *Etcd) SaveAllHost() error {
 
 	// 将内存中的数据写入到存储器中
 	for hostname, config := range hosts {
+		hostname = global.EncodeKey(hostname)
 		if err = self.SaveHost(hostname, config); err != nil {
 			return err
 		}
