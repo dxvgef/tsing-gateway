@@ -12,8 +12,8 @@ type ModuleConfig struct {
 
 // 主机
 type HostType struct {
-	UpstreamID string         `json:"upstream_id"`          // 上游ID
-	Middleware []ModuleConfig `json:"middleware,omitempty"` // 中间件配置
+	RouteGroupID string         `json:"route_group_id"`       // 路由分组ID
+	Middleware   []ModuleConfig `json:"middleware,omitempty"` // 中间件配置
 }
 
 // 上游

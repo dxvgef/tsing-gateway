@@ -240,8 +240,8 @@ func easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal2(in *jlexer.Lexer, 
 			continue
 		}
 		switch key {
-		case "upstream_id":
-			out.UpstreamID = string(in.String())
+		case "route_group_id":
+			out.RouteGroupID = string(in.String())
 		case "middleware":
 			if in.IsNull() {
 				in.Skip()
@@ -280,9 +280,9 @@ func easyjson9f2eff5fEncodeGithubComDxvgefTsingGatewayGlobal2(out *jwriter.Write
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"upstream_id\":"
+		const prefix string = ",\"route_group_id\":"
 		out.RawString(prefix[1:])
-		out.String(string(in.UpstreamID))
+		out.String(string(in.RouteGroupID))
 	}
 	if len(in.Middleware) != 0 {
 		const prefix string = ",\"middleware\":"

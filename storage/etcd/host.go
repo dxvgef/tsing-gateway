@@ -2,7 +2,7 @@ package etcd
 
 import (
 	"context"
-	json "encoding/json"
+	"encoding/json"
 	"errors"
 	"path"
 	"strings"
@@ -51,9 +51,7 @@ func (self *Etcd) LoadAllHost() error {
 }
 
 // 将本地主机数据保存到存储器中，如果不存在则创建
-func (self *Etcd) SaveHost(hostname, config string) error {
-	hostname = global.EncodeKey(hostname)
-
+func (self *Etcd) SaveHost(hostname, config string) (err error) {
 	var key strings.Builder
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/hosts/")
@@ -61,7 +59,7 @@ func (self *Etcd) SaveHost(hostname, config string) error {
 
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
-	if _, err := self.client.Put(ctx, key.String(), config); err != nil {
+	if _, err = self.client.Put(ctx, key.String(), config); err != nil {
 		return err
 	}
 	return nil
@@ -78,7 +76,7 @@ func (self *Etcd) SaveAllHost() error {
 
 	// 将配置保存到临时变量中
 	global.Hosts.Range(func(k, v interface{}) bool {
-		h, ok := v.([]global.HostType)
+		h, ok := v.(global.HostType)
 		if !ok {
 			err = errors.New("主机" + k.(string) + "的配置异常")
 			log.Err(err).Caller().Msg("主机配置的类型断言失败")
@@ -122,7 +120,6 @@ func (self *Etcd) DeleteLocalHost(key string) error {
 	if err != nil {
 		return err
 	}
-	hostname = global.EncodeKey(hostname)
 	return proxy.DelHost(hostname)
 }
 
@@ -131,7 +128,6 @@ func (self *Etcd) DeleteStorageHost(hostname string) error {
 	if hostname == "" {
 		return errors.New("主机名不能为空")
 	}
-	hostname = global.EncodeKey(strings.ToLower(hostname))
 
 	var key strings.Builder
 	key.WriteString(self.KeyPrefix)

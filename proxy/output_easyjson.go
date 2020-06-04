@@ -43,36 +43,15 @@ func easyjson61e0ab13DecodeGithubComDxvgefTsingGatewayProxy(in *jlexer.Lexer, ou
 			} else {
 				in.Delim('{')
 				if !in.IsDelim('}') {
-					out.Hosts = make(map[string][]global.HostType)
+					out.Hosts = make(map[string]global.HostType)
 				} else {
 					out.Hosts = nil
 				}
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
-					var v1 []global.HostType
-					if in.IsNull() {
-						in.Skip()
-						v1 = nil
-					} else {
-						in.Delim('[')
-						if v1 == nil {
-							if !in.IsDelim(']') {
-								v1 = make([]global.HostType, 0, 1)
-							} else {
-								v1 = []global.HostType{}
-							}
-						} else {
-							v1 = (v1)[:0]
-						}
-						for !in.IsDelim(']') {
-							var v2 global.HostType
-							(v2).UnmarshalEasyJSON(in)
-							v1 = append(v1, v2)
-							in.WantComma()
-						}
-						in.Delim(']')
-					}
+					var v1 global.HostType
+					(v1).UnmarshalEasyJSON(in)
 					(out.Hosts)[key] = v1
 					in.WantComma()
 				}
@@ -91,9 +70,9 @@ func easyjson61e0ab13DecodeGithubComDxvgefTsingGatewayProxy(in *jlexer.Lexer, ou
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
-					var v3 string
-					v3 = string(in.String())
-					(out.Routes)[key] = v3
+					var v2 string
+					v2 = string(in.String())
+					(out.Routes)[key] = v2
 					in.WantComma()
 				}
 				in.Delim('}')
@@ -111,9 +90,9 @@ func easyjson61e0ab13DecodeGithubComDxvgefTsingGatewayProxy(in *jlexer.Lexer, ou
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
-					var v4 global.UpstreamType
-					(v4).UnmarshalEasyJSON(in)
-					(out.Upstreams)[key] = v4
+					var v3 global.UpstreamType
+					(v3).UnmarshalEasyJSON(in)
+					(out.Upstreams)[key] = v3
 					in.WantComma()
 				}
 				in.Delim('}')
@@ -138,27 +117,16 @@ func easyjson61e0ab13EncodeGithubComDxvgefTsingGatewayProxy(out *jwriter.Writer,
 		out.RawString(prefix[1:])
 		{
 			out.RawByte('{')
-			v5First := true
-			for v5Name, v5Value := range in.Hosts {
-				if v5First {
-					v5First = false
+			v4First := true
+			for v4Name, v4Value := range in.Hosts {
+				if v4First {
+					v4First = false
 				} else {
 					out.RawByte(',')
 				}
-				out.String(string(v5Name))
+				out.String(string(v4Name))
 				out.RawByte(':')
-				if v5Value == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
-					out.RawString("null")
-				} else {
-					out.RawByte('[')
-					for v6, v7 := range v5Value {
-						if v6 > 0 {
-							out.RawByte(',')
-						}
-						(v7).MarshalEasyJSON(out)
-					}
-					out.RawByte(']')
-				}
+				(v4Value).MarshalEasyJSON(out)
 			}
 			out.RawByte('}')
 		}
@@ -173,16 +141,16 @@ func easyjson61e0ab13EncodeGithubComDxvgefTsingGatewayProxy(out *jwriter.Writer,
 		}
 		{
 			out.RawByte('{')
-			v8First := true
-			for v8Name, v8Value := range in.Routes {
-				if v8First {
-					v8First = false
+			v5First := true
+			for v5Name, v5Value := range in.Routes {
+				if v5First {
+					v5First = false
 				} else {
 					out.RawByte(',')
 				}
-				out.String(string(v8Name))
+				out.String(string(v5Name))
 				out.RawByte(':')
-				out.String(string(v8Value))
+				out.String(string(v5Value))
 			}
 			out.RawByte('}')
 		}
@@ -197,16 +165,16 @@ func easyjson61e0ab13EncodeGithubComDxvgefTsingGatewayProxy(out *jwriter.Writer,
 		}
 		{
 			out.RawByte('{')
-			v9First := true
-			for v9Name, v9Value := range in.Upstreams {
-				if v9First {
-					v9First = false
+			v6First := true
+			for v6Name, v6Value := range in.Upstreams {
+				if v6First {
+					v6First = false
 				} else {
 					out.RawByte(',')
 				}
-				out.String(string(v9Name))
+				out.String(string(v6Name))
 				out.RawByte(':')
-				(v9Value).MarshalEasyJSON(out)
+				(v6Value).MarshalEasyJSON(out)
 			}
 			out.RawByte('}')
 		}

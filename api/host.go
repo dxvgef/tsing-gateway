@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/dxvgef/tsing"
 
@@ -26,6 +27,7 @@ func (self *Host) Add(ctx *tsing.Context) error {
 		resp["error"] = "主机名已存在"
 		return JSON(ctx, 400, &resp)
 	}
+	hostname = global.EncodeKey(strings.ToLower(hostname))
 	if err := global.Storage.SaveHost(hostname, config); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
@@ -35,7 +37,7 @@ func (self *Host) Add(ctx *tsing.Context) error {
 
 func (self *Host) Put(ctx *tsing.Context) error {
 	var resp = make(map[string]string)
-	hostname := ctx.Post("hostname")
+	hostname := ctx.PathParams.Value("hostname")
 	config := ctx.Post("config")
 	if hostname == "" {
 		resp["error"] = "hostname参数不能为空"
@@ -54,12 +56,18 @@ func (self *Host) Put(ctx *tsing.Context) error {
 
 func (self *Host) Delete(ctx *tsing.Context) error {
 	var (
-		err      error
 		hostname string
 		resp     = make(map[string]string)
 	)
-	hostname, err = global.DecodeKey(ctx.PathParams.Value("hostname"))
+	hostname = ctx.PathParams.Value("hostname")
+	if hostname == "" {
+		return Status(ctx, 404)
+	}
+	hostnamePlainText, err := global.DecodeKey(hostname)
 	if err != nil {
+		return Status(ctx, 500)
+	}
+	if _, exist := global.Hosts.Load(hostnamePlainText); !exist {
 		return Status(ctx, 404)
 	}
 	if err := global.Storage.DeleteStorageHost(hostname); err != nil {
