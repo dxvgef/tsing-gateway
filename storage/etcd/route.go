@@ -65,9 +65,9 @@ func (self *Etcd) SaveRoute(routeGroupID, routePath, routeMethod, upstreamID str
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/routes/")
 	key.WriteString(routeGroupID)
-	key.WriteString("@")
+	key.WriteString("/")
 	key.WriteString(routePath)
-	key.WriteString("@")
+	key.WriteString("/")
 	key.WriteString(routeMethod)
 	path.Join()
 

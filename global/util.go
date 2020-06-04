@@ -53,11 +53,11 @@ func ParseRoute(key, keyPrefix string) (routeGroupID, routePath, routeMethod str
 		keyPrefix += "/routes/"
 		key = strings.TrimPrefix(key, keyPrefix)
 	}
-	// 为了可以解析没有前缀的本地key
+	// 去掉key的第一个/，为了可以解析没有前缀的本地key
 	key = strings.TrimPrefix(key, "/")
 
-	// 解析路由组ID
-	pos = strings.Index(key, "@")
+	// 查找下一个/，用于解析路由组ID
+	pos = strings.Index(key, "/")
 	if pos == -1 {
 		err = errors.New("路由解析失败")
 		log.Err(err).Str("key", key).Int("pos", pos).Caller().Send()
@@ -69,17 +69,20 @@ func ParseRoute(key, keyPrefix string) (routeGroupID, routePath, routeMethod str
 		log.Err(err).Str("key", key).Int("pos", pos).Caller().Send()
 		return
 	}
-	// 解码路由组ID
-	routeGroupID, err = DecodeKey(routeGroupID)
-	if err != nil {
-		log.Err(err).Str("routeGroupID", routeGroupID).Caller().Msg("解码路由组ID失败")
-		return
+
+	// 如果是解析存储器里的key，需要解码路由组ID
+	if keyPrefix != "" {
+		routeGroupID, err = DecodeKey(routeGroupID)
+		if err != nil {
+			log.Err(err).Str("routeGroupID", routeGroupID).Caller().Msg("解码路由组ID失败")
+			return
+		}
 	}
 
 	// 裁剪掉key里的路由组ID部份
 	key = strings.TrimPrefix(key, key[:pos+1])
-	// 获取最后一次出现@符号(用于分隔路径和方法)的位置
-	pos = strings.LastIndex(key, "@")
+	// 获取最后一次出现/符号(用于分隔路径和方法)的位置
+	pos = strings.LastIndex(key, "/")
 	if pos == -1 {
 		err = errors.New("没有找到路径和方法的分隔符")
 		log.Err(err).Str("key", key).Int("pos", pos).Caller().Send()
@@ -87,11 +90,14 @@ func ParseRoute(key, keyPrefix string) (routeGroupID, routePath, routeMethod str
 	}
 	// 解析出路径
 	routePath = key[:pos]
-	// 解码路径
-	routePath, err = DecodeKey(routePath)
-	if err != nil {
-		log.Err(err).Str("path", routePath).Caller().Msg("路径解码失败")
-		return
+
+	// 如果是解析存储器里的key，需要解码路径
+	if keyPrefix != "" {
+		routePath, err = DecodeKey(routePath)
+		if err != nil {
+			log.Err(err).Str("path", routePath).Caller().Msg("路径解码失败")
+			return
+		}
 	}
 
 	// 获取方法

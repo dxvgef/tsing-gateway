@@ -24,9 +24,9 @@ func SetRouter(engine *tsing.Engine) {
 
 	var routeHandler Route
 	router.POST("/route/", routeHandler.Add)
-	router.PATCH("/route/:groupID/:path/:method", routeHandler.Update)
+	router.PUT("/route/:groupID/:path/:method", routeHandler.Put)
 	router.DELETE("/route/:groupID/:path/:method", routeHandler.DeleteMethod)
 	router.DELETE("/route/:groupID/:path/", routeHandler.DeletePath)
 	router.DELETE("/route/:groupID/", routeHandler.DeleteGroup)
-	router.DELETE("/route/", routeHandler.Delete)
+	router.DELETE("/route/", routeHandler.DeleteAll)
 }

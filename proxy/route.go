@@ -25,9 +25,9 @@ func SetRoute(routeGroupID, routePath, routeMethod, upstreamID string) error {
 	}
 	var key strings.Builder
 	key.WriteString(routeGroupID)
-	key.WriteString("@")
+	key.WriteString("/")
 	key.WriteString(routePath)
-	key.WriteString("@")
+	key.WriteString("/")
 	key.WriteString(routeMethod)
 	global.Routes.Store(key.String(), upstreamID)
 	return nil
@@ -47,9 +47,9 @@ func DeleteRoute(routeGroupID, routePath, routeMethod string) error {
 	routeMethod = strings.ToUpper(routeMethod)
 	var key strings.Builder
 	key.WriteString(routeGroupID)
-	key.WriteString("@")
+	key.WriteString("/")
 	key.WriteString(routePath)
-	key.WriteString("@")
+	key.WriteString("/")
 	key.WriteString(routeMethod)
 	global.Routes.Delete(key.String())
 	return nil
@@ -78,9 +78,9 @@ func matchRoute(req *http.Request) (hostname string, upstream global.UpstreamTyp
 	var exist bool
 	// 先尝试直接匹配upstream
 	key.WriteString(routeGroupID)
-	key.WriteString("@")
+	key.WriteString("/")
 	key.WriteString(routePath)
-	key.WriteString("@")
+	key.WriteString("/")
 	key.WriteString(routeMethod)
 	if v, e := global.Routes.Load(key.String()); e {
 		upstream, exist = matchUpstream(v.(string))
@@ -92,9 +92,9 @@ func matchRoute(req *http.Request) (hostname string, upstream global.UpstreamTyp
 	// --------------- 以下用于路径和方法的模糊匹配，并且判断要返回哪种http状态码 -----------------------
 	// 先尝试匹配精确路径
 	key.WriteString(routeGroupID)
-	key.WriteString("@")
+	key.WriteString("/")
 	key.WriteString(routePath)
-	key.WriteString("@")
+	key.WriteString("/")
 	paths := map[string]string{}
 	global.Routes.Range(func(k, v interface{}) bool {
 		path := k.(string)
@@ -114,9 +114,9 @@ func matchRoute(req *http.Request) (hostname string, upstream global.UpstreamTyp
 		routePath = routePath + "*"
 		key.Reset()
 		key.WriteString(routeGroupID)
-		key.WriteString("@")
+		key.WriteString("/")
 		key.WriteString(routePath)
-		key.WriteString("@")
+		key.WriteString("/")
 		// 尝试模糊匹配
 		global.Routes.Range(func(k, v interface{}) bool {
 			path := k.(string)
@@ -136,9 +136,9 @@ func matchRoute(req *http.Request) (hostname string, upstream global.UpstreamTyp
 	for k, v := range paths {
 		key.Reset()
 		key.WriteString(routeGroupID)
-		key.WriteString("@")
+		key.WriteString("/@")
 		key.WriteString(routePath)
-		key.WriteString("@")
+		key.WriteString("/")
 		key.WriteString(routeMethod)
 		if strings.HasPrefix(k, key.String()) {
 			upstreamID = v
@@ -150,9 +150,9 @@ func matchRoute(req *http.Request) (hostname string, upstream global.UpstreamTyp
 		for k, v := range paths {
 			key.Reset()
 			key.WriteString(routeGroupID)
-			key.WriteString("@")
+			key.WriteString("/")
 			key.WriteString(routePath)
-			key.WriteString("@ANY")
+			key.WriteString("/ANY")
 			if strings.HasPrefix(k, key.String()) {
 				upstreamID = v
 				break
