@@ -34,7 +34,7 @@ type UpstreamType struct {
 // 负载均衡接口
 type LoadBalance interface {
 	Add(string, string, int) error
-	Put(string, string, int)
+	Set(string, string, int)
 	Next(string) string
 	Total(string) int
 }
