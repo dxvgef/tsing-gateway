@@ -112,7 +112,7 @@ func easyjson9f2eff5fEncodeGithubComDxvgefTsingGatewayGlobal(out *jwriter.Writer
 		out.RawString(prefix)
 		(in.Discover).MarshalEasyJSON(out)
 	}
-	{
+	if in.LoadBalance != "" {
 		const prefix string = ",\"load_balance\":"
 		out.RawString(prefix)
 		out.String(string(in.LoadBalance))

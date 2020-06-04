@@ -22,7 +22,7 @@ type UpstreamType struct {
 	Middleware     []ModuleConfig `json:"middleware,omitempty"`      // 中间件配置
 	StaticEndpoint string         `json:"static_endpoint,omitempty"` // 静态端点地址，优先级高于Discover
 	Discover       ModuleConfig   `json:"discover,omitempty"`        // 探测器配置
-	LoadBalance    string         `json:"load_balance"`              // 负载均衡算法名称
+	LoadBalance    string         `json:"load_balance,omitempty"`    // 负载均衡算法名称
 
 	/*
 		最大缓存容错次数
