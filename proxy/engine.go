@@ -128,7 +128,7 @@ func getEndpointURL(upstream global.UpstreamType) (endpointURL *url.URL, status 
 	}
 
 	for i := range endpoints {
-		lb.Put(upstream.ID, endpoints[i].Addr, endpoints[i].Weight)
+		lb.Set(upstream.ID, endpoints[i].Addr, endpoints[i].Weight)
 	}
 	endpointAddr := lb.Next(upstream.ID)
 	endpointURL, err = url.Parse(endpointAddr)
