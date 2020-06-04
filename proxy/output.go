@@ -7,9 +7,9 @@ import (
 )
 
 type Data struct {
-	Hosts     map[string][]global.HostType   `json:"hosts"`
-	Routes    map[string]string              `json:"routes"`
-	Upstreams map[string]global.UpstreamType `json:"upstreams"`
+	Hosts     map[string][]global.HostType   `json:"hosts,omitempty"`
+	Routes    map[string]string              `json:"routes,omitempty"`
+	Upstreams map[string]global.UpstreamType `json:"upstreams,omitempty"`
 }
 
 // 所有数据输出成json
