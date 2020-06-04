@@ -54,7 +54,7 @@ func (p *PoolType) Add(upstreamID, addr string, weight int) error {
 	return nil
 }
 
-func (p *PoolType) Put(upstreamID, addr string, weight int) {
+func (p *PoolType) Set(upstreamID, addr string, weight int) {
 	if p.nodes[upstreamID] == nil {
 		p.nodes[upstreamID] = []*NodeType{}
 		p.lastIndex[upstreamID] = -1
