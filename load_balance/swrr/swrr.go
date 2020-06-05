@@ -25,8 +25,7 @@ func Init() *InstType {
 	if Inst != nil {
 		return Inst
 	}
-	var inst InstType
-	return &inst
+	return &InstType{}
 }
 
 // // 降权
@@ -39,9 +38,7 @@ func Init() *InstType {
 
 // 设置节点
 func (self *InstType) Set(upstreamID, addr string, weight int) (err error) {
-	var (
-		nodes []*NodeType
-	)
+	var nodes []*NodeType
 	mapValue, exist := globalNodes.Load(upstreamID)
 	if exist {
 		var ok bool
