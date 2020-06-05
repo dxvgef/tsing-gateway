@@ -51,9 +51,12 @@ func (self *InstType) Set(upstreamID, addr string, weight int) (err error) {
 	for k := range nodes {
 		// 如果节点已存在，则直接更新
 		if nodes[k].Addr == addr {
-			nodes[k].Weight = weight
-			globalNodes.Store(upstreamID, nodes)
-			return self.Reset(upstreamID)
+			if nodes[k].Weight != weight {
+				nodes[k].Weight = weight
+				globalNodes.Store(upstreamID, nodes)
+				return self.Reset(upstreamID)
+			}
+			return
 		}
 	}
 
