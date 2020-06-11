@@ -54,7 +54,7 @@ func (self *InstType) Set(upstreamID, addr string, weight int) (err error) {
 			if nodes[k].Weight != weight {
 				nodes[k].Weight = weight
 				globalNodes.Store(upstreamID, nodes)
-				return self.Reset(upstreamID)
+				return self.reset(upstreamID)
 			}
 			return
 		}
@@ -66,7 +66,7 @@ func (self *InstType) Set(upstreamID, addr string, weight int) (err error) {
 		Weight: weight,
 	})
 	globalNodes.Store(upstreamID, nodes)
-	if err = self.Reset(upstreamID); err != nil {
+	if err = self.reset(upstreamID); err != nil {
 		return
 	}
 	// 递增节点总数
@@ -79,9 +79,13 @@ func (self *InstType) Remove(upstreamID, addr string) (err error) {
 	if !exist {
 		return nil
 	}
+	if addr == "" {
+
+		globalNodes.Delete(upstreamID)
+	}
 	nodes, ok := mapValue.([]*NodeType)
 	if !ok {
-		err = errors.New("节点类型断言失败")
+		err = errors.New("类型断言失败")
 		log.Err(err).Caller().Msg("移除节点")
 		return
 	}
@@ -91,7 +95,7 @@ func (self *InstType) Remove(upstreamID, addr string) (err error) {
 		}
 		newNodes := append(nodes[:k], nodes[k+1:]...)
 		globalNodes.Store(upstreamID, newNodes)
-		if err = self.Reset(upstreamID); err != nil {
+		if err = self.reset(upstreamID); err != nil {
 			return
 		}
 		return self.updateTotal(upstreamID, -1)
@@ -149,14 +153,14 @@ func (self *InstType) Next(upstreamID string) string {
 }
 
 // 重置所有节点的状态
-func (self *InstType) Reset(upstreamID string) (err error) {
+func (self *InstType) reset(upstreamID string) (err error) {
 	mapValue, exist := globalNodes.Load(upstreamID)
 	if !exist {
 		return nil
 	}
 	nodes, ok := mapValue.([]*NodeType)
 	if !ok {
-		err = errors.New("节点类型断言失败")
+		err = errors.New("类型断言失败")
 		log.Err(err).Caller().Msg("重置节点")
 		return
 	}
@@ -177,7 +181,7 @@ func (self *InstType) updateTotal(upstreamID string, count int) (err error) {
 
 	total, ok := mapValue.(int)
 	if !ok {
-		err = errors.New("节点类型断言失败")
+		err = errors.New("类型断言失败")
 		log.Err(err).Caller().Msg("更新节点总数")
 		return err
 	}

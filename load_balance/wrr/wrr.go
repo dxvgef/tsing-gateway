@@ -1,8 +1,21 @@
 package wrr
 
-import "errors"
+import (
+	"errors"
+	"sync"
 
-var Pool *PoolType
+	"github.com/rs/zerolog/log"
+)
+
+var (
+	Inst          *InstType
+	globalNodes   sync.Map // 节点列表
+	globalTotal   sync.Map // 节点总数
+	weightGCD     sync.Map // 权总值最大公约数
+	maxWeight     sync.Map // 最大权重值
+	lastIndex     sync.Map // 最后命中的节点索引，初始值是-1
+	currentWeight sync.Map // 当前权重值
+)
 
 // Weighted Round-Robin 加权轮循(与LVS类似)
 type NodeType struct {
@@ -10,59 +23,32 @@ type NodeType struct {
 	Weight int    // 权重值
 }
 
-type PoolType struct {
-	nodes         map[string][]*NodeType // 节点列表
-	nodeTotal     map[string]int         // 节点总数
-	weightGCD     map[string]int         // 权总值最大公约数
-	maxWeight     map[string]int         // 最大权重值
-	lastIndex     map[string]int         // 最后命中的节点索引，初始值是-1
-	currentWeight map[string]int         // 当前权重值
-}
+type InstType struct{}
 
-func Init() *PoolType {
-	if Pool != nil {
-		return Pool
+func Init() *InstType {
+	if Inst != nil {
+		return Inst
 	}
-	var pool PoolType
-	pool.nodes = map[string][]*NodeType{}
-	pool.nodeTotal = map[string]int{}
-	pool.weightGCD = map[string]int{}
-	pool.maxWeight = map[string]int{}
-	pool.lastIndex = map[string]int{}
-	pool.currentWeight = map[string]int{}
-	return &pool
+	return &InstType{}
 }
-
-func (p *PoolType) Add(upstreamID, addr string, weight int) error {
-	if _, ok := p.nodes[upstreamID]; !ok {
-		p.nodes[upstreamID] = []*NodeType{}
-		p.lastIndex[upstreamID] = -1
-	}
-	for i := range p.nodes[upstreamID] {
-		if p.nodes[upstreamID][i].Addr == addr {
-			return errors.New("节点地址已存在")
+func (self *InstType) Set(upstreamID, addr string, weight int) (err error) {
+	var nodes []*NodeType
+	mapValue, exist := globalNodes.Load(upstreamID)
+	if !exist {
+		globalNodes.Store(upstreamID, []*NodeType{})
+		lastIndex.Store(upstreamID, -1)
+	} else {
+		var ok bool
+		if nodes, ok = mapValue.([]*NodeType); !ok {
+			err = errors.New("类型断言失败")
+			log.Err(err).Caller().Msg("设置节点")
+			return
 		}
 	}
-
-	node := &NodeType{
-		Addr:   addr,
-		Weight: weight,
-	}
-	p.calcMaxWeight(upstreamID, weight)
-	p.nodes[upstreamID] = append(p.nodes[upstreamID], node)
-	p.nodeTotal[upstreamID]++
-	return nil
-}
-
-func (p *PoolType) Set(upstreamID, addr string, weight int) {
-	if p.nodes[upstreamID] == nil {
-		p.nodes[upstreamID] = []*NodeType{}
-		p.lastIndex[upstreamID] = -1
-	}
-	for i := range p.nodes[upstreamID] {
-		if p.nodes[upstreamID][i].Addr == addr {
-			p.nodes[upstreamID][i].Weight = weight
-			p.calcMaxWeight(upstreamID, weight)
+	for i := range nodes {
+		if nodes[i].Addr == addr {
+			nodes[i].Weight = weight
+			self.calcMaxWeight(upstreamID, weight)
 			return
 		}
 	}
@@ -71,79 +57,236 @@ func (p *PoolType) Set(upstreamID, addr string, weight int) {
 		Addr:   addr,
 		Weight: weight,
 	}
-	p.calcMaxWeight(upstreamID, weight)
-	p.nodes[upstreamID] = append(p.nodes[upstreamID], node)
-	p.nodeTotal[upstreamID]++
+	self.calcMaxWeight(upstreamID, weight)
+	nodes = append(nodes, node)
+	globalNodes.Store(upstreamID, nodes)
+	return self.updateTotal(upstreamID, 1)
 }
 
 // 节点总数
-func (p *PoolType) Total(upstreamID string) int {
-	return p.nodeTotal[upstreamID]
+func (self *InstType) Total(upstreamID string) int {
+	mapValue, exist := globalTotal.Load(upstreamID)
+	if !exist {
+		return 0
+	}
+	total, ok := mapValue.(int)
+	if !ok {
+		return 0
+	}
+	return total
 }
 
 // 移除节点
-func (p *PoolType) Remove(upstreamID, addr string) {
-	for i := range p.nodes[upstreamID] {
-		if p.nodes[upstreamID][i].Addr == addr {
-			p.nodes[upstreamID] = append(p.nodes[upstreamID][:i], p.nodes[upstreamID][i+1:]...)
-			p.nodeTotal[upstreamID]--
-			p.calcAllGCD(upstreamID, p.nodeTotal[upstreamID])
-		}
+func (self *InstType) Remove(upstreamID, addr string) (err error) {
+	mapValue, exist := globalNodes.Load(upstreamID)
+	if !exist {
+		return nil
 	}
+	nodes, ok := mapValue.([]*NodeType)
+	if !ok {
+		err = errors.New("类型断言失败")
+		log.Err(err).Caller().Msg("移除节点")
+		return
+	}
+	mapValue, exist = globalTotal.Load(upstreamID)
+	if !exist {
+		err = errors.New("类型断言失败")
+		log.Err(err).Caller().Msg("移除节点")
+		return
+	}
+	total, ok := mapValue.(int)
+	if !ok {
+		err = errors.New("类型断言失败")
+		log.Err(err).Caller().Msg("移除节点")
+		return
+	}
+	for k := range nodes {
+		if nodes[k].Addr != addr {
+			continue
+		}
+		newNodes := append(nodes[:k], nodes[k+1:]...)
+		globalNodes.Store(upstreamID, newNodes)
+		self.calcAllGCD(upstreamID, total)
+		return self.updateTotal(upstreamID, -1)
+	}
+	return
 }
 
 // 选举出下一个命中的节点
-func (p *PoolType) Next(upstreamID string) string {
-	if p.nodeTotal[upstreamID] == 0 {
+func (self *InstType) Next(upstreamID string) string {
+	var (
+		nodes    = self.getNodes(upstreamID)
+		nodesLen = len(nodes)
+	)
+	switch nodesLen {
+	case 0:
 		return ""
+	case 1:
+		return nodes[0].Addr
 	}
 
-	if p.nodeTotal[upstreamID] == 1 {
-		return p.nodes[upstreamID][0].Addr
-	}
-
+	var last, total, cw, gcd int
 	for {
-		p.lastIndex[upstreamID] = (p.lastIndex[upstreamID] + 1) % p.nodeTotal[upstreamID]
-		if p.lastIndex[upstreamID] == 0 {
-			p.currentWeight[upstreamID] = p.currentWeight[upstreamID] - p.weightGCD[upstreamID]
-			if p.currentWeight[upstreamID] <= 0 {
-				p.currentWeight[upstreamID] = p.maxWeight[upstreamID]
-				if p.currentWeight[upstreamID] == 0 {
+		last = self.getLastIndex(upstreamID)
+		total = self.Total(upstreamID)
+		last = (last + 1) % total
+		lastIndex.Store(upstreamID, last)
+		if last == 0 {
+			cw = self.getCurrentWeight(upstreamID)
+			gcd = self.getWeightGCD(upstreamID)
+			newCW := cw - gcd
+			currentWeight.Store(upstreamID, newCW)
+			if newCW <= 0 {
+				newCW = self.getMaxWeight(upstreamID)
+				currentWeight.Store(upstreamID, newCW)
+				if newCW == 0 {
 					return ""
 				}
 			}
 		}
-
-		if p.nodes[upstreamID][p.lastIndex[upstreamID]].Weight >= p.currentWeight[upstreamID] {
-			return p.nodes[upstreamID][p.lastIndex[upstreamID]].Addr
+		cw = self.getCurrentWeight(upstreamID)
+		if nodes[last].Weight >= cw {
+			return nodes[last].Addr
 		}
 	}
 }
 
 // 计算最大权重值
-func (p *PoolType) calcMaxWeight(upstreamID string, weight int) {
+func (self *InstType) calcMaxWeight(upstreamID string, weight int) {
 	if weight == 0 {
 		return
 	}
-	if p.weightGCD[upstreamID] == 0 {
-		p.weightGCD[upstreamID] = weight
-		p.maxWeight[upstreamID] = weight
-		p.lastIndex[upstreamID] = -1
-		p.currentWeight[upstreamID] = 0
+	mapValue, exist := weightGCD.Load(upstreamID)
+	if !exist {
+		weightGCD.Store(upstreamID, weight)
+		maxWeight.Store(upstreamID, weight)
+		lastIndex.Store(upstreamID, -1)
+		currentWeight.Store(upstreamID, 0)
 		return
 	}
-	p.weightGCD[upstreamID] = calcGCD(p.weightGCD[upstreamID], weight)
-	if p.maxWeight[upstreamID] < weight {
-		p.maxWeight[upstreamID] = weight
+	cgd, ok := mapValue.(int)
+	if !ok {
+		log.Err(errors.New("类型断言失败")).Caller().Msg("计算最大权重值")
+		return
+	}
+	if cgd == 0 {
+		weightGCD.Store(upstreamID, weight)
+		maxWeight.Store(upstreamID, weight)
+		lastIndex.Store(upstreamID, -1)
+		currentWeight.Store(upstreamID, 0)
+		return
+	}
+	weightGCD.Store(upstreamID, calcGCD(cgd, weight))
+	mapValue, exist = maxWeight.Load(upstreamID)
+	if !exist {
+		return
+	}
+	max, ok := mapValue.(int)
+	if !ok {
+		return
+	}
+	if max < weight {
+		maxWeight.Store(upstreamID, weight)
 	}
 }
 
 // 计算所有节点权重值的最大公约数
-func (p *PoolType) calcAllGCD(upstreamID string, i int) int {
+func (self *InstType) calcAllGCD(upstreamID string, i int) int {
+	nodes := self.getNodes(upstreamID)
 	if i == 1 {
-		return p.nodes[upstreamID][0].Weight
+		return nodes[0].Weight
 	}
-	return calcGCD(p.nodes[upstreamID][i-1].Weight, p.calcAllGCD(upstreamID, i-1))
+	return calcGCD(nodes[i-1].Weight, self.calcAllGCD(upstreamID, i-1))
+}
+
+func (self *InstType) getLastIndex(upstreamID string) int {
+	mapValue, exist := lastIndex.Load(upstreamID)
+	if !exist {
+		globalTotal.Store(upstreamID, -1)
+		return -1
+	}
+
+	index, ok := mapValue.(int)
+	if !ok {
+		log.Err(errors.New("类型断言失败")).Caller().Msg("获得节点列表")
+		return -1
+	}
+	return index
+}
+
+// 获得节点
+func (self *InstType) getNodes(upstreamID string) []*NodeType {
+	mapValue, exist := globalNodes.Load(upstreamID)
+	if !exist {
+		return nil
+	}
+	nodes, ok := mapValue.([]*NodeType)
+	if !ok {
+		log.Err(errors.New("类型断言失败")).Caller().Msg("获得节点列表")
+		return nil
+	}
+	return nodes
+}
+
+// 更新节点统计总数
+func (self *InstType) updateTotal(upstreamID string, count int) (err error) {
+	mapValue, exist := globalTotal.Load(upstreamID)
+	if !exist {
+		globalTotal.Store(upstreamID, count)
+		return nil
+	}
+
+	total, ok := mapValue.(int)
+	if !ok {
+		err = errors.New("类型断言失败")
+		log.Err(err).Caller().Msg("更新节点总数")
+		return err
+	}
+	total += count
+	globalTotal.Store(upstreamID, total)
+	return nil
+}
+
+func (self *InstType) getCurrentWeight(upstreamID string) int {
+	mapValue, exist := currentWeight.Load(upstreamID)
+	if !exist {
+		return 0
+	}
+
+	weight, ok := mapValue.(int)
+	if !ok {
+		log.Err(errors.New("类型断言失败")).Caller().Msg("获得当前权重值")
+		return 0
+	}
+	return weight
+}
+
+func (self *InstType) getWeightGCD(upstreamID string) int {
+	mapValue, exist := weightGCD.Load(upstreamID)
+	if !exist {
+		return 0
+	}
+
+	value, ok := mapValue.(int)
+	if !ok {
+		log.Err(errors.New("类型断言失败")).Caller().Msg("获得权重GCD")
+		return 0
+	}
+	return value
+}
+
+func (self *InstType) getMaxWeight(upstreamID string) int {
+	mapValue, exist := maxWeight.Load(upstreamID)
+	if !exist {
+		return 0
+	}
+
+	value, ok := mapValue.(int)
+	if !ok {
+		log.Err(errors.New("类型断言失败")).Caller().Msg("获得最大权重值")
+		return 0
+	}
+	return value
 }
 
 // 计算两个权重值的最大公约数
