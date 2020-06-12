@@ -6,7 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/dxvgef/tsing-gateway/discover/coredns_etcd"
-	"github.com/dxvgef/tsing-gateway/discover/etcd"
+	"github.com/dxvgef/tsing-gateway/discover/tsing_center"
 	"github.com/dxvgef/tsing-gateway/global"
 )
 
@@ -22,7 +22,7 @@ func Build(name, config string) (global.DiscoverType, error) {
 		}
 		return f, nil
 	case "etcd":
-		f, err := etcd.New(config)
+		f, err := tsing_center.New(config)
 		if err != nil {
 			log.Error().Caller().Msg(err.Error())
 			return nil, err

@@ -31,24 +31,9 @@ type UpstreamType struct {
 	MaxCacheFault int `json:"max_cache_fault"`
 }
 
-// 负载均衡接口
-type LoadBalance interface {
-	Set(string, string, int) error
-	Remove(string, string) error
-	Next(string) string
-	Total(string) int
-}
-
-// 端点
-type EndpointType struct {
-	UpstreamID string `json:"upstream_id"`
-	Addr       string `json:"addr"`
-	Weight     int    `json:"weight"`
-}
-
 // 端点发现
 type DiscoverType interface {
-	Fetch(string) ([]EndpointType, error)
+	Fetch(string) (string, int, error)
 }
 
 // 中间件接口
