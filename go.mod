@@ -43,12 +43,12 @@ require (
 	golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37 // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/net v0.0.0-20200602114024-627f9648deb9
-	golang.org/x/sys v0.0.0-20200602225109-6fdc65e7d980 // indirect
+	golang.org/x/sys v0.0.0-20200610111108-226ff32320da // indirect
 	golang.org/x/text v0.3.2 // indirect
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1 // indirect
-	golang.org/x/tools v0.0.0-20200515010526-7d3b6ebf133d // indirect
-	google.golang.org/genproto v0.0.0-20200602104108-2bb8d6132df6 // indirect
+	golang.org/x/tools v0.0.0-20200612022331-742c5eb664c2 // indirect
+	google.golang.org/genproto v0.0.0-20200611194920-44ba362f84c1 // indirect
 	google.golang.org/grpc v1.29.1 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20200602174320-3e3e88ca92fa
+	gopkg.in/yaml.v3 v3.0.0-20200605160147-a5ece683394c
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
