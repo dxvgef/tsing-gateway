@@ -116,20 +116,19 @@ func getEndpoint(service global.ServiceType) (endpoint *url.URL, err error) {
 
 	var (
 		dc   global.DiscoverType
-		ip   string
-		port uint16
+		node global.NodeType
 	)
 	dc, err = discover.Build(service.Discover.Name, service.Discover.Config)
 	if err != nil {
 		log.Err(err).Caller().Msg("构建探测器失败")
 		return nil, err
 	}
-	ip, port, err = dc.Fetch(service.ID)
+	node, err = dc.Fetch(service.ID)
 	if err != nil {
 		log.Err(err).Caller().Msg("使用探测器获取节点失败")
 		return nil, err
 	}
-	endpoint, err = url.Parse(ip + ":" + strconv.Itoa(int(port)))
+	endpoint, err = url.Parse(node.IP + ":" + strconv.Itoa(int(node.Port)))
 	if err != nil {
 		log.Err(err).Caller().Msg("解析探测器返回的节点失败")
 		return nil, err

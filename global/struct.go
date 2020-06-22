@@ -26,13 +26,18 @@ type ServiceType struct {
 
 // 端点发现
 type DiscoverType interface {
-	Fetch(string) (string, uint16, error)
+	Fetch(string) (NodeType, error)
 }
 
 // 中间件接口
 type MiddlewareType interface {
 	Action(http.ResponseWriter, *http.Request) (bool, error)
 	GetName() string
+}
+
+type NodeType struct {
+	IP   string `json:"ip"`
+	Port uint16 `json:"port"`
 }
 
 // 存储器
