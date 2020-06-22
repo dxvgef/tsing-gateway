@@ -76,7 +76,7 @@ func matchRoute(req *http.Request) (hostname string, service global.ServiceType,
 	}
 	var key strings.Builder
 	var exist bool
-	// 先尝试直接匹配service
+	// 先尝试直接匹配路由
 	key.WriteString(routeGroupID)
 	key.WriteString("/")
 	key.WriteString(routePath)

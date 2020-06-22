@@ -11,7 +11,6 @@ import (
 
 // 写入主机，如果存在则覆盖，不存在则创建
 func SetHost(hostname string, host global.HostType) error {
-	log.Debug().Int("主机中间件的数量", global.SyncMapLen(&global.HostMiddleware)).Caller().Msg("更新主机前")
 	hostname = strings.ToLower(hostname)
 	global.Hosts.Store(hostname, host)
 
@@ -30,17 +29,14 @@ func SetHost(hostname string, host global.HostType) error {
 		mw = append(mw, m)
 	}
 	global.HostMiddleware.Store(hostname, mw)
-	log.Debug().Int("主机中间件的数量", global.SyncMapLen(&global.HostMiddleware)).Caller().Msg("更新主机后")
 	return nil
 }
 
 // 删除主机
 func DelHost(hostname string) error {
-	log.Debug().Int("主机中间件的数量", global.SyncMapLen(&global.HostMiddleware)).Caller().Msg("删除主机前")
 	hostname = strings.ToLower(hostname)
 	global.Hosts.Delete(hostname)
 	global.HostMiddleware.Delete(hostname)
-	log.Debug().Int("主机中间件的数量", global.SyncMapLen(&global.HostMiddleware)).Caller().Msg("删除主机后")
 	return nil
 }
 

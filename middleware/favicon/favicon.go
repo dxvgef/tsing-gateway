@@ -7,13 +7,11 @@ import (
 	"os"
 
 	"github.com/dxvgef/tsing-gateway/global"
-
-	"github.com/rs/zerolog/log"
 )
 
 type Favicon struct {
-	Status int    `json:"status"`           // HTTP status code
-	Target string `json:"target,omitempty"` // favicon.ico file location
+	Status int    `json:"status"`           // HTTP状态码
+	Target string `json:"target,omitempty"` // favicon.ico文件路径
 }
 
 func New(config string) (*Favicon, error) {
@@ -30,11 +28,16 @@ func (self *Favicon) GetName() string {
 }
 
 func (self *Favicon) Action(resp http.ResponseWriter, req *http.Request) (bool, error) {
-	log.Debug().Msg("执行了favicon中间件")
-	if req.RequestURI != "/favicon.ico" {
-		return false, nil
+	// 如果不是GET请求/favicon.ico则直接跳过
+	if req.Method != "GET" {
+		return true, nil
 	}
+	if req.RequestURI != "/favicon.ico" {
+		return true, nil
+	}
+	// 如果是301或302请求
 	if self.Status == http.StatusMovedPermanently || self.Status == http.StatusFound {
+		// 使用target做为favicon.ico文件的URL
 		fileURL, err := url.Parse(self.Target)
 		if err != nil {
 			resp.WriteHeader(http.StatusInternalServerError)
@@ -46,7 +49,7 @@ func (self *Favicon) Action(resp http.ResponseWriter, req *http.Request) (bool, 
 		resp.WriteHeader(self.Status)
 		return false, nil
 	}
-	if self.Status == 0 {
+	if self.Status == http.StatusOK {
 		fileInfo, err := os.Stat(self.Target)
 		if err != nil {
 			resp.WriteHeader(http.StatusInternalServerError)

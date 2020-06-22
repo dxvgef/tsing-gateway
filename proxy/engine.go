@@ -37,11 +37,14 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	if hostMWExist {
 		mw, ok := hostMW.([]global.MiddlewareType)
 		if !ok {
-			log.Error().Str("hostname", hostname).Caller().Msg("主机中间件类型断言失败")
+			log.Error().Str("hostname", hostname).Caller().Msg("类型断言失败")
 			return
 		}
 		for k := range mw {
 			next = false
+			if mw[k] == nil {
+				continue
+			}
 			// 执行中间件逻辑
 			next, err = mw[k].Action(resp, req)
 			if err != nil {
@@ -64,6 +67,9 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		}
 		for k := range mw {
 			next = false
+			if mw[k] == nil {
+				continue
+			}
 			// 执行中间件逻辑
 			next, err = mw[k].Action(resp, req)
 			if err != nil {
@@ -98,22 +104,34 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	p.ServeHTTP(resp, req)
 }
 
-func getEndpoint(service global.ServiceType) (*url.URL, error) {
-	dc, err := discover.Build(service.Discover.Name, service.Discover.Config)
+func getEndpoint(service global.ServiceType) (endpoint *url.URL, err error) {
+	if service.StaticEndpoint != "" {
+		endpoint, err = url.Parse(service.StaticEndpoint)
+		if err != nil {
+			log.Err(err).Caller().Msg("解析服务的EndPoint属性失败")
+			return nil, err
+		}
+		return endpoint, nil
+	}
+
+	var (
+		dc   global.DiscoverType
+		ip   string
+		port uint16
+	)
+	dc, err = discover.Build(service.Discover.Name, service.Discover.Config)
 	if err != nil {
+		log.Err(err).Caller().Msg("构建探测器失败")
 		return nil, err
 	}
-	var (
-		ip       string
-		port     uint16
-		endpoint *url.URL
-	)
 	ip, port, err = dc.Fetch(service.ID)
 	if err != nil {
+		log.Err(err).Caller().Msg("使用探测器获取节点失败")
 		return nil, err
 	}
 	endpoint, err = url.Parse(ip + ":" + strconv.Itoa(int(port)))
 	if err != nil {
+		log.Err(err).Caller().Msg("解析探测器返回的节点失败")
 		return nil, err
 	}
 	return endpoint, nil
