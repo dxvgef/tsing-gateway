@@ -21,7 +21,6 @@ func (self *Service) Add(ctx *tsing.Context) error {
 			middleware     string
 			discover       string
 			staticEndpoint string
-			loadBalance    string
 		}
 		service      global.ServiceType
 		serviceBytes []byte
@@ -31,7 +30,6 @@ func (self *Service) Add(ctx *tsing.Context) error {
 		filter.El(&req.discover, filter.FromString(ctx.Post("discover"), "discover").IsJSON()),
 		filter.El(&req.middleware, filter.FromString(ctx.Post("middleware"), "middleware").IsJSON()),
 		filter.El(&req.staticEndpoint, filter.FromString(ctx.Post("static_endpoint"), "static_endpoint")),
-		filter.El(&req.loadBalance, filter.FromString(ctx.Post("load_balance"), "load_balance")),
 	); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 400, &resp)
@@ -44,13 +42,8 @@ func (self *Service) Add(ctx *tsing.Context) error {
 		resp["error"] = "static_endpoint和discover参数不能同时为空"
 		return JSON(ctx, 400, &resp)
 	}
-	if req.discover == "" && req.loadBalance == "" {
-		resp["error"] = "discover和load_balance参数不能同时为空"
-		return JSON(ctx, 400, &resp)
-	}
 	if req.staticEndpoint != "" {
 		req.discover = ""
-		req.loadBalance = ""
 	}
 
 	if req.discover != "" {
@@ -91,7 +84,6 @@ func (self *Service) Put(ctx *tsing.Context) error {
 			middleware     string
 			discover       string
 			staticEndpoint string
-			loadBalance    string
 		}
 		service      global.ServiceType
 		serviceBytes []byte
@@ -101,7 +93,6 @@ func (self *Service) Put(ctx *tsing.Context) error {
 		filter.El(&req.discover, filter.FromString(ctx.Post("discover"), "discover").IsJSON()),
 		filter.El(&req.middleware, filter.FromString(ctx.Post("middleware"), "middleware").IsJSON()),
 		filter.El(&req.staticEndpoint, filter.FromString(ctx.Post("static_endpoint"), "static_endpoint")),
-		filter.El(&req.loadBalance, filter.FromString(ctx.Post("load_balance"), "load_balance")),
 	); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 400, &resp)
@@ -111,13 +102,8 @@ func (self *Service) Put(ctx *tsing.Context) error {
 		resp["error"] = "static_endpoint和discover参数不能同时为空"
 		return JSON(ctx, 400, &resp)
 	}
-	if req.discover == "" && req.loadBalance == "" {
-		resp["error"] = "discover和load_balance参数不能同时为空"
-		return JSON(ctx, 400, &resp)
-	}
 	if req.staticEndpoint != "" {
 		req.discover = ""
-		req.loadBalance = ""
 	}
 
 	if req.discover != "" {

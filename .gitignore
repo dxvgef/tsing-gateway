@@ -10,7 +10,6 @@ go.sum
 *.key
 *.pem
 *.cert
-*.http
 *.bak
 *.config.local.yml
 temp_test.go

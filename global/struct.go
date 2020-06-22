@@ -6,8 +6,8 @@ import (
 
 // 用于构建服务、中间件、存储器模块时的参数配置
 type ModuleConfig struct {
-	Name   string `json:"name"`
-	Config string `json:"config"`
+	Name   string `json:"name,omitempty"`
+	Config string `json:"config,omitempty"`
 }
 
 // 主机

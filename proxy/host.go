@@ -51,16 +51,31 @@ func matchHost(reqHost string) (string, string, bool) {
 		reqHost = reqHost[:pos]
 	}
 	if v, exist := global.Hosts.Load(reqHost); exist {
-		return reqHost, v.(string), true
+		host, ok := v.(global.HostType)
+		if !ok {
+			log.Error().Caller().Msg("类型断言失败")
+			return "", "", false
+		}
+		return reqHost, host.RouteGroupID, ok
 	}
 	reqHost = "*"
 	if v, exist := global.Hosts.Load(reqHost); exist {
-		return reqHost, v.(string), true
+		host, ok := v.(global.HostType)
+		if !ok {
+			log.Error().Caller().Msg("类型断言失败")
+			return "", "", false
+		}
+		return reqHost, host.RouteGroupID, ok
 	}
 
 	v, exist := global.Hosts.Load(reqHost)
 	if !exist {
 		return "", "", false
 	}
-	return reqHost, v.(string), exist
+	host, ok := v.(global.HostType)
+	if !ok {
+		log.Error().Caller().Msg("类型断言失败")
+		return "", "", false
+	}
+	return reqHost, host.RouteGroupID, ok
 }

@@ -8,9 +8,9 @@ import (
 	"github.com/dxvgef/tsing-gateway/proxy"
 )
 
-type Proxy struct{}
+type Data struct{}
 
-func (self *Proxy) OutputJSON(ctx *tsing.Context) error {
+func (self *Data) OutputJSON(ctx *tsing.Context) error {
 	data, err := proxy.OutputJSON()
 	if err != nil {
 		ctx.ResponseWriter.WriteHeader(500)
@@ -25,7 +25,7 @@ func (self *Proxy) OutputJSON(ctx *tsing.Context) error {
 	return nil
 }
 
-func (*Proxy) LoadAll(ctx *tsing.Context) error {
+func (*Data) LoadAll(ctx *tsing.Context) error {
 	resp := make(map[string]string)
 	if err := loadAll(); err != nil {
 		resp["error"] = err.Error()
@@ -33,7 +33,7 @@ func (*Proxy) LoadAll(ctx *tsing.Context) error {
 	}
 	return Status(ctx, 204)
 }
-func (*Proxy) SaveAll(ctx *tsing.Context) error {
+func (*Data) SaveAll(ctx *tsing.Context) error {
 	resp := make(map[string]string)
 	if err := saveAll(); err != nil {
 		resp["error"] = err.Error()
