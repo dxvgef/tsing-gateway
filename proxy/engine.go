@@ -1,16 +1,15 @@
 package proxy
 
 import (
-	"errors"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strconv"
 
 	"github.com/rs/zerolog/log"
 
 	"github.com/dxvgef/tsing-gateway/discover"
 	"github.com/dxvgef/tsing-gateway/global"
-	"github.com/dxvgef/tsing-gateway/load_balance"
 )
 
 // 代理引擎
@@ -23,8 +22,8 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		next bool
 		err  error
 	)
-	// 匹配到上游
-	hostname, upstream, status := matchRoute(req)
+	// 匹配到服务
+	hostname, service, status := matchRoute(req)
 	if status > 0 {
 		resp.WriteHeader(status)
 		if _, err = resp.Write(global.StrToBytes(http.StatusText(status))); err != nil {
@@ -55,12 +54,12 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	// 执行上游中间件
-	upstreamMW, upstreamMWExist := global.UpstreamMiddleware.Load(upstream.ID)
-	if upstreamMWExist {
-		mw, ok := upstreamMW.([]global.MiddlewareType)
+	// 执行服务中间件
+	serviceMW, serviceMWExist := global.ServicesMiddleware.Load(service.ID)
+	if serviceMWExist {
+		mw, ok := serviceMW.([]global.MiddlewareType)
 		if !ok {
-			log.Error().Str("upstream id", upstream.ID).Caller().Msg("上游中间件类型断言失败")
+			log.Error().Str("service id", service.ID).Caller().Msg("服务中间件类型断言失败")
 			return
 		}
 		for k := range mw {
@@ -68,7 +67,7 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			// 执行中间件逻辑
 			next, err = mw[k].Action(resp, req)
 			if err != nil {
-				log.Err(err).Caller().Str("upstream id", upstream.ID).Str("middleware name", mw[k].GetName()).Msg("执行上游中间件时出错")
+				log.Err(err).Caller().Str("service id", service.ID).Str("middleware name", mw[k].GetName()).Msg("执行服务中间件时出错")
 				return
 			}
 			if !next {
@@ -79,7 +78,7 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	// 获得端点
 	var endpointURL *url.URL
-	endpointURL, status, err = getEndpointURL(upstream)
+	endpointURL, err = getEndpoint(service)
 	if err != nil {
 		log.Err(err).Caller().Msg("获得端点失败")
 		resp.WriteHeader(status)
@@ -99,80 +98,23 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	p.ServeHTTP(resp, req)
 }
 
-// 获得端点url
-func getEndpointURL(upstream global.UpstreamType) (endpointURL *url.URL, status int, err error) {
-	// 获得所有端点列表
-	var endpoints []global.EndpointType
-	endpoints, status, err = fetchEndpoints(upstream)
-	if status > 0 {
-		return
-	}
-
-	if len(endpoints) == 1 {
-		endpointURL, err = url.Parse(endpoints[0].Addr)
-		if err != nil {
-			status = http.StatusInternalServerError
-			log.Err(err).Str("addr", endpoints[0].Addr).Caller().Msg("解析端点地址失败")
-			return
-		}
-		return
-	}
-
-	var lb global.LoadBalance
-	// 使用负载均衡算法选取一个最终的端点
-	lb, err = load_balance.Use(upstream.LoadBalance)
+func getEndpoint(service global.ServiceType) (*url.URL, error) {
+	dc, err := discover.Build(service.Discover.Name, service.Discover.Config)
 	if err != nil {
-		status = http.StatusServiceUnavailable
-		log.Err(err).Str("upstream id", upstream.ID).Str("load_balance", upstream.LoadBalance).Caller().Msg("使用负载均衡算法失败")
-		return
+		return nil, err
 	}
-
-	for i := range endpoints {
-		lb.Set(upstream.ID, endpoints[i].Addr, endpoints[i].Weight)
-	}
-	endpointAddr := lb.Next(upstream.ID)
-	endpointURL, err = url.Parse(endpointAddr)
+	var (
+		ip       string
+		port     uint16
+		endpoint *url.URL
+	)
+	ip, port, err = dc.Fetch(service.ID)
 	if err != nil {
-		status = http.StatusInternalServerError
-		log.Err(err).Str("addr", endpointAddr).Caller().Msg("解析端点地址失败")
-		return
+		return nil, err
 	}
-
-	log.Debug().Caller().Str("addr", endpointURL.String()).Msg("目标端点")
-	return
-}
-
-// 从上游获得所有端点
-func fetchEndpoints(upstream global.UpstreamType) (endpoints []global.EndpointType, status int, err error) {
-	// 如果有静态端点则静态优先
-	if upstream.StaticEndpoint != "" {
-		endpoints = append(endpoints, global.EndpointType{
-			UpstreamID: upstream.ID,
-			Addr:       upstream.StaticEndpoint,
-			Weight:     0,
-		})
-		return
-	}
-
-	if upstream.Discover.Name == "" {
-		status = http.StatusInternalServerError
-		err = errors.New("上游没有设置静态端点也没有配置探测器")
-		log.Err(err).Caller().Str("upstream id", upstream.ID).Str("config", upstream.Discover.Config).Msg("构建探测器时出错")
-		return
-	}
-	// 构建探测器
-	var dc global.DiscoverType
-	dc, err = discover.Build(upstream.Discover.Name, upstream.Discover.Config)
+	endpoint, err = url.Parse(ip + ":" + strconv.Itoa(int(port)))
 	if err != nil {
-		status = http.StatusInternalServerError
-		log.Err(err).Caller().Str("name", upstream.Discover.Name).Str("config", upstream.Discover.Config).Msg("构建探测器时出错")
-		return
+		return nil, err
 	}
-	// 获得所有端点
-	endpoints, err = dc.Fetch(upstream.ID)
-	if err != nil {
-		status = http.StatusInternalServerError
-		log.Err(err).Caller().Str("name", upstream.Discover.Name).Str("config", upstream.Discover.Config).Msg("获得端点列表时出错")
-	}
-	return
+	return endpoint, nil
 }

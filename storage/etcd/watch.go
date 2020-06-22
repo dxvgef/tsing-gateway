@@ -39,9 +39,9 @@ func (self *Etcd) watchLoadData(key, value []byte) error {
 	if strings.HasPrefix(keyStr, self.KeyPrefix+"/hosts/") {
 		return self.LoadHost(keyStr, value)
 	}
-	// 加载上游
-	if strings.HasPrefix(keyStr, self.KeyPrefix+"/upstreams/") {
-		return self.LoadUpstream(value)
+	// 加载服务
+	if strings.HasPrefix(keyStr, self.KeyPrefix+"/services/") {
+		return self.LoadService(value)
 	}
 	// 加载路由
 	if strings.HasPrefix(keyStr, self.KeyPrefix+"/routes/") {
@@ -56,8 +56,8 @@ func (self *Etcd) watchDeleteData(key []byte) error {
 	if strings.HasPrefix(keyStr, self.KeyPrefix+"/hosts/") {
 		return self.DeleteLocalHost(keyStr)
 	}
-	if strings.HasPrefix(keyStr, self.KeyPrefix+"/upstreams/") {
-		return self.DeleteLocalUpstream(keyStr)
+	if strings.HasPrefix(keyStr, self.KeyPrefix+"/services/") {
+		return self.DeleteLocalService(keyStr)
 	}
 	if strings.HasPrefix(keyStr, self.KeyPrefix+"/routes/") {
 		return self.DeleteLocalRoute(keyStr)

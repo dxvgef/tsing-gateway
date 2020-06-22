@@ -29,10 +29,10 @@ var Config struct {
 		WriteTimeout      time.Duration `yaml:"writeTimeout"`
 		IdleTimeout       time.Duration `yaml:"idleTimeout"`
 		HTTP              struct {
-			Port uint `yaml:"port"`
+			Port uint16 `yaml:"port"`
 		} `yaml:"http"`
 		HTTPS struct {
-			Port     uint   `yaml:"port"`
+			Port     uint16 `yaml:"port"`
 			HTTP2    bool   `yaml:"http2"`
 			CertFile string `yaml:"certFile"`
 			KeyFile  string `yaml:"keyFile"`
@@ -47,10 +47,10 @@ var Config struct {
 		WriteTimeout      time.Duration `yaml:"writeTimeout"`
 		IdleTimeout       time.Duration `yaml:"idleTimeout"`
 		HTTP              struct {
-			Port uint `yaml:"port"`
+			Port uint16 `yaml:"port"`
 		} `yaml:"http"`
 		HTTPS struct {
-			Port     uint   `yaml:"port"`
+			Port     uint16 `yaml:"port"`
 			HTTP2    bool   `yaml:"http2"`
 			CertFile string `yaml:"certFile"`
 			KeyFile  string `yaml:"keyFile"`
@@ -67,15 +67,6 @@ func LoadConfigFile(configPath string) error {
 	err = yaml.NewDecoder(file).Decode(&Config)
 	if err != nil {
 		return err
-	}
-
-	if Config.Proxy.HTTP.Port == 0 {
-		Config.Proxy.HTTP.Port = 80
-	}
-	if Config.Proxy.HTTPS.CertFile != "" &&
-		Config.Proxy.HTTPS.KeyFile != "" &&
-		Config.Proxy.HTTPS.Port == 0 {
-		Config.Proxy.HTTPS.Port = 443
 	}
 	return nil
 }

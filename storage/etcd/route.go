@@ -52,7 +52,7 @@ func (self *Etcd) LoadAllRoute() error {
 }
 
 // 保存本地路由到存储器，如果不存在则创建
-func (self *Etcd) SaveRoute(routeGroupID, routePath, routeMethod, upstreamID string) error {
+func (self *Etcd) SaveRoute(routeGroupID, routePath, routeMethod, serviceID string) error {
 	routeMethod = strings.ToUpper(routeMethod)
 	if !global.InStr(global.HTTPMethods, routeMethod) {
 		return errors.New("HTTP方法无效")
@@ -73,7 +73,7 @@ func (self *Etcd) SaveRoute(routeGroupID, routePath, routeMethod, upstreamID str
 
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
-	if _, err := self.client.Put(ctx, key.String(), upstreamID); err != nil {
+	if _, err := self.client.Put(ctx, key.String(), serviceID); err != nil {
 		return err
 	}
 	return nil

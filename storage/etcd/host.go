@@ -100,7 +100,7 @@ func (self *Etcd) SaveAllHost() error {
 	defer ctxCancel()
 	_, err = self.client.Delete(ctx, key.String(), clientv3.WithPrefix())
 	if err != nil {
-		log.Err(err).Caller().Msg("清空存储器中的上游数据失败")
+		log.Err(err).Caller().Msg("清空存储器中的服务数据失败")
 		return err
 	}
 

@@ -4,7 +4,7 @@ import (
 	"net/http"
 )
 
-// 用于构建上游、中间件、存储器模块时的参数配置
+// 用于构建服务、中间件、存储器模块时的参数配置
 type ModuleConfig struct {
 	Name   string `json:"name"`
 	Config string `json:"config"`
@@ -16,24 +16,17 @@ type HostType struct {
 	Middleware   []ModuleConfig `json:"middleware,omitempty"` // 中间件配置
 }
 
-// 上游
-type UpstreamType struct {
-	ID             string         `json:"id"`                        // 上游ID
+// 服务
+type ServiceType struct {
+	ID             string         `json:"id"`                        // 服务ID
 	Middleware     []ModuleConfig `json:"middleware,omitempty"`      // 中间件配置
 	StaticEndpoint string         `json:"static_endpoint,omitempty"` // 静态端点地址，优先级高于Discover
 	Discover       ModuleConfig   `json:"discover,omitempty"`        // 探测器配置
-	LoadBalance    string         `json:"load_balance,omitempty"`    // 负载均衡算法名称
-
-	/*
-		最大缓存容错次数
-		缓存中的端点不可用数超过此值，则自动从上游重新获取端点列表来更新希尔顿
-	*/
-	MaxCacheFault int `json:"max_cache_fault"`
 }
 
 // 端点发现
 type DiscoverType interface {
-	Fetch(string) (string, int, error)
+	Fetch(string) (string, uint16, error)
 }
 
 // 中间件接口
@@ -54,12 +47,12 @@ type StorageType interface {
 	DeleteLocalHost(string) error   // 删除本地单个主机数据
 	DeleteStorageHost(string) error // 删除存储器中单个主机数据
 
-	LoadAllUpstream() error             // 从存储器加载所有上游到本地
-	LoadUpstream([]byte) error          // 从存储器加载单个上游数据
-	SaveAllUpstream() error             // 将本地所有上游数据保存到存储器
-	SaveUpstream(string, string) error  // 将本地单个上游数据保存到存储器
-	DeleteLocalUpstream(string) error   // 删除本地单个上游数据
-	DeleteStorageUpstream(string) error // 删除存储器中单个上游数据
+	LoadAllService() error             // 从存储器加载所有服务到本地
+	LoadService([]byte) error          // 从存储器加载单个服务数据
+	SaveAllService() error             // 将本地所有服务数据保存到存储器
+	SaveService(string, string) error  // 将本地单个服务数据保存到存储器
+	DeleteLocalService(string) error   // 删除本地单个服务数据
+	DeleteStorageService(string) error // 删除存储器中单个服务数据
 
 	LoadAllRoute() error                             // 从存储器加载所有路由数据到本地
 	LoadRoute(string, []byte) error                  // 从存储器加载单个路由数据

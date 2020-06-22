@@ -10,9 +10,9 @@ import (
 	"github.com/dxvgef/tsing-gateway/global"
 )
 
-type Upstream struct{}
+type Service struct{}
 
-func (self *Upstream) Add(ctx *tsing.Context) error {
+func (self *Service) Add(ctx *tsing.Context) error {
 	var (
 		err  error
 		resp = make(map[string]string)
@@ -23,8 +23,8 @@ func (self *Upstream) Add(ctx *tsing.Context) error {
 			staticEndpoint string
 			loadBalance    string
 		}
-		upstream      global.UpstreamType
-		upstreamBytes []byte
+		service      global.ServiceType
+		serviceBytes []byte
 	)
 	if err = filter.MSet(
 		filter.El(&req.id, filter.FromString(ctx.Post("id"), "id").Required()),
@@ -36,8 +36,8 @@ func (self *Upstream) Add(ctx *tsing.Context) error {
 		resp["error"] = err.Error()
 		return JSON(ctx, 400, &resp)
 	}
-	if _, exists := global.Upstreams.Load(req.id); exists {
-		resp["error"] = "上游ID已存在"
+	if _, exists := global.Services.Load(req.id); exists {
+		resp["error"] = "服务ID已存在"
 		return JSON(ctx, 400, &resp)
 	}
 	if req.staticEndpoint == "" && req.discover == "" {
@@ -54,35 +54,35 @@ func (self *Upstream) Add(ctx *tsing.Context) error {
 	}
 
 	if req.discover != "" {
-		if err = upstream.Discover.UnmarshalJSON(global.StrToBytes(req.discover)); err != nil {
+		if err = service.Discover.UnmarshalJSON(global.StrToBytes(req.discover)); err != nil {
 			resp["error"] = "探测器配置解析失败"
 			return JSON(ctx, 400, &resp)
 		}
 	}
 
 	if req.middleware != "" {
-		if err = json.Unmarshal(global.StrToBytes(req.middleware), &upstream.Middleware); err != nil {
+		if err = json.Unmarshal(global.StrToBytes(req.middleware), &service.Middleware); err != nil {
 			resp["error"] = "中间件配置解析失败"
 			return JSON(ctx, 400, &resp)
 		}
 	}
 
-	upstream.ID = req.id
-	upstream.StaticEndpoint = req.staticEndpoint
+	service.ID = req.id
+	service.StaticEndpoint = req.staticEndpoint
 
-	if upstreamBytes, err = upstream.MarshalJSON(); err != nil {
-		log.Err(err).Caller().Msg("对upstream序列化成JSON字符串失败")
+	if serviceBytes, err = service.MarshalJSON(); err != nil {
+		log.Err(err).Caller().Msg("JSON编码失败")
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
 
-	if err = global.Storage.SaveUpstream(req.id, global.BytesToStr(upstreamBytes)); err != nil {
+	if err = global.Storage.SaveService(req.id, global.BytesToStr(serviceBytes)); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
 	return Status(ctx, 204)
 }
-func (self *Upstream) Put(ctx *tsing.Context) error {
+func (self *Service) Put(ctx *tsing.Context) error {
 	var (
 		err  error
 		resp = make(map[string]string)
@@ -93,8 +93,8 @@ func (self *Upstream) Put(ctx *tsing.Context) error {
 			staticEndpoint string
 			loadBalance    string
 		}
-		upstream      global.UpstreamType
-		upstreamBytes []byte
+		service      global.ServiceType
+		serviceBytes []byte
 	)
 	if err = filter.MSet(
 		filter.El(&req.id, filter.FromString(ctx.PathParams.Value("id"), "id").Required().Base64RawURLDecode()),
@@ -121,36 +121,36 @@ func (self *Upstream) Put(ctx *tsing.Context) error {
 	}
 
 	if req.discover != "" {
-		if err = upstream.Discover.UnmarshalJSON(global.StrToBytes(req.discover)); err != nil {
+		if err = service.Discover.UnmarshalJSON(global.StrToBytes(req.discover)); err != nil {
 			resp["error"] = "探测器配置解析失败"
 			return JSON(ctx, 400, &resp)
 		}
 	}
 
 	if req.middleware != "" {
-		if err = json.Unmarshal(global.StrToBytes(req.middleware), &upstream.Middleware); err != nil {
+		if err = json.Unmarshal(global.StrToBytes(req.middleware), &service.Middleware); err != nil {
 			resp["error"] = "中间件配置解析失败"
 			return JSON(ctx, 400, &resp)
 		}
 	}
 
-	upstream.ID = req.id
-	upstream.StaticEndpoint = req.staticEndpoint
+	service.ID = req.id
+	service.StaticEndpoint = req.staticEndpoint
 
-	if upstreamBytes, err = upstream.MarshalJSON(); err != nil {
-		log.Err(err).Caller().Msg("对upstream序列化成JSON字符串失败")
+	if serviceBytes, err = service.MarshalJSON(); err != nil {
+		log.Err(err).Caller().Msg("JSON编码失败")
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
 
-	if err = global.Storage.SaveUpstream(req.id, global.BytesToStr(upstreamBytes)); err != nil {
+	if err = global.Storage.SaveService(req.id, global.BytesToStr(serviceBytes)); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
 	return Status(ctx, 204)
 }
 
-func (self *Upstream) Delete(ctx *tsing.Context) error {
+func (self *Service) Delete(ctx *tsing.Context) error {
 	var (
 		err  error
 		resp = make(map[string]string)
@@ -159,10 +159,10 @@ func (self *Upstream) Delete(ctx *tsing.Context) error {
 	if id, err = global.DecodeKey(ctx.PathParams.Value("id")); err != nil {
 		return Status(ctx, 404)
 	}
-	if _, exist := global.Upstreams.Load(id); !exist {
+	if _, exist := global.Services.Load(id); !exist {
 		return Status(ctx, 404)
 	}
-	err = global.Storage.DeleteStorageUpstream(ctx.PathParams.Value("id"))
+	err = global.Storage.DeleteStorageService(ctx.PathParams.Value("id"))
 	if err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)

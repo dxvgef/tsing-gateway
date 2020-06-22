@@ -13,9 +13,9 @@ var (
 
 	Hosts              sync.Map // 主机 key=hostname, value=HostType
 	HostMiddleware     sync.Map // 主机中间件 key=hostname, value=[]MiddlewareType
-	Routes             sync.Map // 路由 key=routeGroupID@path@method, value=upstreamID
-	Upstreams          sync.Map // 上游 key=RouteGroupID, value=UpstreamType
-	UpstreamMiddleware sync.Map // 上游中间件 key=MiddlewareName, value=[]MiddlewareType
+	Routes             sync.Map // 路由 key=routeGroupID@path@method, value=serviceID
+	Services           sync.Map // 服务 key=RouteGroupID, value=ServiceType
+	ServicesMiddleware sync.Map // 服务中间件 key=MiddlewareName, value=[]MiddlewareType
 
 	// HTTP方法允许的值
 	HTTPMethods = []string{

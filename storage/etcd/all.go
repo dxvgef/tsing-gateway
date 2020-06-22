@@ -5,7 +5,7 @@ func (self *Etcd) LoadAll() (err error) {
 	if err = self.LoadAllHost(); err != nil {
 		return
 	}
-	if err = self.LoadAllUpstream(); err != nil {
+	if err = self.LoadAllService(); err != nil {
 		return
 	}
 	if err = self.LoadAllRoute(); err != nil {
@@ -19,7 +19,7 @@ func (self *Etcd) SaveAll() (err error) {
 	if err = self.SaveAllHost(); err != nil {
 		return
 	}
-	if err = self.SaveAllUpstream(); err != nil {
+	if err = self.SaveAllService(); err != nil {
 		return
 	}
 	if err = self.SaveAllRoute(); err != nil {

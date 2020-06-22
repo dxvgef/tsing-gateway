@@ -17,7 +17,7 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal(in *jlexer.Lexer, out *UpstreamType) {
+func easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal(in *jlexer.Lexer, out *ServiceType) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -65,10 +65,6 @@ func easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal(in *jlexer.Lexer, o
 			out.StaticEndpoint = string(in.String())
 		case "discover":
 			(out.Discover).UnmarshalEasyJSON(in)
-		case "load_balance":
-			out.LoadBalance = string(in.String())
-		case "max_cache_fault":
-			out.MaxCacheFault = int(in.Int())
 		default:
 			in.SkipRecursive()
 		}
@@ -79,7 +75,7 @@ func easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal(in *jlexer.Lexer, o
 		in.Consumed()
 	}
 }
-func easyjson9f2eff5fEncodeGithubComDxvgefTsingGatewayGlobal(out *jwriter.Writer, in UpstreamType) {
+func easyjson9f2eff5fEncodeGithubComDxvgefTsingGatewayGlobal(out *jwriter.Writer, in ServiceType) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -112,40 +108,30 @@ func easyjson9f2eff5fEncodeGithubComDxvgefTsingGatewayGlobal(out *jwriter.Writer
 		out.RawString(prefix)
 		(in.Discover).MarshalEasyJSON(out)
 	}
-	if in.LoadBalance != "" {
-		const prefix string = ",\"load_balance\":"
-		out.RawString(prefix)
-		out.String(string(in.LoadBalance))
-	}
-	{
-		const prefix string = ",\"max_cache_fault\":"
-		out.RawString(prefix)
-		out.Int(int(in.MaxCacheFault))
-	}
 	out.RawByte('}')
 }
 
 // MarshalJSON supports json.Marshaler interface
-func (v UpstreamType) MarshalJSON() ([]byte, error) {
+func (v ServiceType) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
 	easyjson9f2eff5fEncodeGithubComDxvgefTsingGatewayGlobal(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
-func (v UpstreamType) MarshalEasyJSON(w *jwriter.Writer) {
+func (v ServiceType) MarshalEasyJSON(w *jwriter.Writer) {
 	easyjson9f2eff5fEncodeGithubComDxvgefTsingGatewayGlobal(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
-func (v *UpstreamType) UnmarshalJSON(data []byte) error {
+func (v *ServiceType) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
 	easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *UpstreamType) UnmarshalEasyJSON(l *jlexer.Lexer) {
+func (v *ServiceType) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal(l, v)
 }
 func easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal1(in *jlexer.Lexer, out *ModuleConfig) {
@@ -323,84 +309,4 @@ func (v *HostType) UnmarshalJSON(data []byte) error {
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *HostType) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal2(l, v)
-}
-func easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal3(in *jlexer.Lexer, out *EndpointType) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeString()
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "upstream_id":
-			out.UpstreamID = string(in.String())
-		case "addr":
-			out.Addr = string(in.String())
-		case "weight":
-			out.Weight = int(in.Int())
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson9f2eff5fEncodeGithubComDxvgefTsingGatewayGlobal3(out *jwriter.Writer, in EndpointType) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"upstream_id\":"
-		out.RawString(prefix[1:])
-		out.String(string(in.UpstreamID))
-	}
-	{
-		const prefix string = ",\"addr\":"
-		out.RawString(prefix)
-		out.String(string(in.Addr))
-	}
-	{
-		const prefix string = ",\"weight\":"
-		out.RawString(prefix)
-		out.Int(int(in.Weight))
-	}
-	out.RawByte('}')
-}
-
-// MarshalJSON supports json.Marshaler interface
-func (v EndpointType) MarshalJSON() ([]byte, error) {
-	w := jwriter.Writer{}
-	easyjson9f2eff5fEncodeGithubComDxvgefTsingGatewayGlobal3(&w, v)
-	return w.Buffer.BuildBytes(), w.Error
-}
-
-// MarshalEasyJSON supports easyjson.Marshaler interface
-func (v EndpointType) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson9f2eff5fEncodeGithubComDxvgefTsingGatewayGlobal3(w, v)
-}
-
-// UnmarshalJSON supports json.Unmarshaler interface
-func (v *EndpointType) UnmarshalJSON(data []byte) error {
-	r := jlexer.Lexer{Data: data}
-	easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal3(&r, v)
-	return r.Error()
-}
-
-// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *EndpointType) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson9f2eff5fDecodeGithubComDxvgefTsingGatewayGlobal3(l, v)
 }

@@ -4,6 +4,7 @@ package proxy
 
 import (
 	json "encoding/json"
+
 	global "github.com/dxvgef/tsing-gateway/global"
 	easyjson "github.com/mailru/easyjson"
 	jlexer "github.com/mailru/easyjson/jlexer"
@@ -77,22 +78,22 @@ func easyjson61e0ab13DecodeGithubComDxvgefTsingGatewayProxy(in *jlexer.Lexer, ou
 				}
 				in.Delim('}')
 			}
-		case "upstreams":
+		case "services":
 			if in.IsNull() {
 				in.Skip()
 			} else {
 				in.Delim('{')
 				if !in.IsDelim('}') {
-					out.Upstreams = make(map[string]global.UpstreamType)
+					out.Services = make(map[string]global.ServiceType)
 				} else {
-					out.Upstreams = nil
+					out.Services = nil
 				}
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
-					var v3 global.UpstreamType
+					var v3 global.ServiceType
 					(v3).UnmarshalEasyJSON(in)
-					(out.Upstreams)[key] = v3
+					(out.Services)[key] = v3
 					in.WantComma()
 				}
 				in.Delim('}')
@@ -155,8 +156,8 @@ func easyjson61e0ab13EncodeGithubComDxvgefTsingGatewayProxy(out *jwriter.Writer,
 			out.RawByte('}')
 		}
 	}
-	if len(in.Upstreams) != 0 {
-		const prefix string = ",\"upstreams\":"
+	if len(in.Services) != 0 {
+		const prefix string = ",\"services\":"
 		if first {
 			first = false
 			out.RawString(prefix[1:])
@@ -166,7 +167,7 @@ func easyjson61e0ab13EncodeGithubComDxvgefTsingGatewayProxy(out *jwriter.Writer,
 		{
 			out.RawByte('{')
 			v6First := true
-			for v6Name, v6Value := range in.Upstreams {
+			for v6Name, v6Value := range in.Services {
 				if v6First {
 					v6First = false
 				} else {

@@ -13,20 +13,20 @@ func SetRouter(engine *tsing.Engine) {
 	router.PUT("/proxy/", proxyHandler.SaveAll)
 
 	var hostHandler Host
-	router.POST("/host/", hostHandler.Add)
-	router.PUT("/host/:hostname", hostHandler.Put)
-	router.DELETE("/host/:hostname", hostHandler.Delete)
+	router.POST("/hosts/", hostHandler.Add)
+	router.PUT("/hosts/:hostname", hostHandler.Put)
+	router.DELETE("/hosts/:hostname", hostHandler.Delete)
 
-	var upstreamHandler Upstream
-	router.POST("/upstream/", upstreamHandler.Add)
-	router.PUT("/upstream/:id", upstreamHandler.Put)
-	router.DELETE("/upstream/:id", upstreamHandler.Delete)
+	var serviceHandler Service
+	router.POST("/services/", serviceHandler.Add)
+	router.PUT("/services/:id", serviceHandler.Put)
+	router.DELETE("/services/:id", serviceHandler.Delete)
 
 	var routeHandler Route
-	router.POST("/route/", routeHandler.Add)
-	router.PUT("/route/:groupID/:path/:method", routeHandler.Put)
-	router.DELETE("/route/:groupID/:path/:method", routeHandler.DeleteMethod)
-	router.DELETE("/route/:groupID/:path/", routeHandler.DeletePath)
-	router.DELETE("/route/:groupID/", routeHandler.DeleteGroup)
-	router.DELETE("/route/", routeHandler.DeleteAll)
+	router.POST("/routes/", routeHandler.Add)
+	router.PUT("/routes/:groupID/:path/:method", routeHandler.Put)
+	router.DELETE("/routes/:groupID/:path/:method", routeHandler.DeleteMethod)
+	router.DELETE("/routes/:groupID/:path/", routeHandler.DeletePath)
+	router.DELETE("/routes/:groupID/", routeHandler.DeleteGroup)
+	router.DELETE("/routes/", routeHandler.DeleteAll)
 }

@@ -59,5 +59,8 @@ func matchHost(reqHost string) (string, string, bool) {
 	}
 
 	v, exist := global.Hosts.Load(reqHost)
+	if !exist {
+		return "", "", false
+	}
 	return reqHost, v.(string), exist
 }

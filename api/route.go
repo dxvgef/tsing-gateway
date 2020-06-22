@@ -15,10 +15,10 @@ func (self *Route) Add(ctx *tsing.Context) error {
 	var (
 		resp = map[string]string{}
 		req  struct {
-			groupID    string
-			path       string
-			method     string
-			upstreamID string
+			groupID   string
+			path      string
+			method    string
+			serviceID string
 		}
 		key strings.Builder
 	)
@@ -26,7 +26,7 @@ func (self *Route) Add(ctx *tsing.Context) error {
 		filter.El(&req.groupID, filter.FromString(ctx.Post("group_id"), "group_id").Required()),
 		filter.El(&req.path, filter.FromString(ctx.Post("path"), "path").Required()),
 		filter.El(&req.method, filter.FromString(ctx.Post("method"), "method").Required().ToUpper().EnumString(global.HTTPMethods)),
-		filter.El(&req.upstreamID, filter.FromString(ctx.Post("upstream_id"), "upstream_id").Required()),
+		filter.El(&req.serviceID, filter.FromString(ctx.Post("service_id"), "service_id").Required()),
 	)
 	if err != nil {
 		resp["error"] = err.Error()
@@ -41,7 +41,7 @@ func (self *Route) Add(ctx *tsing.Context) error {
 		resp["error"] = "路由已存在"
 		return JSON(ctx, 400, &resp)
 	}
-	if err = global.Storage.SaveRoute(req.groupID, req.path, req.method, req.upstreamID); err != nil {
+	if err = global.Storage.SaveRoute(req.groupID, req.path, req.method, req.serviceID); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -52,10 +52,10 @@ func (self *Route) Put(ctx *tsing.Context) error {
 	var (
 		resp = map[string]string{}
 		req  struct {
-			groupID    string
-			path       string
-			method     string
-			upstreamID string
+			groupID   string
+			path      string
+			method    string
+			serviceID string
 		}
 		key strings.Builder
 	)
@@ -63,7 +63,7 @@ func (self *Route) Put(ctx *tsing.Context) error {
 		filter.El(&req.groupID, filter.FromString(ctx.PathParams.Value("groupID"), "groupID").Required().Base64RawURLDecode()),
 		filter.El(&req.path, filter.FromString(ctx.PathParams.Value("path"), "path").Required().Base64RawURLDecode()),
 		filter.El(&req.method, filter.FromString(ctx.PathParams.Value("method"), "method").Required().ToUpper().EnumString(global.HTTPMethods)),
-		filter.El(&req.upstreamID, filter.FromString(ctx.Post("upstream_id"), "upstream_id").Required()),
+		filter.El(&req.serviceID, filter.FromString(ctx.Post("service_id"), "service_id").Required()),
 	)
 	if err != nil {
 		resp["error"] = err.Error()
@@ -74,7 +74,7 @@ func (self *Route) Put(ctx *tsing.Context) error {
 	key.WriteString(req.path)
 	key.WriteString("/")
 	key.WriteString(req.method)
-	if err = global.Storage.SaveRoute(req.groupID, req.path, req.method, req.upstreamID); err != nil {
+	if err = global.Storage.SaveRoute(req.groupID, req.path, req.method, req.serviceID); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}

@@ -1,7 +1,7 @@
 package tsing_center
 
-// 获取所有Endpoint列表
-func (self *TsingCenter) Fetch(upstreamID string) (string, int, error) {
+// 获节点
+func (self *TsingCenter) Fetch(serviceID string) (string, uint16, error) {
 
 	return "", 0, nil
 }

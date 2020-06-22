@@ -18,7 +18,7 @@ storage:
     name: "etcd"
     # 存储器配置json字符串
     config: '{
-        "endpoints": ["http://192.168.50.212:2379"],
+        "endpoints": ["http://127.0.0.1:2379"],
         "key_prefix": "/tsing-gateway"
     }
     '

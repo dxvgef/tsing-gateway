@@ -10,7 +10,7 @@ import (
 )
 
 // 设置路由组及路由
-func SetRoute(routeGroupID, routePath, routeMethod, upstreamID string) error {
+func SetRoute(routeGroupID, routePath, routeMethod, serviceID string) error {
 	if routeGroupID == "" {
 		return errors.New("路由组ID不能为空")
 	}
@@ -29,7 +29,7 @@ func SetRoute(routeGroupID, routePath, routeMethod, upstreamID string) error {
 	key.WriteString(routePath)
 	key.WriteString("/")
 	key.WriteString(routeMethod)
-	global.Routes.Store(key.String(), upstreamID)
+	global.Routes.Store(key.String(), serviceID)
 	return nil
 }
 
@@ -56,13 +56,13 @@ func DeleteRoute(routeGroupID, routePath, routeMethod string) error {
 }
 
 // 匹配路由，返回集群ID和匹配结果的HTTP状态码
-func matchRoute(req *http.Request) (hostname string, upstream global.UpstreamType, status int) {
+func matchRoute(req *http.Request) (hostname string, service global.ServiceType, status int) {
 	var (
 		routeGroupID string
 		routePath    = req.URL.Path
 		routeMethod  = req.Method
 		matchResult  bool
-		upstreamID   string
+		serviceID    string
 	)
 
 	// 匹配主机
@@ -76,14 +76,14 @@ func matchRoute(req *http.Request) (hostname string, upstream global.UpstreamTyp
 	}
 	var key strings.Builder
 	var exist bool
-	// 先尝试直接匹配upstream
+	// 先尝试直接匹配service
 	key.WriteString(routeGroupID)
 	key.WriteString("/")
 	key.WriteString(routePath)
 	key.WriteString("/")
 	key.WriteString(routeMethod)
 	if v, e := global.Routes.Load(key.String()); e {
-		upstream, exist = matchUpstream(v.(string))
+		service, exist = matchService(v.(string))
 		if exist {
 			return
 		}
@@ -141,12 +141,12 @@ func matchRoute(req *http.Request) (hostname string, upstream global.UpstreamTyp
 		key.WriteString("/")
 		key.WriteString(routeMethod)
 		if strings.HasPrefix(k, key.String()) {
-			upstreamID = v
+			serviceID = v
 			break
 		}
 	}
 	// 尝试匹配ANY方法
-	if upstreamID == "" {
+	if serviceID == "" {
 		for k, v := range paths {
 			key.Reset()
 			key.WriteString(routeGroupID)
@@ -154,19 +154,19 @@ func matchRoute(req *http.Request) (hostname string, upstream global.UpstreamTyp
 			key.WriteString(routePath)
 			key.WriteString("/ANY")
 			if strings.HasPrefix(k, key.String()) {
-				upstreamID = v
+				serviceID = v
 				break
 			}
 		}
 	}
-	if upstreamID == "" {
+	if serviceID == "" {
 		status = http.StatusMethodNotAllowed
 		return
 	}
 
-	// 获得上游
+	// 获得服务
 	exist = false
-	upstream, exist = matchUpstream(upstreamID)
+	service, exist = matchService(serviceID)
 	if !exist {
 		status = http.StatusNotImplemented
 		return
