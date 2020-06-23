@@ -5,7 +5,6 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"strconv"
-	"time"
 
 	"github.com/rs/zerolog/log"
 
@@ -144,8 +143,6 @@ func send(service global.ServiceType, req *http.Request, resp http.ResponseWrite
 	req.URL.Scheme = endpointURL.Scheme
 	p.ErrorHandler = func(resp http.ResponseWriter, req *http.Request, err error) {
 		log.Err(err).Caller().Msg("向端点发起请求失败")
-		totalTime := time.Duration(service.RetryInterval) * time.Millisecond
-		totalTime = totalTime * time.Duration(service.Retry)
 		// if service.Retry > retry && totalTime < global.Config.Proxy.WriteTimeout {
 		// 	log.Error().Uint8("retry", retry+1).Caller().Msg("向端点发起重试请求")
 		// 	time.Sleep(time.Duration(service.RetryInterval) * time.Millisecond)
