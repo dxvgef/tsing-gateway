@@ -5,6 +5,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/rs/zerolog/log"
 
@@ -18,6 +19,7 @@ type Engine struct{}
 // 实现http.Handler接口的方法
 // 下游请求入口
 func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	log.Debug().Caller().Msg("发起了新的请求")
 	var (
 		next bool
 		err  error
@@ -83,7 +85,7 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	// 发送数据
-	send(service, req, resp, 0)
+	send(service, req, resp)
 }
 
 // 获取端点
@@ -120,7 +122,7 @@ func getEndpoint(service global.ServiceType) (endpoint *url.URL, err error) {
 }
 
 // 发送数据到端点
-func send(service global.ServiceType, req *http.Request, resp http.ResponseWriter, retry uint8) {
+func send(service global.ServiceType, req *http.Request, resp http.ResponseWriter) {
 	// 获得端点
 	var (
 		endpointURL *url.URL
@@ -142,13 +144,16 @@ func send(service global.ServiceType, req *http.Request, resp http.ResponseWrite
 	req.URL.Scheme = endpointURL.Scheme
 	p.ErrorHandler = func(resp http.ResponseWriter, req *http.Request, err error) {
 		log.Err(err).Caller().Msg("向端点发起请求失败")
-		if service.Retry < retry {
-			log.Error().Uint8("retry", retry+1).Caller().Msg("向端点发起重试请求")
-			send(service, req, resp, retry+1)
-			return
-		}
+		totalTime := time.Duration(service.RetryInterval) * time.Millisecond
+		totalTime = totalTime * time.Duration(service.Retry)
+		// if service.Retry > retry && totalTime < global.Config.Proxy.WriteTimeout {
+		// 	log.Error().Uint8("retry", retry+1).Caller().Msg("向端点发起重试请求")
+		// 	time.Sleep(time.Duration(service.RetryInterval) * time.Millisecond)
+		// 	send(service, req, resp, retry+1)
+		// 	return
+		// }
 		resp.WriteHeader(500)
-		if _, err = resp.Write(global.StrToBytes(err.Error())); err != nil {
+		if _, err = resp.Write(global.StrToBytes(http.StatusText(http.StatusInternalServerError))); err != nil {
 			log.Warn().Err(err).Caller().Msg("输出数据到客户端失败")
 		}
 	}

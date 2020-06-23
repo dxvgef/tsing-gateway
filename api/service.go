@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"math"
 
 	"github.com/dxvgef/filter"
 	"github.com/dxvgef/tsing"
@@ -22,7 +21,8 @@ func (self *Service) Add(ctx *tsing.Context) error {
 			middleware     string
 			discover       string
 			staticEndpoint string
-			retry          uint8
+			// retry          uint8
+			// retryInterval  uint16
 		}
 		service      global.ServiceType
 		serviceBytes []byte
@@ -32,7 +32,8 @@ func (self *Service) Add(ctx *tsing.Context) error {
 		filter.El(&req.discover, filter.FromString(ctx.Post("discover"), "discover").IsJSON()),
 		filter.El(&req.middleware, filter.FromString(ctx.Post("middleware"), "middleware").IsJSON()),
 		filter.El(&req.staticEndpoint, filter.FromString(ctx.Post("static_endpoint"), "static_endpoint")),
-		filter.El(&req.retry, filter.FromString(ctx.Post("retry"), "static_endpoint").IsDigit().MinInteger(0).MaxInteger(math.MaxUint8)),
+		// filter.El(&req.retry, filter.FromString(ctx.Post("retry"), "retry").IsDigit().MinInteger(0).MaxInteger(math.MaxUint8)),
+		// filter.El(&req.retryInterval, filter.FromString(ctx.Post("retry_interval"), "retry_interval").IsDigit().MinInteger(0).MaxInteger(math.MaxUint16)),
 	); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 400, &resp)
@@ -65,7 +66,8 @@ func (self *Service) Add(ctx *tsing.Context) error {
 
 	service.ID = req.id
 	service.StaticEndpoint = req.staticEndpoint
-	service.Retry = req.retry
+	// service.Retry = req.retry
+	// service.RetryInterval = req.retryInterval
 
 	if serviceBytes, err = service.MarshalJSON(); err != nil {
 		log.Err(err).Caller().Msg("JSON编码失败")
@@ -88,7 +90,8 @@ func (self *Service) Put(ctx *tsing.Context) error {
 			middleware     string
 			discover       string
 			staticEndpoint string
-			retry          uint8
+			// retry          uint8
+			// retryInterval  uint16
 		}
 		service      global.ServiceType
 		serviceBytes []byte
@@ -98,7 +101,8 @@ func (self *Service) Put(ctx *tsing.Context) error {
 		filter.El(&req.discover, filter.FromString(ctx.Post("discover"), "discover").IsJSON()),
 		filter.El(&req.middleware, filter.FromString(ctx.Post("middleware"), "middleware").IsJSON()),
 		filter.El(&req.staticEndpoint, filter.FromString(ctx.Post("static_endpoint"), "static_endpoint")),
-		filter.El(&req.retry, filter.FromString(ctx.Post("retry"), "static_endpoint").IsDigit().MinInteger(0).MaxInteger(math.MaxUint8)),
+		// filter.El(&req.retry, filter.FromString(ctx.Post("retry"), "retry").IsDigit().MinInteger(0).MaxInteger(math.MaxUint8)),
+		// filter.El(&req.retryInterval, filter.FromString(ctx.Post("retry_interval"), "retry_interval").IsDigit().MinInteger(0).MaxInteger(math.MaxUint16)),
 	); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 400, &resp)
@@ -128,7 +132,9 @@ func (self *Service) Put(ctx *tsing.Context) error {
 
 	service.ID = req.id
 	service.StaticEndpoint = req.staticEndpoint
-	service.Retry = req.retry
+	// service.Retry = req.retry
+	// service.RetryInterval = req.retryInterval
+	log.Debug().Uint8("retry", service.Retry).Caller().Msg("重试次数")
 
 	if serviceBytes, err = service.MarshalJSON(); err != nil {
 		log.Err(err).Caller().Msg("JSON编码失败")

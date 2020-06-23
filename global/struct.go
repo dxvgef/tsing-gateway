@@ -18,8 +18,9 @@ type HostType struct {
 
 // 服务
 type ServiceType struct {
-	ID             string         `json:"id"`                        // 服务ID
-	Retry          uint8          `json:"retry,omitempty"`           // 重试次数，默认为0，表示不重试
+	ID string `json:"id"` // 服务ID
+	// Retry          uint8          `json:"retry,omitempty"`           // 重试次数，默认为0，表示不重试
+	// RetryInterval  uint16         `json:"retry_interval,omitempty"`  // 重试间隔时间(毫秒)，默认为0表示不间隔
 	Middleware     []ModuleConfig `json:"middleware,omitempty"`      // 中间件配置
 	StaticEndpoint string         `json:"static_endpoint,omitempty"` // 静态端点地址，优先级高于Discover
 	Discover       ModuleConfig   `json:"discover,omitempty"`        // 探测器配置
