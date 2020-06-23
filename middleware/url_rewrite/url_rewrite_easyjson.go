@@ -17,7 +17,7 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjson8b42b748DecodeGithubComDxvgefTsingGatewayMiddlewareUrlRewrite(in *jlexer.Lexer, out *URLRewrite) {
+func easyjson8b42b748DecodeGithubComDxvgefTsingGatewayMiddlewareUrlRewrite(in *jlexer.Lexer, out *PathRewrite) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -36,18 +36,82 @@ func easyjson8b42b748DecodeGithubComDxvgefTsingGatewayMiddlewareUrlRewrite(in *j
 			continue
 		}
 		switch key {
-		case "path":
+		case "complete":
 			if in.IsNull() {
 				in.Skip()
 			} else {
 				in.Delim('{')
-				out.Path = make(map[string]string)
+				if !in.IsDelim('}') {
+					out.Complete = make(map[string]string)
+				} else {
+					out.Complete = nil
+				}
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
 					var v1 string
 					v1 = string(in.String())
-					(out.Path)[key] = v1
+					(out.Complete)[key] = v1
+					in.WantComma()
+				}
+				in.Delim('}')
+			}
+		case "prefix":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				in.Delim('{')
+				if !in.IsDelim('}') {
+					out.Prefix = make(map[string]string)
+				} else {
+					out.Prefix = nil
+				}
+				for !in.IsDelim('}') {
+					key := string(in.String())
+					in.WantColon()
+					var v2 string
+					v2 = string(in.String())
+					(out.Prefix)[key] = v2
+					in.WantComma()
+				}
+				in.Delim('}')
+			}
+		case "replace":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				in.Delim('{')
+				if !in.IsDelim('}') {
+					out.Replace = make(map[string]string)
+				} else {
+					out.Replace = nil
+				}
+				for !in.IsDelim('}') {
+					key := string(in.String())
+					in.WantColon()
+					var v3 string
+					v3 = string(in.String())
+					(out.Replace)[key] = v3
+					in.WantComma()
+				}
+				in.Delim('}')
+			}
+		case "suffix":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				in.Delim('{')
+				if !in.IsDelim('}') {
+					out.Suffix = make(map[string]string)
+				} else {
+					out.Suffix = nil
+				}
+				for !in.IsDelim('}') {
+					key := string(in.String())
+					in.WantColon()
+					var v4 string
+					v4 = string(in.String())
+					(out.Suffix)[key] = v4
 					in.WantComma()
 				}
 				in.Delim('}')
@@ -62,27 +126,98 @@ func easyjson8b42b748DecodeGithubComDxvgefTsingGatewayMiddlewareUrlRewrite(in *j
 		in.Consumed()
 	}
 }
-func easyjson8b42b748EncodeGithubComDxvgefTsingGatewayMiddlewareUrlRewrite(out *jwriter.Writer, in URLRewrite) {
+func easyjson8b42b748EncodeGithubComDxvgefTsingGatewayMiddlewareUrlRewrite(out *jwriter.Writer, in PathRewrite) {
 	out.RawByte('{')
 	first := true
 	_ = first
-	{
-		const prefix string = ",\"path\":"
+	if len(in.Complete) != 0 {
+		const prefix string = ",\"complete\":"
+		first = false
 		out.RawString(prefix[1:])
-		if in.Path == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
-			out.RawString(`null`)
-		} else {
+		{
 			out.RawByte('{')
-			v2First := true
-			for v2Name, v2Value := range in.Path {
-				if v2First {
-					v2First = false
+			v5First := true
+			for v5Name, v5Value := range in.Complete {
+				if v5First {
+					v5First = false
 				} else {
 					out.RawByte(',')
 				}
-				out.String(string(v2Name))
+				out.String(string(v5Name))
 				out.RawByte(':')
-				out.String(string(v2Value))
+				out.String(string(v5Value))
+			}
+			out.RawByte('}')
+		}
+	}
+	if len(in.Prefix) != 0 {
+		const prefix string = ",\"prefix\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		{
+			out.RawByte('{')
+			v6First := true
+			for v6Name, v6Value := range in.Prefix {
+				if v6First {
+					v6First = false
+				} else {
+					out.RawByte(',')
+				}
+				out.String(string(v6Name))
+				out.RawByte(':')
+				out.String(string(v6Value))
+			}
+			out.RawByte('}')
+		}
+	}
+	if len(in.Replace) != 0 {
+		const prefix string = ",\"replace\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		{
+			out.RawByte('{')
+			v7First := true
+			for v7Name, v7Value := range in.Replace {
+				if v7First {
+					v7First = false
+				} else {
+					out.RawByte(',')
+				}
+				out.String(string(v7Name))
+				out.RawByte(':')
+				out.String(string(v7Value))
+			}
+			out.RawByte('}')
+		}
+	}
+	if len(in.Suffix) != 0 {
+		const prefix string = ",\"suffix\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		{
+			out.RawByte('{')
+			v8First := true
+			for v8Name, v8Value := range in.Suffix {
+				if v8First {
+					v8First = false
+				} else {
+					out.RawByte(',')
+				}
+				out.String(string(v8Name))
+				out.RawByte(':')
+				out.String(string(v8Value))
 			}
 			out.RawByte('}')
 		}
@@ -91,25 +226,25 @@ func easyjson8b42b748EncodeGithubComDxvgefTsingGatewayMiddlewareUrlRewrite(out *
 }
 
 // MarshalJSON supports json.Marshaler interface
-func (v URLRewrite) MarshalJSON() ([]byte, error) {
+func (v PathRewrite) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
 	easyjson8b42b748EncodeGithubComDxvgefTsingGatewayMiddlewareUrlRewrite(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
-func (v URLRewrite) MarshalEasyJSON(w *jwriter.Writer) {
+func (v PathRewrite) MarshalEasyJSON(w *jwriter.Writer) {
 	easyjson8b42b748EncodeGithubComDxvgefTsingGatewayMiddlewareUrlRewrite(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
-func (v *URLRewrite) UnmarshalJSON(data []byte) error {
+func (v *PathRewrite) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
 	easyjson8b42b748DecodeGithubComDxvgefTsingGatewayMiddlewareUrlRewrite(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *URLRewrite) UnmarshalEasyJSON(l *jlexer.Lexer) {
+func (v *PathRewrite) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson8b42b748DecodeGithubComDxvgefTsingGatewayMiddlewareUrlRewrite(l, v)
 }

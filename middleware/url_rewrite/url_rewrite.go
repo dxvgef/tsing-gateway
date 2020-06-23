@@ -4,17 +4,22 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/rs/zerolog/log"
+
 	"github.com/dxvgef/tsing-gateway/global"
 )
 
-// url rewrite
-type URLRewrite struct {
-	Path map[string]string `json:"path"`
+// path rewrite
+type PathRewrite struct {
+	Complete map[string]string `json:"complete,omitempty"`
+	Prefix   map[string]string `json:"prefix,omitempty"`
+	Replace  map[string]string `json:"replace,omitempty"`
+	Suffix   map[string]string `json:"suffix,omitempty"`
 }
 
 // 新建中间件实例
-func New(config string) (*URLRewrite, error) {
-	var instance URLRewrite
+func New(config string) (*PathRewrite, error) {
+	var instance PathRewrite
 	err := instance.UnmarshalJSON(global.StrToBytes(config))
 	if err != nil {
 		return nil, err
@@ -22,15 +27,37 @@ func New(config string) (*URLRewrite, error) {
 	return &instance, nil
 }
 
-func (self *URLRewrite) GetName() string {
+func (self *PathRewrite) GetName() string {
 	return "url_rewrite"
 }
 
 // 中间件行为
-func (self *URLRewrite) Action(resp http.ResponseWriter, req *http.Request) (bool, error) {
-	for k := range self.Path {
+func (self *PathRewrite) Action(_ http.ResponseWriter, req *http.Request) (bool, error) {
+	log.Debug().Str("path", req.URL.Path).Caller().Msg("执行path rewrite中间件")
+	// 全部重写
+	for k := range self.Complete {
+		if req.URL.Path == k {
+			req.URL.Path = self.Prefix[k]
+			req.RequestURI = req.URL.RequestURI()
+		}
+	}
+	// 前缀重写
+	for k := range self.Prefix {
 		if strings.HasPrefix(req.URL.Path, k) {
-			req.URL.Path = strings.Replace(req.URL.Path, k, self.Path[k], 1)
+			req.URL.Path = strings.Replace(req.URL.Path, k, self.Prefix[k], 1)
+			req.RequestURI = req.URL.RequestURI()
+		}
+	}
+	// 替换重写
+	for k := range self.Replace {
+		req.URL.Path = strings.ReplaceAll(req.URL.Path, k, self.Replace[k])
+		req.RequestURI = req.URL.RequestURI()
+	}
+	// 后缀重写
+	for k := range self.Suffix {
+		if strings.HasSuffix(req.URL.Path, k) {
+			req.URL.Path = strings.TrimSuffix(req.URL.Path, k)
+			req.URL.Path += self.Suffix[k]
 			req.RequestURI = req.URL.RequestURI()
 		}
 	}
