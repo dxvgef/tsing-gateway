@@ -2,6 +2,7 @@ package etcd
 
 // 加载所有数据
 func (self *Etcd) LoadAll() (err error) {
+	// 以下调用的函数中已经做了日志记录，所以在这里不再记录
 	if err = self.LoadAllHost(); err != nil {
 		return
 	}
@@ -16,6 +17,7 @@ func (self *Etcd) LoadAll() (err error) {
 
 // 存储所有数据
 func (self *Etcd) SaveAll() (err error) {
+	// 以下调用的函数中已经做了日志记录，所以在这里不再记录
 	if err = self.SaveAllHost(); err != nil {
 		return
 	}

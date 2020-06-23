@@ -24,6 +24,7 @@ func SetHost(hostname string, host global.HostType) error {
 	for k := range host.Middleware {
 		m, err := middleware.Build(host.Middleware[k].Name, host.Middleware[k].Config, false)
 		if err != nil {
+			log.Err(err).Caller().Send()
 			return err
 		}
 		mw = append(mw, m)

@@ -19,11 +19,13 @@ import (
 func (self *Etcd) LoadHost(key string, data []byte) error {
 	hostname, err := global.DecodeKey(path.Base(key))
 	if err != nil {
+		log.Err(err).Caller().Send()
 		return err
 	}
 	var host global.HostType
 	err = host.UnmarshalJSON(data)
 	if err != nil {
+		log.Err(err).Caller().Send()
 		return err
 	}
 	return proxy.SetHost(hostname, host)
@@ -39,11 +41,13 @@ func (self *Etcd) LoadAllHost() error {
 	defer ctxCancel()
 	resp, err := self.client.Get(ctx, key.String(), clientv3.WithPrefix())
 	if err != nil {
+		log.Err(err).Caller().Send()
 		return err
 	}
 	for k := range resp.Kvs {
 		err = self.LoadHost(global.BytesToStr(resp.Kvs[k].Key), resp.Kvs[k].Value)
 		if err != nil {
+			log.Err(err).Caller().Send()
 			return err
 		}
 	}
@@ -60,6 +64,7 @@ func (self *Etcd) SaveHost(hostname, config string) (err error) {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
 	if _, err = self.client.Put(ctx, key.String(), config); err != nil {
+		log.Err(err).Caller().Send()
 		return err
 	}
 	return nil
@@ -79,17 +84,18 @@ func (self *Etcd) SaveAllHost() error {
 		h, ok := v.(global.HostType)
 		if !ok {
 			err = errors.New("主机" + k.(string) + "的配置异常")
-			log.Err(err).Caller().Msg("主机配置的类型断言失败")
+			log.Err(err).Caller().Msg("类型断言失败")
 			return false
 		}
 		if configBytes, err = json.Marshal(&h); err != nil {
-			log.Err(err).Caller().Msg("主机配置序列化成JSON失败")
+			log.Err(err).Caller().Send()
 			return false
 		}
 		hosts[k.(string)] = global.BytesToStr(configBytes)
 		return true
 	})
 	if err != nil {
+		// 上面已经做了日志记录，此处不再重复
 		return err
 	}
 
@@ -100,7 +106,7 @@ func (self *Etcd) SaveAllHost() error {
 	defer ctxCancel()
 	_, err = self.client.Delete(ctx, key.String(), clientv3.WithPrefix())
 	if err != nil {
-		log.Err(err).Caller().Msg("清空存储器中的服务数据失败")
+		log.Err(err).Caller().Send()
 		return err
 	}
 
@@ -108,6 +114,7 @@ func (self *Etcd) SaveAllHost() error {
 	for hostname, config := range hosts {
 		hostname = global.EncodeKey(hostname)
 		if err = self.SaveHost(hostname, config); err != nil {
+			log.Err(err).Caller().Send()
 			return err
 		}
 	}
@@ -119,6 +126,7 @@ func (self *Etcd) SaveAllHost() error {
 func (self *Etcd) DeleteLocalHost(key string) error {
 	hostname, err := global.DecodeKey(path.Base(key))
 	if err != nil {
+		log.Err(err).Caller().Send()
 		return err
 	}
 	return proxy.DelHost(hostname)
@@ -138,7 +146,7 @@ func (self *Etcd) DeleteStorageHost(hostname string) error {
 	defer ctxCancel()
 	_, err := self.client.Delete(ctx, key.String())
 	if err != nil {
-		log.Err(err).Caller().Msg("删除存储器中的主机数据失败")
+		log.Err(err).Caller().Send()
 		return err
 	}
 	return nil

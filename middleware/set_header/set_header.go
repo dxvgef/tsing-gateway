@@ -3,6 +3,8 @@ package set_header
 import (
 	"net/http"
 
+	"github.com/rs/zerolog/log"
+
 	"github.com/dxvgef/tsing-gateway/global"
 )
 
@@ -17,6 +19,7 @@ func New(config string) (*SetHeader, error) {
 	var instance SetHeader
 	err := instance.UnmarshalJSON(global.StrToBytes(config))
 	if err != nil {
+		log.Err(err).Caller().Send()
 		return nil, err
 	}
 	return &instance, nil

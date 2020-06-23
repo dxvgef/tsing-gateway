@@ -6,8 +6,6 @@ import (
 	"strings"
 	"sync"
 	"unsafe"
-
-	"github.com/rs/zerolog/log"
 )
 
 func BytesToStr(value []byte) string {
@@ -23,6 +21,7 @@ func EncodeKey(value string) string {
 func DecodeKey(value string) (string, error) {
 	keyBytes, err := base64.RawURLEncoding.DecodeString(value)
 	if err != nil {
+		// 由于数据来自客户端，因此不记录日志
 		return "", err
 	}
 	return BytesToStr(keyBytes), nil
@@ -60,13 +59,13 @@ func ParseRoute(key, keyPrefix string) (routeGroupID, routePath, routeMethod str
 	pos = strings.Index(key, "/")
 	if pos == -1 {
 		err = errors.New("路由解析失败")
-		log.Err(err).Str("key", key).Int("pos", pos).Caller().Send()
+		// 由于数据来自客户端，因此不记录日志
 		return
 	}
 	routeGroupID = key[:pos]
 	if routeGroupID == "" {
 		err = errors.New("路由组ID解析失败")
-		log.Err(err).Str("key", key).Int("pos", pos).Caller().Send()
+		// 由于数据来自客户端，因此不记录日志
 		return
 	}
 
@@ -74,7 +73,7 @@ func ParseRoute(key, keyPrefix string) (routeGroupID, routePath, routeMethod str
 	if keyPrefix != "" {
 		routeGroupID, err = DecodeKey(routeGroupID)
 		if err != nil {
-			log.Err(err).Str("routeGroupID", routeGroupID).Caller().Msg("解码路由组ID失败")
+			// 由于数据来自客户端，因此不记录日志
 			return
 		}
 	}
@@ -85,7 +84,7 @@ func ParseRoute(key, keyPrefix string) (routeGroupID, routePath, routeMethod str
 	pos = strings.LastIndex(key, "/")
 	if pos == -1 {
 		err = errors.New("没有找到路径和方法的分隔符")
-		log.Err(err).Str("key", key).Int("pos", pos).Caller().Send()
+		// 由于数据来自客户端，因此不记录日志
 		return
 	}
 	// 解析出路径
@@ -95,7 +94,7 @@ func ParseRoute(key, keyPrefix string) (routeGroupID, routePath, routeMethod str
 	if keyPrefix != "" {
 		routePath, err = DecodeKey(routePath)
 		if err != nil {
-			log.Err(err).Str("path", routePath).Caller().Msg("路径解码失败")
+			// 由于数据来自客户端，因此不记录日志
 			return
 		}
 	}
@@ -103,8 +102,8 @@ func ParseRoute(key, keyPrefix string) (routeGroupID, routePath, routeMethod str
 	// 获取方法
 	routeMethod = key[pos+1:]
 	if !InStr(HTTPMethods, routeMethod) {
+		// 由于数据来自客户端，因此不记录日志
 		err = errors.New("路由方法解析失败")
-		log.Err(err).Str("method", routeMethod).Caller().Msg("路径解码失败")
 		return
 	}
 

@@ -6,6 +6,8 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/rs/zerolog/log"
+
 	"github.com/dxvgef/tsing-gateway/global"
 )
 
@@ -18,6 +20,7 @@ func New(config string) (*Favicon, error) {
 	var instance Favicon
 	err := instance.UnmarshalJSON(global.StrToBytes(config))
 	if err != nil {
+		log.Err(err).Caller().Send()
 		return nil, err
 	}
 	return &instance, nil
@@ -40,9 +43,11 @@ func (self *Favicon) Action(resp http.ResponseWriter, req *http.Request) (bool, 
 		// 使用target做为favicon.ico文件的URL
 		fileURL, err := url.Parse(self.Target)
 		if err != nil {
+			log.Err(err).Caller().Send()
 			resp.WriteHeader(http.StatusInternalServerError)
-			// nolint
-			resp.Write(global.StrToBytes(http.StatusText(http.StatusInternalServerError)))
+			if _, tmpErr := resp.Write(global.StrToBytes(http.StatusText(http.StatusInternalServerError))); tmpErr != nil {
+				log.Err(tmpErr).Caller().Send()
+			}
 			return false, err
 		}
 		resp.Header().Set("Location", fileURL.String())
@@ -52,15 +57,18 @@ func (self *Favicon) Action(resp http.ResponseWriter, req *http.Request) (bool, 
 	if self.Status == http.StatusOK {
 		fileInfo, err := os.Stat(self.Target)
 		if err != nil {
+			log.Err(err).Caller().Send()
 			resp.WriteHeader(http.StatusInternalServerError)
-			// nolint
-			resp.Write(global.StrToBytes(http.StatusText(http.StatusInternalServerError)))
+			if _, tmpErr := resp.Write(global.StrToBytes(http.StatusText(http.StatusInternalServerError))); tmpErr != nil {
+				log.Err(tmpErr).Caller().Send()
+			}
 			return false, errors.New("Unable to find file '" + self.Target + "'")
 		}
 		if fileInfo.IsDir() {
 			resp.WriteHeader(http.StatusInternalServerError)
-			// nolint
-			resp.Write(global.StrToBytes(http.StatusText(http.StatusInternalServerError)))
+			if _, tmpErr := resp.Write(global.StrToBytes(http.StatusText(http.StatusInternalServerError))); tmpErr != nil {
+				log.Err(tmpErr).Caller().Send()
+			}
 			return false, errors.New("`" + self.Target + "` must be a file and not a directory")
 		}
 		http.ServeFile(resp, req, self.Target)

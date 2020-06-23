@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/dxvgef/tsing"
+	"github.com/rs/zerolog/log"
 
 	"github.com/dxvgef/tsing-gateway/global"
 )
@@ -24,6 +25,7 @@ func (self *Host) Add(ctx *tsing.Context) error {
 	}
 	var host global.HostType
 	if err := host.UnmarshalJSON(global.StrToBytes(config)); err != nil {
+		// 由于数据来自客户端，因此不记录日志
 		resp["error"] = "config参数解析失败"
 		return JSON(ctx, 400, &resp)
 	}
@@ -33,6 +35,7 @@ func (self *Host) Add(ctx *tsing.Context) error {
 	}
 	hostname = global.EncodeKey(strings.ToLower(hostname))
 	if err := global.Storage.SaveHost(hostname, config); err != nil {
+		log.Err(err).Caller().Send()
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -49,6 +52,7 @@ func (self *Host) Put(ctx *tsing.Context) error {
 	}
 	var host global.HostType
 	if err := host.UnmarshalJSON(global.StrToBytes(config)); err != nil {
+		// 由于数据来自客户端，因此不记录日志
 		resp["error"] = "config参数解析失败"
 		return JSON(ctx, 400, &resp)
 	}
@@ -57,6 +61,7 @@ func (self *Host) Put(ctx *tsing.Context) error {
 		return JSON(ctx, 400, &resp)
 	}
 	if err := global.Storage.SaveHost(hostname, config); err != nil {
+		log.Err(err).Caller().Send()
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -74,12 +79,14 @@ func (self *Host) Delete(ctx *tsing.Context) error {
 	}
 	hostnamePlainText, err := global.DecodeKey(hostname)
 	if err != nil {
+		// 由于数据来自客户端，因此不记录日志
 		return Status(ctx, 500)
 	}
 	if _, exist := global.Hosts.Load(hostnamePlainText); !exist {
 		return Status(ctx, 404)
 	}
 	if err := global.Storage.DeleteStorageHost(hostname); err != nil {
+		log.Err(err).Caller().Send()
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}

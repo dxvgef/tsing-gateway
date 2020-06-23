@@ -16,7 +16,7 @@ func Build(name, config string) (global.DiscoverType, error) {
 	case "tsing_center":
 		f, err := tsing_center.New(config)
 		if err != nil {
-			log.Error().Caller().Msg(err.Error())
+			log.Err(err).Caller().Send()
 			return nil, err
 		}
 		return f, nil

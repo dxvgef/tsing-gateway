@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 )
 
@@ -62,10 +63,12 @@ var Config struct {
 func LoadConfigFile(configPath string) error {
 	file, err := os.Open(filepath.Clean(configPath))
 	if err != nil {
+		log.Err(err).Caller().Send()
 		return err
 	}
 	err = yaml.NewDecoder(file).Decode(&Config)
 	if err != nil {
+		log.Err(err).Caller().Send()
 		return err
 	}
 	return nil

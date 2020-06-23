@@ -22,6 +22,7 @@ func New(config string) (*PathRewrite, error) {
 	var instance PathRewrite
 	err := instance.UnmarshalJSON(global.StrToBytes(config))
 	if err != nil {
+		log.Err(err).Caller().Send()
 		return nil, err
 	}
 	return &instance, nil
@@ -33,7 +34,6 @@ func (self *PathRewrite) GetName() string {
 
 // 中间件行为
 func (self *PathRewrite) Action(_ http.ResponseWriter, req *http.Request) (bool, error) {
-	log.Debug().Str("path", req.URL.Path).Caller().Msg("执行path rewrite中间件")
 	// 全部重写
 	for k := range self.Complete {
 		if req.URL.Path == k {

@@ -5,6 +5,7 @@ import (
 
 	"github.com/dxvgef/filter"
 	"github.com/dxvgef/tsing"
+	"github.com/rs/zerolog/log"
 
 	"github.com/dxvgef/tsing-gateway/global"
 )
@@ -29,6 +30,7 @@ func (self *Route) Add(ctx *tsing.Context) error {
 		filter.El(&req.serviceID, filter.FromString(ctx.Post("service_id"), "service_id").Required()),
 	)
 	if err != nil {
+		// 由于数据来自客户端，因此不记录日志
 		resp["error"] = err.Error()
 		return JSON(ctx, 400, &resp)
 	}
@@ -42,6 +44,7 @@ func (self *Route) Add(ctx *tsing.Context) error {
 		return JSON(ctx, 400, &resp)
 	}
 	if err = global.Storage.SaveRoute(req.groupID, req.path, req.method, req.serviceID); err != nil {
+		log.Err(err).Caller().Send()
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -66,6 +69,7 @@ func (self *Route) Put(ctx *tsing.Context) error {
 		filter.El(&req.serviceID, filter.FromString(ctx.Post("service_id"), "service_id").Required()),
 	)
 	if err != nil {
+		// 由于数据来自客户端，因此不记录日志
 		resp["error"] = err.Error()
 		return JSON(ctx, 400, &resp)
 	}
@@ -75,6 +79,7 @@ func (self *Route) Put(ctx *tsing.Context) error {
 	key.WriteString("/")
 	key.WriteString(req.method)
 	if err = global.Storage.SaveRoute(req.groupID, req.path, req.method, req.serviceID); err != nil {
+		log.Err(err).Caller().Send()
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -96,6 +101,7 @@ func (self *Route) DeleteMethod(ctx *tsing.Context) error {
 		filter.El(&routeMethod, filter.FromString(ctx.PathParams.Value("method"), "method").Required().ToUpper().EnumString(global.HTTPMethods)),
 	)
 	if err != nil {
+		// 由于数据来自客户端，因此不记录日志
 		resp["error"] = err.Error()
 		return JSON(ctx, 400, &resp)
 	}
@@ -109,6 +115,7 @@ func (self *Route) DeleteMethod(ctx *tsing.Context) error {
 	}
 	err = global.Storage.DeleteStorageRoute(routeGroupID, routePath, routeMethod)
 	if err != nil {
+		log.Err(err).Caller().Send()
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -129,6 +136,7 @@ func (self *Route) DeletePath(ctx *tsing.Context) error {
 		filter.El(&routePath, filter.FromString(ctx.PathParams.Value("path"), "path").Required().Base64RawURLDecode()),
 	)
 	if err != nil {
+		// 由于数据来自客户端，因此不记录日志
 		resp["error"] = err.Error()
 		return JSON(ctx, 400, &resp)
 	}
@@ -148,6 +156,7 @@ func (self *Route) DeletePath(ctx *tsing.Context) error {
 	}
 	err = global.Storage.DeleteStorageRoute(routeGroupID, routePath, "")
 	if err != nil {
+		log.Err(err).Caller().Send()
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -164,6 +173,7 @@ func (self *Route) DeleteGroup(ctx *tsing.Context) error {
 	)
 	routeGroupID, err = global.DecodeKey(routeGroupID)
 	if err != nil {
+		// 由于数据来自客户端，因此不记录日志
 		return Status(ctx, 404)
 	}
 	key.WriteString(routeGroupID)
@@ -180,6 +190,7 @@ func (self *Route) DeleteGroup(ctx *tsing.Context) error {
 	}
 	err = global.Storage.DeleteStorageRoute(routeGroupID, "", "")
 	if err != nil {
+		log.Err(err).Caller().Send()
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -194,6 +205,7 @@ func (self *Route) DeleteAll(ctx *tsing.Context) error {
 	global.SyncMapClean(&global.Routes)
 	err = global.Storage.DeleteStorageRoute("", "", "")
 	if err != nil {
+		log.Err(err).Caller().Send()
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}

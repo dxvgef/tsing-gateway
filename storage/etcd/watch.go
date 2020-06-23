@@ -19,12 +19,12 @@ func (self *Etcd) Watch() error {
 			// 更新事件
 			case clientv3.EventTypePut:
 				if err := self.watchLoadData(event.Kv.Key, event.Kv.Value); err != nil {
-					log.Err(err).Caller().Msg("更新本地数据时出错")
+					log.Err(err).Caller().Send()
 				}
 			// 删除事件
 			case clientv3.EventTypeDelete:
 				if err := self.watchDeleteData(event.Kv.Key); err != nil {
-					log.Err(err).Caller().Msg("删除本地数据时出错")
+					log.Err(err).Caller().Send()
 				}
 			}
 		}

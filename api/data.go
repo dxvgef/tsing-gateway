@@ -13,6 +13,7 @@ type Data struct{}
 func (self *Data) OutputJSON(ctx *tsing.Context) error {
 	data, err := proxy.OutputJSON()
 	if err != nil {
+		log.Err(err).Caller().Send()
 		ctx.ResponseWriter.WriteHeader(500)
 		return err
 	}
@@ -28,6 +29,7 @@ func (self *Data) OutputJSON(ctx *tsing.Context) error {
 func (*Data) LoadAll(ctx *tsing.Context) error {
 	resp := make(map[string]string)
 	if err := loadAll(); err != nil {
+		log.Err(err).Caller().Send()
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}
@@ -36,6 +38,7 @@ func (*Data) LoadAll(ctx *tsing.Context) error {
 func (*Data) SaveAll(ctx *tsing.Context) error {
 	resp := make(map[string]string)
 	if err := saveAll(); err != nil {
+		log.Err(err).Caller().Send()
 		resp["error"] = err.Error()
 		return JSON(ctx, 500, &resp)
 	}

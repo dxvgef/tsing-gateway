@@ -17,7 +17,6 @@ type Engine struct{}
 // 实现http.Handler接口的方法
 // 下游请求入口
 func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	log.Debug().Caller().Msg("发起了新的请求")
 	var (
 		next bool
 		err  error
@@ -48,7 +47,7 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			// 执行中间件逻辑
 			next, err = mw[k].Action(resp, req)
 			if err != nil {
-				log.Err(err).Caller().Str("hostname", hostname).Str("middleware name", mw[k].GetName()).Msg("执行主机中间件时出错")
+				log.Err(err).Caller().Str("hostname", hostname).Str("middleware name", mw[k].GetName()).Send()
 				return
 			}
 			if !next {
@@ -62,7 +61,7 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	if serviceMWExist {
 		mw, ok := serviceMW.([]global.MiddlewareType)
 		if !ok {
-			log.Error().Str("service id", service.ID).Caller().Msg("服务中间件类型断言失败")
+			log.Error().Str("service id", service.ID).Caller().Msg("类型断言失败")
 			return
 		}
 		for k := range mw {
@@ -73,7 +72,7 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			// 执行中间件逻辑
 			next, err = mw[k].Action(resp, req)
 			if err != nil {
-				log.Err(err).Caller().Str("service id", service.ID).Str("middleware name", mw[k].GetName()).Msg("执行服务中间件时出错")
+				log.Err(err).Caller().Str("service id", service.ID).Str("middleware name", mw[k].GetName()).Send()
 				return
 			}
 			if !next {
@@ -91,7 +90,7 @@ func getEndpoint(service global.ServiceType) (endpoint *url.URL, err error) {
 	if service.StaticEndpoint != "" {
 		endpoint, err = url.Parse(service.StaticEndpoint)
 		if err != nil {
-			log.Err(err).Caller().Msg("解析服务的EndPoint属性失败")
+			log.Err(err).Caller().Send()
 			return nil, err
 		}
 		return endpoint, nil
@@ -102,12 +101,12 @@ func getEndpoint(service global.ServiceType) (endpoint *url.URL, err error) {
 	)
 	dc, err = discover.Build(service.Discover.Name, service.Discover.Config)
 	if err != nil {
-		log.Err(err).Caller().Msg("构建探测器失败")
+		log.Err(err).Caller().Send()
 		return nil, err
 	}
 	endpoint, err = dc.Fetch(service.ID)
 	if err != nil {
-		log.Err(err).Caller().Msg("使用探测器获取节点失败")
+		log.Err(err).Caller().Send()
 		return nil, err
 	}
 	return
@@ -122,7 +121,7 @@ func send(service global.ServiceType, req *http.Request, resp http.ResponseWrite
 	)
 	endpointURL, err = getEndpoint(service)
 	if err != nil {
-		log.Err(err).Caller().Msg("获得端点失败")
+		log.Err(err).Caller().Send()
 		resp.WriteHeader(500)
 		if _, err = resp.Write(global.StrToBytes(http.StatusText(500))); err != nil {
 			log.Err(err).Caller().Send()
@@ -135,7 +134,7 @@ func send(service global.ServiceType, req *http.Request, resp http.ResponseWrite
 	req.URL.Host = endpointURL.Host
 	req.URL.Scheme = endpointURL.Scheme
 	p.ErrorHandler = func(resp http.ResponseWriter, req *http.Request, err error) {
-		log.Err(err).Caller().Msg("向端点发起请求失败")
+		log.Err(err).Caller().Send()
 		// if service.Retry > retry && totalTime < global.Config.Proxy.WriteTimeout {
 		// 	log.Error().Uint8("retry", retry+1).Caller().Msg("向端点发起重试请求")
 		// 	time.Sleep(time.Duration(service.RetryInterval) * time.Millisecond)
@@ -144,7 +143,7 @@ func send(service global.ServiceType, req *http.Request, resp http.ResponseWrite
 		// }
 		resp.WriteHeader(500)
 		if _, err = resp.Write(global.StrToBytes(http.StatusText(http.StatusInternalServerError))); err != nil {
-			log.Warn().Err(err).Caller().Msg("输出数据到客户端失败")
+			log.Err(err).Caller().Send()
 		}
 	}
 	p.ServeHTTP(resp, req)

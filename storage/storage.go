@@ -3,6 +3,8 @@ package storage
 import (
 	"errors"
 
+	"github.com/rs/zerolog/log"
+
 	"github.com/dxvgef/tsing-gateway/global"
 	"github.com/dxvgef/tsing-gateway/storage/etcd"
 )
@@ -14,10 +16,10 @@ func Build(name, config string) (global.StorageType, error) {
 	case "etcd":
 		sa, err := etcd.New(config)
 		if err != nil {
+			log.Err(err).Caller().Send()
 			return nil, err
 		}
-		// global.StorageKeyPrefix = sa.KeyPrefix
 		return sa, nil
 	}
-	return nil, errors.New("根据名称没有找到对应的存储器")
+	return nil, errors.New("不支持的存储器名称")
 }

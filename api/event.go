@@ -24,7 +24,7 @@ func EventHandler(event *tsing.Event) {
 			Str("method", event.Request.Method).
 			Str("uri", event.Request.RequestURI).Msg(http.StatusText(405))
 	case 500:
-		e := log.Error()
+		e := log.Err(event.Message)
 		e.Str("caller", " "+event.Source.File+":"+strconv.Itoa(event.Source.Line)+" ").
 			Str("func", event.Source.Func)
 		var trace []string
@@ -33,10 +33,10 @@ func EventHandler(event *tsing.Event) {
 		}
 		e.Strs("trace", trace)
 
-		e.Msg(event.Message.Error())
+		e.Send()
 	}
 
 	if _, err := event.ResponseWriter.Write(global.StrToBytes(event.Message.Error())); err != nil {
-		log.Error().Msg(err.Error())
+		log.Err(err).Caller().Send()
 	}
 }

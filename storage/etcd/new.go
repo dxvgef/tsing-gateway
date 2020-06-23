@@ -32,6 +32,7 @@ func New(config string) (*Etcd, error) {
 
 	err := instance.UnmarshalJSON(global.StrToBytes(config))
 	if err != nil {
+		log.Err(err).Caller().Send()
 		return nil, err
 	}
 

@@ -19,13 +19,18 @@ import (
 func (self *Etcd) LoadRoute(key string, data []byte) error {
 	routeGroupID, routePath, routeMethod, err := global.ParseRoute(key, self.KeyPrefix)
 	if err != nil {
+		log.Err(err).Caller().Send()
 		return err
 	}
 	if !global.InStr(global.HTTPMethods, routeMethod) {
 		return errors.New("HTTP方法无效")
 	}
 
-	return proxy.SetRoute(routeGroupID, routePath, routeMethod, global.BytesToStr(data))
+	if err = proxy.SetRoute(routeGroupID, routePath, routeMethod, global.BytesToStr(data)); err != nil {
+		log.Err(err).Caller().Send()
+		return err
+	}
+	return nil
 }
 
 // 从存储器加载所有路由到本地
@@ -39,12 +44,14 @@ func (self *Etcd) LoadAllRoute() error {
 	defer ctxCancel()
 	resp, err := self.client.Get(ctx, key.String(), clientv3.WithPrefix())
 	if err != nil {
+		log.Err(err).Caller().Send()
 		return err
 	}
 
 	// 将所有路由都加载到缓存
 	for k := range resp.Kvs {
 		if err = self.LoadRoute(global.BytesToStr(resp.Kvs[k].Key), resp.Kvs[k].Value); err != nil {
+			log.Err(err).Caller().Send()
 			return err
 		}
 	}
@@ -74,6 +81,7 @@ func (self *Etcd) SaveRoute(routeGroupID, routePath, routeMethod, serviceID stri
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
 	if _, err := self.client.Put(ctx, key.String(), serviceID); err != nil {
+		log.Err(err).Caller().Send()
 		return err
 	}
 	return nil
@@ -98,6 +106,7 @@ func (self *Etcd) SaveAllRoute() (err error) {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
 	if _, err = self.client.Delete(ctx, key.String(), clientv3.WithPrefix()); err != nil {
+		log.Err(err).Caller().Send()
 		return err
 	}
 
@@ -106,10 +115,12 @@ func (self *Etcd) SaveAllRoute() (err error) {
 	for k, v := range routes {
 		routeGroupID, routePath, routeMethod, err = global.ParseRoute(k, "")
 		if err != nil {
+			log.Err(err).Caller().Send()
 			return
 		}
 		err = self.SaveRoute(routeGroupID, routePath, routeMethod, v)
 		if err != nil {
+			log.Err(err).Caller().Send()
 			return
 		}
 	}
@@ -121,9 +132,14 @@ func (self *Etcd) SaveAllRoute() (err error) {
 func (self *Etcd) DeleteLocalRoute(keyStr string) error {
 	routeGroupID, routePath, routeMethod, err := global.ParseRoute(keyStr, self.KeyPrefix)
 	if err != nil {
+		log.Err(err).Caller().Send()
 		return err
 	}
-	return proxy.DeleteRoute(routeGroupID, routePath, routeMethod)
+	if err = proxy.DeleteRoute(routeGroupID, routePath, routeMethod); err != nil {
+		log.Err(err).Caller().Send()
+		return err
+	}
+	return nil
 }
 
 // 删除存储器中路由数据
@@ -143,7 +159,7 @@ func (self *Etcd) DeleteStorageRoute(routeGroupID, routePath, routeMethod string
 	defer ctxCancel()
 	_, err := self.client.Delete(ctx, key.String())
 	if err != nil {
-		log.Err(err).Caller().Msg("删除存储器中的路由数据失败")
+		log.Err(err).Caller().Send()
 		return err
 	}
 	return nil

@@ -20,7 +20,7 @@ func (self *Etcd) LoadService(data []byte) error {
 	var service global.ServiceType
 	err := service.UnmarshalJSON(data)
 	if err != nil {
-		log.Err(err).Caller().Msg("加载服务时出错")
+		log.Err(err).Caller().Send()
 		return err
 	}
 	return proxy.SetService(service)
@@ -37,12 +37,13 @@ func (self *Etcd) LoadAllService() error {
 	defer ctxCancel()
 	resp, err := self.client.Get(ctx, key.String(), clientv3.WithPrefix())
 	if err != nil {
+		log.Err(err).Caller().Send()
 		return err
 	}
 	for k := range resp.Kvs {
 		err = self.LoadService(resp.Kvs[k].Value)
 		if err != nil {
-			log.Err(err).Caller().Msg("加载所有服务时出错")
+			log.Err(err).Caller().Send()
 			return err
 		}
 	}
@@ -60,6 +61,7 @@ func (self *Etcd) SaveService(serviceID, config string) error {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer ctxCancel()
 	if _, err := self.client.Put(ctx, key.String(), config); err != nil {
+		log.Err(err).Caller().Send()
 		return err
 	}
 	return nil
@@ -78,11 +80,11 @@ func (self *Etcd) SaveAllService() error {
 	global.Services.Range(func(k, v interface{}) bool {
 		service, ok := v.(global.ServiceType)
 		if !ok {
-			log.Err(err).Caller().Msg("服务配置的类型断言失败")
+			log.Error().Caller().Msg("类型断言失败")
 			return false
 		}
 		if configBytes, err = json.Marshal(&service); err != nil {
-			log.Err(err).Caller().Msg("服务配置序列化成JSON失败")
+			log.Err(err).Caller().Send()
 			return false
 		}
 		services[k.(string)] = global.BytesToStr(configBytes)
@@ -96,13 +98,14 @@ func (self *Etcd) SaveAllService() error {
 	defer ctxCancel()
 	_, err = self.client.Delete(ctx, key.String(), clientv3.WithPrefix())
 	if err != nil {
-		log.Err(err).Caller().Msg("清空存储器中的服务数据失败")
+		log.Err(err).Caller().Send()
 		return err
 	}
 
 	// 将内存中的数据写入到存储器中
 	for k := range services {
 		if err = self.SaveService(k, services[k]); err != nil {
+			log.Err(err).Caller().Send()
 			return err
 		}
 	}
@@ -113,6 +116,7 @@ func (self *Etcd) SaveAllService() error {
 func (self *Etcd) DeleteLocalService(key string) error {
 	serviceID, err := global.DecodeKey(path.Base(key))
 	if err != nil {
+		log.Err(err).Caller().Send()
 		return err
 	}
 	return proxy.DelService(serviceID)
@@ -128,7 +132,7 @@ func (self *Etcd) DeleteStorageService(serviceID string) error {
 	defer ctxCancel()
 	_, err := self.client.Delete(ctx, key.String())
 	if err != nil {
-		log.Err(err).Caller().Msg("删除存储器中的服务数据失败")
+		log.Err(err).Caller().Send()
 		return err
 	}
 	return nil

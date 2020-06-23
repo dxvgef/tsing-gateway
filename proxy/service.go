@@ -3,6 +3,8 @@ package proxy
 import (
 	"errors"
 
+	"github.com/rs/zerolog/log"
+
 	"github.com/dxvgef/tsing-gateway/global"
 	"github.com/dxvgef/tsing-gateway/middleware"
 )
@@ -23,6 +25,7 @@ func SetService(service global.ServiceType) error {
 	for k := range service.Middleware {
 		m, err := middleware.Build(service.Middleware[k].Name, service.Middleware[k].Config, false)
 		if err != nil {
+			log.Err(err).Caller().Send()
 			return err
 		}
 		mw = append(mw, m)

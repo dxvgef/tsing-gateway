@@ -18,7 +18,7 @@ func Build(name, config string, test bool) (global.MiddlewareType, error) {
 	case "favicon":
 		f, err := favicon.New(config)
 		if err != nil {
-			log.Error().Caller().Msg(err.Error())
+			log.Err(err).Caller().Send()
 			return nil, err
 		}
 		if test {
@@ -31,7 +31,7 @@ func Build(name, config string, test bool) (global.MiddlewareType, error) {
 		}
 		f, err := set_header.New(config)
 		if err != nil {
-			log.Error().Caller().Msg(err.Error())
+			log.Err(err).Caller().Send()
 			return nil, err
 		}
 		if test {
@@ -44,7 +44,7 @@ func Build(name, config string, test bool) (global.MiddlewareType, error) {
 		}
 		f, err := url_rewrite.New(config)
 		if err != nil {
-			log.Error().Caller().Msg(err.Error())
+			log.Err(err).Caller().Send()
 			return nil, err
 		}
 		if test {
@@ -52,5 +52,5 @@ func Build(name, config string, test bool) (global.MiddlewareType, error) {
 		}
 		return f, nil
 	}
-	return nil, errors.New("中间件不存在")
+	return nil, errors.New("不支持的中间件名称")
 }

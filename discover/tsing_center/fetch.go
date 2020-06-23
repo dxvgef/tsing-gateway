@@ -28,31 +28,30 @@ func (self *TsingCenter) Fetch(serviceID string) (*url.URL, error) {
 	endpoint.WriteString("/select")
 	req, err := http.NewRequest("GET", endpoint.String(), nil)
 	if err != nil {
-		log.Err(err).Caller().Msg("探测器构建请求失败")
+		log.Err(err).Caller().Send()
 		return nil, err
 	}
 	req.Header.Set("SECRET", self.Secret)
 	resp, err = http.DefaultClient.Do(req)
 	if err != nil {
-		log.Err(err).Caller().Msg("探测器请求失败")
+		log.Err(err).Caller().Send()
 		return nil, err
 	}
-	log.Debug().Caller().Msg(resp.Status)
+
 	if resp.Status != "200 OK" {
 		err = errors.New("探测器没有获得正确的响应")
-		log.Error().Str("response status", resp.Status).Caller().Msg(err.Error())
+		log.Err(err).Str("response status", resp.Status).Caller().Send()
 		return nil, err
 	}
 	var body []byte
 	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Err(err).Caller().Msg("解析探测器响应数据失败")
+		log.Err(err).Caller().Send()
 		return nil, err
 	}
-	log.Debug().Str("body", global.BytesToStr(body)).Caller().Msg("服务中心响应内容")
 	err = node.UnmarshalJSON(body)
 	if err != nil {
-		log.Err(err).Caller().Msg("解码探测器响应数据失败")
+		log.Err(err).Caller().Send()
 		return nil, err
 	}
 
@@ -63,7 +62,7 @@ func (self *TsingCenter) Fetch(serviceID string) (*url.URL, error) {
 	endpoint.WriteString(strconv.Itoa(int(node.Port)))
 	target, err = url.Parse(endpoint.String())
 	if err != nil {
-		log.Err(err).Caller().Msg("解析探测器返回的节点失败")
+		log.Err(err).Caller().Send()
 		return nil, err
 	}
 	return target, nil
