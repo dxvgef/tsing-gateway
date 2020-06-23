@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"math"
 
 	"github.com/dxvgef/filter"
 	"github.com/dxvgef/tsing"
@@ -21,6 +22,7 @@ func (self *Service) Add(ctx *tsing.Context) error {
 			middleware     string
 			discover       string
 			staticEndpoint string
+			retry          uint8
 		}
 		service      global.ServiceType
 		serviceBytes []byte
@@ -30,6 +32,7 @@ func (self *Service) Add(ctx *tsing.Context) error {
 		filter.El(&req.discover, filter.FromString(ctx.Post("discover"), "discover").IsJSON()),
 		filter.El(&req.middleware, filter.FromString(ctx.Post("middleware"), "middleware").IsJSON()),
 		filter.El(&req.staticEndpoint, filter.FromString(ctx.Post("static_endpoint"), "static_endpoint")),
+		filter.El(&req.retry, filter.FromString(ctx.Post("retry"), "static_endpoint").IsDigit().MinInteger(0).MaxInteger(math.MaxUint8)),
 	); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 400, &resp)
@@ -62,6 +65,7 @@ func (self *Service) Add(ctx *tsing.Context) error {
 
 	service.ID = req.id
 	service.StaticEndpoint = req.staticEndpoint
+	service.Retry = req.retry
 
 	if serviceBytes, err = service.MarshalJSON(); err != nil {
 		log.Err(err).Caller().Msg("JSON编码失败")
@@ -84,6 +88,7 @@ func (self *Service) Put(ctx *tsing.Context) error {
 			middleware     string
 			discover       string
 			staticEndpoint string
+			retry          uint8
 		}
 		service      global.ServiceType
 		serviceBytes []byte
@@ -93,6 +98,7 @@ func (self *Service) Put(ctx *tsing.Context) error {
 		filter.El(&req.discover, filter.FromString(ctx.Post("discover"), "discover").IsJSON()),
 		filter.El(&req.middleware, filter.FromString(ctx.Post("middleware"), "middleware").IsJSON()),
 		filter.El(&req.staticEndpoint, filter.FromString(ctx.Post("static_endpoint"), "static_endpoint")),
+		filter.El(&req.retry, filter.FromString(ctx.Post("retry"), "static_endpoint").IsDigit().MinInteger(0).MaxInteger(math.MaxUint8)),
 	); err != nil {
 		resp["error"] = err.Error()
 		return JSON(ctx, 400, &resp)
@@ -122,6 +128,7 @@ func (self *Service) Put(ctx *tsing.Context) error {
 
 	service.ID = req.id
 	service.StaticEndpoint = req.staticEndpoint
+	service.Retry = req.retry
 
 	if serviceBytes, err = service.MarshalJSON(); err != nil {
 		log.Err(err).Caller().Msg("JSON编码失败")

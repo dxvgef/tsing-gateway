@@ -82,28 +82,11 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	// 获得端点
-	var endpointURL *url.URL
-	endpointURL, err = getEndpoint(service)
-	if err != nil {
-		log.Err(err).Caller().Msg("获得端点失败")
-		resp.WriteHeader(status)
-		if _, err = resp.Write(global.StrToBytes(http.StatusText(status))); err != nil {
-			log.Err(err).Caller().Send()
-		}
-		return
-	}
-
-	// 转发请求到端点
-	p := httputil.NewSingleHostReverseProxy(endpointURL)
-	req.URL.Host = endpointURL.Host
-	req.URL.Scheme = endpointURL.Scheme
-	p.ErrorHandler = func(resp http.ResponseWriter, req *http.Request, err error) {
-		log.Debug().Err(err).Caller().Msg("向端点发起请求出错")
-	}
-	p.ServeHTTP(resp, req)
+	// 发送数据
+	send(service, req, resp, 0)
 }
 
+// 获取端点
 func getEndpoint(service global.ServiceType) (endpoint *url.URL, err error) {
 	if service.StaticEndpoint != "" {
 		endpoint, err = url.Parse(service.StaticEndpoint)
@@ -134,4 +117,40 @@ func getEndpoint(service global.ServiceType) (endpoint *url.URL, err error) {
 		return nil, err
 	}
 	return endpoint, nil
+}
+
+// 发送数据到端点
+func send(service global.ServiceType, req *http.Request, resp http.ResponseWriter, retry uint8) {
+	// 获得端点
+	var (
+		endpointURL *url.URL
+		err         error
+	)
+	endpointURL, err = getEndpoint(service)
+	if err != nil {
+		log.Err(err).Caller().Msg("获得端点失败")
+		resp.WriteHeader(500)
+		if _, err = resp.Write(global.StrToBytes(http.StatusText(500))); err != nil {
+			log.Err(err).Caller().Send()
+		}
+		return
+	}
+
+	// 转发请求到端点
+	p := httputil.NewSingleHostReverseProxy(endpointURL)
+	req.URL.Host = endpointURL.Host
+	req.URL.Scheme = endpointURL.Scheme
+	p.ErrorHandler = func(resp http.ResponseWriter, req *http.Request, err error) {
+		log.Err(err).Caller().Msg("向端点发起请求失败")
+		if service.Retry < retry {
+			log.Error().Uint8("retry", retry+1).Caller().Msg("向端点发起重试请求")
+			send(service, req, resp, retry+1)
+			return
+		}
+		resp.WriteHeader(500)
+		if _, err = resp.Write(global.StrToBytes(err.Error())); err != nil {
+			log.Warn().Err(err).Caller().Msg("输出数据到客户端失败")
+		}
+	}
+	p.ServeHTTP(resp, req)
 }
