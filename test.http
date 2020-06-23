@@ -46,7 +46,7 @@ PUT http://127.0.0.1:10080/services/dGVzdF9zZXJ2aWNl
 SECRET: 123456
 Content-Type: application/x-www-form-urlencoded
 
-static_endpoint=http://127.0.0.1:30080&middleware=[{"name":"set_header","config":"{\"request_header\":{\"X-MYTEST-1\":\"1\",\"X-MYTEST-2\":\"2\"}}"}]
+discover={"name":"tsing_center","config":"{\"addr\":\"http://127.0.0.1:20080\",\"secret\":\"123456\"}"}&middleware=[{"name":"set_header","config":"{\"request_header\":{\"X-MYTEST-1\":\"1\",\"X-MYTEST-2\":\"2\"}}"},{"name":"url_rewrite","config":"{\"prefix\":{\"/\":\"/test/\"}}"}]
 
 ### 删除服务
 DELETE http://127.0.0.1:10080/services/dGVzdF9zZXJ2aWNl

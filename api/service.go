@@ -134,7 +134,7 @@ func (self *Service) Put(ctx *tsing.Context) error {
 	service.StaticEndpoint = req.staticEndpoint
 	// service.Retry = req.retry
 	// service.RetryInterval = req.retryInterval
-	log.Debug().Uint8("retry", service.Retry).Caller().Msg("重试次数")
+	// log.Debug().Uint8("retry", service.Retry).Caller().Msg("重试次数")
 
 	if serviceBytes, err = service.MarshalJSON(); err != nil {
 		log.Err(err).Caller().Msg("JSON编码失败")

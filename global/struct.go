@@ -2,6 +2,7 @@ package global
 
 import (
 	"net/http"
+	"net/url"
 )
 
 // 用于构建服务、中间件、存储器模块时的参数配置
@@ -28,7 +29,7 @@ type ServiceType struct {
 
 // 端点发现
 type DiscoverType interface {
-	Fetch(string) (NodeType, error)
+	Fetch(string) (*url.URL, error)
 }
 
 // 中间件接口

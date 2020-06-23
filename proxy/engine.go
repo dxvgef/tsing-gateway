@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"strconv"
 
 	"github.com/rs/zerolog/log"
 
@@ -99,25 +98,19 @@ func getEndpoint(service global.ServiceType) (endpoint *url.URL, err error) {
 	}
 
 	var (
-		dc   global.DiscoverType
-		node global.NodeType
+		dc global.DiscoverType
 	)
 	dc, err = discover.Build(service.Discover.Name, service.Discover.Config)
 	if err != nil {
 		log.Err(err).Caller().Msg("构建探测器失败")
 		return nil, err
 	}
-	node, err = dc.Fetch(service.ID)
+	endpoint, err = dc.Fetch(service.ID)
 	if err != nil {
 		log.Err(err).Caller().Msg("使用探测器获取节点失败")
 		return nil, err
 	}
-	endpoint, err = url.Parse(node.IP + ":" + strconv.Itoa(int(node.Port)))
-	if err != nil {
-		log.Err(err).Caller().Msg("解析探测器返回的节点失败")
-		return nil, err
-	}
-	return endpoint, nil
+	return
 }
 
 // 发送数据到端点
