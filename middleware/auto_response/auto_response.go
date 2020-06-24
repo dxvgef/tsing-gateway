@@ -10,18 +10,17 @@ import (
 )
 
 type Rule struct {
-	Method string `json:"method"`           // 触发自动响应的请求方法
+	Method string `json:"method"`           // 触发自动响应的请求方法，大写，允许*匹配所有
 	Status int    `json:"status,omitempty"` // 自动响应的状态码
 	Data   string `json:"data,omitempty"`   // 自动响应的内容
 }
 
 type AutoResponse struct {
-	data map[string]Rule `json:"data,omitempty"`
+	data map[string]Rule // key为路径，允许*匹配所有
 }
 
 func New(config string) (*AutoResponse, error) {
 	var instance AutoResponse
-	instance.data = map[string]Rule{}
 	err := json.Unmarshal(global.StrToBytes(config), &instance.data)
 	if err != nil {
 		log.Err(err).Caller().Send()
@@ -36,7 +35,7 @@ func (self *AutoResponse) GetName() string {
 
 func (self *AutoResponse) Action(resp http.ResponseWriter, req *http.Request) (next bool, err error) {
 	for k := range self.data {
-		if req.RequestURI != k || req.Method != self.data[k].Method {
+		if (req.RequestURI != "*" && req.RequestURI != k) || (req.Method != "*" && req.Method != self.data[k].Method) {
 			return
 		}
 		if self.data[k].Status != 0 {

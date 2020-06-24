@@ -52,5 +52,5 @@ func Build(name, config string, test bool) (global.MiddlewareType, error) {
 		}
 		return f, nil
 	}
-	return nil, errors.New("不支持的中间件名称")
+	return nil, errors.New("不支持的中间件名称 " + name)
 }
