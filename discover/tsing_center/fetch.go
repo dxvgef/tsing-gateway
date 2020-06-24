@@ -32,7 +32,8 @@ func (self *TsingCenter) Fetch(serviceID string) (*url.URL, error) {
 		return nil, err
 	}
 	req.Header.Set("SECRET", self.Secret)
-	resp, err = http.DefaultClient.Do(req)
+	var c http.Client
+	resp, err = c.Do(req)
 	if err != nil {
 		log.Err(err).Caller().Send()
 		return nil, err

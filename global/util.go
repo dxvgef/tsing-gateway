@@ -3,6 +3,7 @@ package global
 import (
 	"encoding/base64"
 	"errors"
+	"net/url"
 	"strings"
 	"sync"
 	"unsafe"
@@ -141,4 +142,31 @@ func SyncMapClean(m *sync.Map) {
 		m.Delete(key)
 		return true
 	})
+}
+
+// 在url 添加get参数
+func AddQueryValues(str string, values map[string]string) (string, error) {
+	var result strings.Builder
+	endpoint, err := url.Parse(str)
+	if err != nil {
+		return "", err
+	}
+	query := endpoint.Query()
+	for k := range values {
+		query.Set(k, values[k])
+	}
+	if endpoint.Scheme != "" {
+		result.WriteString(endpoint.Scheme)
+		result.WriteString("://")
+		result.WriteString(endpoint.Host)
+		if endpoint.Path == "" {
+			endpoint.Path = "/"
+		}
+	}
+	if endpoint.Path != "" {
+		result.WriteString(endpoint.Path)
+	}
+	result.WriteString("?")
+	result.WriteString(query.Encode())
+	return result.String(), nil
 }
