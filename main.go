@@ -14,10 +14,10 @@ import (
 	"github.com/rs/zerolog/log"
 	"golang.org/x/net/http2"
 
-	"github.com/dxvgef/tsing-gateway/api"
-	"github.com/dxvgef/tsing-gateway/global"
-	"github.com/dxvgef/tsing-gateway/proxy"
-	"github.com/dxvgef/tsing-gateway/storage"
+	"local/api"
+	"local/global"
+	"local/proxy"
+	"local/storage"
 )
 
 func main() {

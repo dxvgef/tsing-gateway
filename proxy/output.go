@@ -3,7 +3,7 @@ package proxy
 import (
 	"encoding/json"
 
-	"github.com/dxvgef/tsing-gateway/global"
+	"local/global"
 )
 
 type Data struct {

@@ -5,7 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/dxvgef/tsing-gateway/global"
+	"local/global"
 )
 
 // header数据处理
@@ -30,12 +30,13 @@ func (self *SetHeader) GetName() string {
 }
 
 // 中间件行为
-func (self *SetHeader) Action(resp http.ResponseWriter, req *http.Request) (bool, error) {
+func (self *SetHeader) Action(resp http.ResponseWriter, req *http.Request) (next bool, err error) {
 	for k, v := range self.RequestHeader {
 		req.Header.Set(k, v)
 	}
 	for k, v := range self.ResponseHeader {
 		resp.Header().Set(k, v)
 	}
-	return true, nil
+	next = true
+	return
 }

@@ -9,8 +9,8 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/dxvgef/tsing-gateway/global"
-	"github.com/dxvgef/tsing-gateway/proxy"
+	"local/global"
+	"local/proxy"
 
 	"github.com/coreos/etcd/clientv3"
 )

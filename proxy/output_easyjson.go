@@ -5,7 +5,8 @@ package proxy
 import (
 	json "encoding/json"
 
-	global "github.com/dxvgef/tsing-gateway/global"
+	global "local/global"
+
 	easyjson "github.com/mailru/easyjson"
 	jlexer "github.com/mailru/easyjson/jlexer"
 	jwriter "github.com/mailru/easyjson/jwriter"

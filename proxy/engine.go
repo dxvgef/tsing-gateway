@@ -7,8 +7,8 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/dxvgef/tsing-gateway/discover"
-	"github.com/dxvgef/tsing-gateway/global"
+	"local/discover"
+	"local/global"
 )
 
 // 代理引擎

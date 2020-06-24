@@ -5,8 +5,8 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/dxvgef/tsing-gateway/global"
-	"github.com/dxvgef/tsing-gateway/middleware"
+	"local/global"
+	"local/middleware"
 )
 
 func SetService(service global.ServiceType) error {

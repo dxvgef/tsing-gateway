@@ -6,7 +6,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/dxvgef/tsing-gateway/global"
+	"local/global"
 )
 
 // 设置路由组及路由

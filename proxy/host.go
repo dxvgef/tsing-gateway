@@ -5,8 +5,8 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/dxvgef/tsing-gateway/global"
-	"github.com/dxvgef/tsing-gateway/middleware"
+	"local/global"
+	"local/middleware"
 )
 
 // 写入主机，如果存在则覆盖，不存在则创建

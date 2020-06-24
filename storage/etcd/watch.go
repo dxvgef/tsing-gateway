@@ -7,7 +7,7 @@ import (
 	"github.com/coreos/etcd/clientv3"
 	"github.com/rs/zerolog/log"
 
-	"github.com/dxvgef/tsing-gateway/global"
+	"local/global"
 )
 
 // 监听变更

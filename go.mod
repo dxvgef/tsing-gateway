@@ -1,4 +1,4 @@
-module github.com/dxvgef/tsing-gateway
+module local
 
 go 1.14
 
@@ -19,6 +19,7 @@ require (
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/dxvgef/filter v1.8.1
 	github.com/dxvgef/tsing v1.2.2
+	github.com/dxvgef/tsing-gateway v0.0.0-20200623085909-206c9bf52e17
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.4.2 // indirect

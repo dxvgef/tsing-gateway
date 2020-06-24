@@ -5,8 +5,8 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/dxvgef/tsing-gateway/discover/tsing_center"
-	"github.com/dxvgef/tsing-gateway/global"
+	"local/discover/tsing_center"
+	"local/global"
 )
 
 // 构建节点发现实例

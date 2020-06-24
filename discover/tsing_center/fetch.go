@@ -10,7 +10,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/dxvgef/tsing-gateway/global"
+	"local/global"
 )
 
 // 获节点

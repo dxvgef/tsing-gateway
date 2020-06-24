@@ -11,8 +11,8 @@ import (
 	"github.com/coreos/etcd/clientv3"
 	"github.com/rs/zerolog/log"
 
-	"github.com/dxvgef/tsing-gateway/global"
-	"github.com/dxvgef/tsing-gateway/proxy"
+	"local/global"
+	"local/proxy"
 )
 
 // 从存储器加载主机数据到本地，如果不存在则创建
