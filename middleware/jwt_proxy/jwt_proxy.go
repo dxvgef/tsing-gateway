@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"local/global"
 	"net/http"
-	"net/url"
 	"strings"
 
 	"github.com/rs/zerolog/log"
@@ -16,8 +15,8 @@ type JWTProxy struct {
 	SourceType          string `json:"source_type"`                     // 来源类型，支持header、query、form、cookie
 	SourceName          string `json:"source_name"`                     // 来源参数名
 	UpstreamURL         string `json:"upstream_url"`                    // 上游URL
-	SendType            string `json:"send_type"`                       // 发送给上游校验的类型，支持header、query、form、cookie
-	SendMethod          string `json:"send_method"`                     // 发送给上游校验的HTTP方法
+	SendType            string `json:"send_type"`                       // 发送给上游校验的类型，支持header、query、cookie
+	SendMethod          string `json:"send_method"`                     // 发送给上游校验的HTTP方法，支持GET、HEAD、OPTIONS
 	SendName            string `json:"send_name"`                       // 发送给上游校验的参数名
 	UpstreamSuccessBody string `json:"upstream_success_body,omitempty"` // 校验成功的上游响应数据，用于处理只返回200状态码的API，如果留空则不校验body
 }
@@ -36,10 +35,7 @@ func New(config string) (*JWTProxy, error) {
 	if instance.SourceType != "header" && instance.SourceType != "query" && instance.SourceType != "form" && instance.SourceType != "cookie" {
 		return nil, errors.New("source_type参数值无效")
 	}
-	if !global.InStr(global.HTTPMethods, instance.SendMethod) {
-		return nil, errors.New("send_method参数值无效")
-	}
-	if instance.SendMethod == "ANY" {
+	if instance.SendMethod != "GET" && instance.SendMethod != "HEAD" && instance.SendMethod != "OPTIONS" && instance.SendMethod != "TRACE" {
 		return nil, errors.New("send_method参数值无效")
 	}
 	if instance.SourceName == "" {
@@ -137,7 +133,7 @@ func (self *JWTProxy) verityJWT(jwtStr string) (int, error) {
 	// 根据发送类型准备http.Request
 	switch self.SendType {
 	case "header":
-		req, err = http.NewRequest("GET", self.UpstreamURL, nil)
+		req, err = http.NewRequest(self.SendMethod, self.UpstreamURL, nil)
 		if err != nil {
 			log.Err(err).Caller().Send()
 			return http.StatusInternalServerError, err
@@ -151,20 +147,11 @@ func (self *JWTProxy) verityJWT(jwtStr string) (int, error) {
 			log.Err(err).Caller().Send()
 			return http.StatusInternalServerError, err
 		}
-		req, err = http.NewRequest("GET", endpoint, nil)
+		req, err = http.NewRequest(self.SendMethod, endpoint, nil)
 		if err != nil {
 			log.Err(err).Caller().Send()
 			return http.StatusInternalServerError, err
 		}
-	case "form":
-		values := url.Values{}
-		values.Add(self.SendName, jwtStr)
-		req, err = http.NewRequest("POST", self.UpstreamURL, strings.NewReader(values.Encode()))
-		if err != nil {
-			log.Err(err).Caller().Send()
-			return http.StatusInternalServerError, err
-		}
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	case "cookie":
 		req, err = http.NewRequest(self.SendMethod, self.UpstreamURL, nil)
 		if err != nil {

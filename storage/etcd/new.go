@@ -14,16 +14,16 @@ type Etcd struct {
 	ClientID             string   `json:"-"`
 	KeyPrefix            string   `json:"key_prefix"`
 	Endpoints            []string `json:"endpoints"`
-	DialTimeout          uint     `json:"dial_timeout"`
-	Username             string   `json:"username"`
-	Password             string   `json:"password"`
-	AutoSyncInterval     uint     `json:"auto_sync_interval"`
-	DialKeepAliveTime    uint     `json:"dial_keep_alive_time"`
-	DialKeepAliveTimeout uint     `json:"dial_keep_alive_timeout"`
-	MaxCallSendMsgSize   uint     `json:"max_call_send_msg_size"`
-	MaxCallRecvMsgSize   uint     `json:"max_call_recv_msg_size"`
-	RejectOldCluster     bool     `json:"reject_old_cluster"`
-	PermitWithoutStream  bool     `json:"permit_without_stream"`
+	DialTimeout          uint     `json:"dial_timeout,omitempty"`
+	Username             string   `json:"username,omitempty"`
+	Password             string   `json:"password,omitempty"`
+	AutoSyncInterval     uint     `json:"auto_sync_interval,omitempty"`
+	DialKeepAliveTime    uint     `json:"dial_keep_alive_time,omitempty"`
+	DialKeepAliveTimeout uint     `json:"dial_keep_alive_timeout,omitempty"`
+	MaxCallSendMsgSize   uint     `json:"max_call_send_msg_size,omitempty"`
+	MaxCallRecvMsgSize   uint     `json:"max_call_recv_msg_size,omitempty"`
+	RejectOldCluster     bool     `json:"reject_old_cluster,omitempty"`
+	PermitWithoutStream  bool     `json:"permit_without_stream,omitempty"`
 }
 
 func New(config string) (*Etcd, error) {

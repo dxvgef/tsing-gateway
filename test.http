@@ -22,14 +22,14 @@ POST http://127.0.0.1:10080/hosts/
 SECRET: 123456
 Content-Type: application/x-www-form-urlencoded
 
-hostname=*&config={"route_group_id":"test","middleware":[{"name":"favicon","config":"{\"status\":204}"}]}
+hostname=*&config={"route_group_id":"*-/*-group","middleware":[{"name":"auto_response","config":"{\"*\":{\"method\":\"OPTIONS\",\"status\":204},\"/favicon.ico\":{\"method\":\"GET\",\"status\":204}}"},{"name":"set_header","config":"{\"request\":{\"X-MYTEST-1\":\"1\",\"X-MYTEST-2\":\"2\"}}"}]}
 
 ### 设置主机
 PUT http://127.0.0.1:10080/hosts/Kg
 SECRET: 123456
 Content-Type: application/x-www-form-urlencoded
 
-config={"route_group_id":"test_group","middleware":[{"name":"favicon","config":"{\"status\":204}"}]}
+config={"route_group_id":"*-/*-group","middleware":[{"name":"favicon","config":"{\"status\":204}"}]}
 
 ### 删除主机
 DELETE http://127.0.0.1:10080/hosts/Kg
@@ -42,17 +42,17 @@ POST http://127.0.0.1:10080/services/
 SECRET: 123456
 Content-Type: application/x-www-form-urlencoded
 
-id=test_service&static_endpoint=http://127.0.0.1:30080&middleware=[{"name":"set_header","config":"{\"request_header\":{\"X-MYTEST-1\":\"1\",\"X-MYTEST-2\":\"2\"}}"},{"name":"url_rewrite","config":"{\"prefix\":{\"/\":\"/test/\"}}"}]
+id=*-/*-service&static_endpoint=http://127.0.0.1:30080
 
 ### 设置服务
-PUT http://127.0.0.1:10080/services/dGVzdF9zZXJ2aWNl
+PUT http://127.0.0.1:10080/services/Ki0vKi1zZXJ2aWNl
 SECRET: 123456
 Content-Type: application/x-www-form-urlencoded
 
-discover={"name":"tsing_center","config":"{\"addr\":\"http://127.0.0.1:20080\",\"secret\":\"123456\"}"}&middleware=[{"name":"set_header","config":"{\"request_header\":{\"X-MYTEST-1\":\"1\",\"X-MYTEST-2\":\"2\"}}"},{"name":"url_rewrite","config":"{\"prefix\":{\"/\":\"/test/\"}}"}]
+discover={"name":"tsing_center","config":"{\"addr\":\"http://127.0.0.1:20080\",\"secret\":\"123456\"}"}&middleware=[{"name":"url_rewrite","config":"{\"prefix\":{\"/\":\"/test/\"}}"}]
 
 ### 删除服务
-DELETE http://127.0.0.1:10080/services/dGVzdF9zZXJ2aWNl
+DELETE http://127.0.0.1:10080/services/Ki0vKi1zZXJ2aWNl
 SECRET: 123456
 
 ################################################### 路由管理
@@ -62,15 +62,15 @@ POST http://127.0.0.1:10080/routes/
 SECRET: 123456
 Content-Type: application/x-www-form-urlencoded
 
-group_id=test_group&path=/*&method=ANY&service_id=test_service
+group_id=*-/*-group&path=/*&method=ANY&service_id=*-/*-service
 
 ### 设置路由
-PUT http://127.0.0.1:10080/routes/dGVzdF9ncm91cA/Lyo/ANY
+PUT http://127.0.0.1:10080/routes/Ki0vKi1zZXJ2aWNl/Lyo/ANY
 SECRET: 123456
 Content-Type: application/x-www-form-urlencoded
 
-service_id=test_service
+service_id=*-/*-service
 
 ### 删除路由
-DELETE http://127.0.0.1:10080/routes/dGVzdF9ncm91cA/Lyo/ANY
+DELETE http://127.0.0.1:10080/routes/Ki0vKi1zZXJ2aWNl/Lyo/ANY
 SECRET: 123456

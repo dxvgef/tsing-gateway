@@ -4,6 +4,7 @@ package set_header
 
 import (
 	json "encoding/json"
+
 	easyjson "github.com/mailru/easyjson"
 	jlexer "github.com/mailru/easyjson/jlexer"
 	jwriter "github.com/mailru/easyjson/jwriter"
@@ -42,16 +43,16 @@ func easyjsonD355d48DecodeGithubComDxvgefTsingGatewayMiddlewareSetHeader(in *jle
 			} else {
 				in.Delim('{')
 				if !in.IsDelim('}') {
-					out.RequestHeader = make(map[string]string)
+					out.Request = make(map[string]string)
 				} else {
-					out.RequestHeader = nil
+					out.Request = nil
 				}
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
 					var v1 string
 					v1 = string(in.String())
-					(out.RequestHeader)[key] = v1
+					(out.Request)[key] = v1
 					in.WantComma()
 				}
 				in.Delim('}')
@@ -62,16 +63,16 @@ func easyjsonD355d48DecodeGithubComDxvgefTsingGatewayMiddlewareSetHeader(in *jle
 			} else {
 				in.Delim('{')
 				if !in.IsDelim('}') {
-					out.ResponseHeader = make(map[string]string)
+					out.Response = make(map[string]string)
 				} else {
-					out.ResponseHeader = nil
+					out.Response = nil
 				}
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
 					var v2 string
 					v2 = string(in.String())
-					(out.ResponseHeader)[key] = v2
+					(out.Response)[key] = v2
 					in.WantComma()
 				}
 				in.Delim('}')
@@ -90,14 +91,14 @@ func easyjsonD355d48EncodeGithubComDxvgefTsingGatewayMiddlewareSetHeader(out *jw
 	out.RawByte('{')
 	first := true
 	_ = first
-	if len(in.RequestHeader) != 0 {
+	if len(in.Request) != 0 {
 		const prefix string = ",\"request_header\":"
 		first = false
 		out.RawString(prefix[1:])
 		{
 			out.RawByte('{')
 			v3First := true
-			for v3Name, v3Value := range in.RequestHeader {
+			for v3Name, v3Value := range in.Request {
 				if v3First {
 					v3First = false
 				} else {
@@ -110,7 +111,7 @@ func easyjsonD355d48EncodeGithubComDxvgefTsingGatewayMiddlewareSetHeader(out *jw
 			out.RawByte('}')
 		}
 	}
-	if len(in.ResponseHeader) != 0 {
+	if len(in.Response) != 0 {
 		const prefix string = ",\"response_header\":"
 		if first {
 			first = false
@@ -121,7 +122,7 @@ func easyjsonD355d48EncodeGithubComDxvgefTsingGatewayMiddlewareSetHeader(out *jw
 		{
 			out.RawByte('{')
 			v4First := true
-			for v4Name, v4Value := range in.ResponseHeader {
+			for v4Name, v4Value := range in.Response {
 				if v4First {
 					v4First = false
 				} else {

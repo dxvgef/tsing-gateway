@@ -38,7 +38,7 @@ func (self *AutoResponse) Action(resp http.ResponseWriter, req *http.Request) (a
 	log.Debug().Str("uri", req.RequestURI).Str("method", req.Method).Caller().Send()
 	for k := range self.data {
 		log.Debug().Interface("data", self.data[k]).Caller().Send()
-		if (k != "*" && req.RequestURI != k) || (self.data[k].Method != "*" && req.Method != self.data[k].Method) {
+		if (k != "*" && req.RequestURI != k) || (self.data[k].Method != "ANY" && req.Method != self.data[k].Method) {
 			continue
 		}
 		log.Debug().Caller().Msg("匹配到了规则")
