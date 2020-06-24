@@ -30,13 +30,13 @@ func (self *SetHeader) GetName() string {
 }
 
 // 中间件行为
-func (self *SetHeader) Action(resp http.ResponseWriter, req *http.Request) (next bool, err error) {
+func (self *SetHeader) Action(resp http.ResponseWriter, req *http.Request) (abort bool, err error) {
+	log.Debug().Caller().Msg("set_header")
 	for k, v := range self.RequestHeader {
 		req.Header.Set(k, v)
 	}
 	for k, v := range self.ResponseHeader {
 		resp.Header().Set(k, v)
 	}
-	next = true
 	return
 }

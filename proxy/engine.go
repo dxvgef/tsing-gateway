@@ -18,8 +18,8 @@ type Engine struct{}
 // 下游请求入口
 func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	var (
-		next bool
-		err  error
+		abort bool
+		err   error
 	)
 	// 匹配到服务
 	hostname, service, status := matchRoute(req)
@@ -40,22 +40,20 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			return
 		}
 		for k := range mw {
-			next = false
 			if mw[k] == nil {
 				continue
 			}
 			// 执行中间件逻辑
-			next, err = mw[k].Action(resp, req)
+			abort, err = mw[k].Action(resp, req)
 			if err != nil {
 				log.Err(err).Caller().Str("hostname", hostname).Str("middleware name", mw[k].GetName()).Send()
 				return
 			}
-			if !next {
+			if abort {
 				return
 			}
 		}
 	}
-
 	// 执行服务中间件
 	serviceMW, serviceMWExist := global.ServicesMiddleware.Load(service.ID)
 	if serviceMWExist {
@@ -65,17 +63,17 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			return
 		}
 		for k := range mw {
-			next = false
+			abort = false
 			if mw[k] == nil {
 				continue
 			}
 			// 执行中间件逻辑
-			next, err = mw[k].Action(resp, req)
+			abort, err = mw[k].Action(resp, req)
 			if err != nil {
 				log.Err(err).Caller().Str("service id", service.ID).Str("middleware name", mw[k].GetName()).Send()
 				return
 			}
-			if !next {
+			if abort {
 				return
 			}
 		}

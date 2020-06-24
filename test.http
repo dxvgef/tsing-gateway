@@ -1,3 +1,6 @@
+################################################### 测试
+GET http://127.0.0.1/favicon.ic
+
 ################################################### 数据管理
 
 ### 获取所有数据
@@ -39,7 +42,7 @@ POST http://127.0.0.1:10080/services/
 SECRET: 123456
 Content-Type: application/x-www-form-urlencoded
 
-id=test_service&static_endpoint=http://127.0.0.1:30080&middleware=[{"name":"set_header","config":"{\"request_header\":{\"X-MYTEST-1\":\"1\",\"X-MYTEST-2\":\"2\"}}"}]
+id=test_service&static_endpoint=http://127.0.0.1:30080&middleware=[{"name":"set_header","config":"{\"request_header\":{\"X-MYTEST-1\":\"1\",\"X-MYTEST-2\":\"2\"}}"},{"name":"url_rewrite","config":"{\"prefix\":{\"/\":\"/test/\"}}"}]
 
 ### 设置服务
 PUT http://127.0.0.1:10080/services/dGVzdF9zZXJ2aWNl
@@ -59,15 +62,15 @@ POST http://127.0.0.1:10080/routes/
 SECRET: 123456
 Content-Type: application/x-www-form-urlencoded
 
-group_id=test_group&path=/&method=GET&service_id=test_service
+group_id=test_group&path=/*&method=ANY&service_id=test_service
 
 ### 设置路由
-PUT http://127.0.0.1:10080/routes/dGVzdF9ncm91cA/Lw/GET
+PUT http://127.0.0.1:10080/routes/dGVzdF9ncm91cA/Lyo/ANY
 SECRET: 123456
 Content-Type: application/x-www-form-urlencoded
 
 service_id=test_service
 
 ### 删除路由
-DELETE http://127.0.0.1:10080/routes/dGVzdF9ncm91cA/Lw/GET
+DELETE http://127.0.0.1:10080/routes/dGVzdF9ncm91cA/Lyo/ANY
 SECRET: 123456

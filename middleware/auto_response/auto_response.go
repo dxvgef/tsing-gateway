@@ -33,20 +33,27 @@ func (self *AutoResponse) GetName() string {
 	return "auto_response"
 }
 
-func (self *AutoResponse) Action(resp http.ResponseWriter, req *http.Request) (next bool, err error) {
+func (self *AutoResponse) Action(resp http.ResponseWriter, req *http.Request) (abort bool, err error) {
+	log.Debug().Caller().Msg("auto_response")
+	log.Debug().Str("uri", req.RequestURI).Str("method", req.Method).Caller().Send()
 	for k := range self.data {
-		if (req.RequestURI != "*" && req.RequestURI != k) || (req.Method != "*" && req.Method != self.data[k].Method) {
-			return
+		log.Debug().Interface("data", self.data[k]).Caller().Send()
+		if (k != "*" && req.RequestURI != k) || (self.data[k].Method != "*" && req.Method != self.data[k].Method) {
+			continue
 		}
+		log.Debug().Caller().Msg("匹配到了规则")
 		if self.data[k].Status != 0 {
 			resp.WriteHeader(self.data[k].Status)
+			abort = true
 		}
 		if self.data[k].Data != "" {
+			abort = true
 			_, err = resp.Write(global.StrToBytes(self.data[k].Data))
 			if err != nil {
 				log.Err(err).Caller().Send()
 			}
 		}
+		return
 	}
 	return
 }

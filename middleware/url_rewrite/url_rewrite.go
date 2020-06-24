@@ -34,6 +34,7 @@ func (self *PathRewrite) GetName() string {
 
 // 中间件行为
 func (self *PathRewrite) Action(_ http.ResponseWriter, req *http.Request) (bool, error) {
+	log.Debug().Caller().Msg("url_rewrite")
 	// 全部重写
 	for k := range self.Complete {
 		if req.URL.Path == k {
@@ -61,5 +62,5 @@ func (self *PathRewrite) Action(_ http.ResponseWriter, req *http.Request) (bool,
 			req.RequestURI = req.URL.RequestURI()
 		}
 	}
-	return true, nil
+	return false, nil
 }

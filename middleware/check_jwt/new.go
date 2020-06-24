@@ -1,11 +1,10 @@
 package url_rewrite
 
 import (
+	"local/global"
 	"net/http"
 
 	"github.com/rs/zerolog/log"
-
-	"local/global"
 )
 
 // check_jwt
@@ -35,7 +34,7 @@ func (self *CheckJWT) GetName() string {
 }
 
 // 中间件行为
-func (self *CheckJWT) Action(req *http.Request) (bool, int, error) {
-
+func (self *CheckJWT) Action(req *http.Request) (bool, error) {
+	log.Debug().Caller().Msg("check_jwt")
 	return true, nil
 }
