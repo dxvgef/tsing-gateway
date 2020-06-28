@@ -42,6 +42,13 @@ func main() {
 		return
 	}
 
+	// --------------------- 配置logger ----------------------
+	err = setLogger()
+	if err != nil {
+		log.Fatal().Err(err).Caller().Msg("配置日志记录器失败")
+		return
+	}
+
 	// --------------------- 配置snowflake id ----------------------
 	snowflake.Epoch = time.Now().Unix()
 	global.SnowflakeNode, err = snowflake.NewNode(int64(time.Now().Hour()))
