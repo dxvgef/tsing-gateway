@@ -9,16 +9,16 @@ import (
 	"local/global"
 )
 
-// path rewrite
-type PathRewrite struct {
+// url_rewrite
+type URLRewrite struct {
 	Prefix  map[string]string `json:"prefix,omitempty"`
 	Suffix  map[string]string `json:"suffix,omitempty"`
 	Replace map[string]string `json:"replace,omitempty"`
 }
 
 // 新建中间件实例
-func New(config string) (*PathRewrite, error) {
-	var instance PathRewrite
+func New(config string) (*URLRewrite, error) {
+	var instance URLRewrite
 	err := instance.UnmarshalJSON(global.StrToBytes(config))
 	if err != nil {
 		log.Err(err).Caller().Send()
@@ -27,13 +27,12 @@ func New(config string) (*PathRewrite, error) {
 	return &instance, nil
 }
 
-func (self *PathRewrite) GetName() string {
+func (self *URLRewrite) GetName() string {
 	return "url_rewrite"
 }
 
 // 中间件行为
-func (self *PathRewrite) Action(_ http.ResponseWriter, req *http.Request) (bool, error) {
-	log.Debug().Caller().Msg("url_rewrite")
+func (self *URLRewrite) Action(_ http.ResponseWriter, req *http.Request) (bool, error) {
 	// 前缀重写
 	for k := range self.Prefix {
 		if strings.HasPrefix(req.URL.Path, k) {

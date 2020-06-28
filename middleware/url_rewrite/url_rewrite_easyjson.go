@@ -17,7 +17,7 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjson8b42b748DecodeGithubComDxvgefTsingGatewayMiddlewareUrlRewrite(in *jlexer.Lexer, out *PathRewrite) {
+func easyjson8b42b748DecodeLocalMiddlewareUrlRewrite(in *jlexer.Lexer, out *URLRewrite) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -36,26 +36,6 @@ func easyjson8b42b748DecodeGithubComDxvgefTsingGatewayMiddlewareUrlRewrite(in *j
 			continue
 		}
 		switch key {
-		case "complete":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				in.Delim('{')
-				if !in.IsDelim('}') {
-					out.Complete = make(map[string]string)
-				} else {
-					out.Complete = nil
-				}
-				for !in.IsDelim('}') {
-					key := string(in.String())
-					in.WantColon()
-					var v1 string
-					v1 = string(in.String())
-					(out.Complete)[key] = v1
-					in.WantComma()
-				}
-				in.Delim('}')
-			}
 		case "prefix":
 			if in.IsNull() {
 				in.Skip()
@@ -69,9 +49,29 @@ func easyjson8b42b748DecodeGithubComDxvgefTsingGatewayMiddlewareUrlRewrite(in *j
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
+					var v1 string
+					v1 = string(in.String())
+					(out.Prefix)[key] = v1
+					in.WantComma()
+				}
+				in.Delim('}')
+			}
+		case "suffix":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				in.Delim('{')
+				if !in.IsDelim('}') {
+					out.Suffix = make(map[string]string)
+				} else {
+					out.Suffix = nil
+				}
+				for !in.IsDelim('}') {
+					key := string(in.String())
+					in.WantColon()
 					var v2 string
 					v2 = string(in.String())
-					(out.Prefix)[key] = v2
+					(out.Suffix)[key] = v2
 					in.WantComma()
 				}
 				in.Delim('}')
@@ -96,26 +96,6 @@ func easyjson8b42b748DecodeGithubComDxvgefTsingGatewayMiddlewareUrlRewrite(in *j
 				}
 				in.Delim('}')
 			}
-		case "suffix":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				in.Delim('{')
-				if !in.IsDelim('}') {
-					out.Suffix = make(map[string]string)
-				} else {
-					out.Suffix = nil
-				}
-				for !in.IsDelim('}') {
-					key := string(in.String())
-					in.WantColon()
-					var v4 string
-					v4 = string(in.String())
-					(out.Suffix)[key] = v4
-					in.WantComma()
-				}
-				in.Delim('}')
-			}
 		default:
 			in.SkipRecursive()
 		}
@@ -126,74 +106,26 @@ func easyjson8b42b748DecodeGithubComDxvgefTsingGatewayMiddlewareUrlRewrite(in *j
 		in.Consumed()
 	}
 }
-func easyjson8b42b748EncodeGithubComDxvgefTsingGatewayMiddlewareUrlRewrite(out *jwriter.Writer, in PathRewrite) {
+func easyjson8b42b748EncodeLocalMiddlewareUrlRewrite(out *jwriter.Writer, in URLRewrite) {
 	out.RawByte('{')
 	first := true
 	_ = first
-	if len(in.Complete) != 0 {
-		const prefix string = ",\"complete\":"
+	if len(in.Prefix) != 0 {
+		const prefix string = ",\"prefix\":"
 		first = false
 		out.RawString(prefix[1:])
 		{
 			out.RawByte('{')
-			v5First := true
-			for v5Name, v5Value := range in.Complete {
-				if v5First {
-					v5First = false
+			v4First := true
+			for v4Name, v4Value := range in.Prefix {
+				if v4First {
+					v4First = false
 				} else {
 					out.RawByte(',')
 				}
-				out.String(string(v5Name))
+				out.String(string(v4Name))
 				out.RawByte(':')
-				out.String(string(v5Value))
-			}
-			out.RawByte('}')
-		}
-	}
-	if len(in.Prefix) != 0 {
-		const prefix string = ",\"prefix\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
-		{
-			out.RawByte('{')
-			v6First := true
-			for v6Name, v6Value := range in.Prefix {
-				if v6First {
-					v6First = false
-				} else {
-					out.RawByte(',')
-				}
-				out.String(string(v6Name))
-				out.RawByte(':')
-				out.String(string(v6Value))
-			}
-			out.RawByte('}')
-		}
-	}
-	if len(in.Replace) != 0 {
-		const prefix string = ",\"replace\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
-		{
-			out.RawByte('{')
-			v7First := true
-			for v7Name, v7Value := range in.Replace {
-				if v7First {
-					v7First = false
-				} else {
-					out.RawByte(',')
-				}
-				out.String(string(v7Name))
-				out.RawByte(':')
-				out.String(string(v7Value))
+				out.String(string(v4Value))
 			}
 			out.RawByte('}')
 		}
@@ -208,16 +140,40 @@ func easyjson8b42b748EncodeGithubComDxvgefTsingGatewayMiddlewareUrlRewrite(out *
 		}
 		{
 			out.RawByte('{')
-			v8First := true
-			for v8Name, v8Value := range in.Suffix {
-				if v8First {
-					v8First = false
+			v5First := true
+			for v5Name, v5Value := range in.Suffix {
+				if v5First {
+					v5First = false
 				} else {
 					out.RawByte(',')
 				}
-				out.String(string(v8Name))
+				out.String(string(v5Name))
 				out.RawByte(':')
-				out.String(string(v8Value))
+				out.String(string(v5Value))
+			}
+			out.RawByte('}')
+		}
+	}
+	if len(in.Replace) != 0 {
+		const prefix string = ",\"replace\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		{
+			out.RawByte('{')
+			v6First := true
+			for v6Name, v6Value := range in.Replace {
+				if v6First {
+					v6First = false
+				} else {
+					out.RawByte(',')
+				}
+				out.String(string(v6Name))
+				out.RawByte(':')
+				out.String(string(v6Value))
 			}
 			out.RawByte('}')
 		}
@@ -226,25 +182,25 @@ func easyjson8b42b748EncodeGithubComDxvgefTsingGatewayMiddlewareUrlRewrite(out *
 }
 
 // MarshalJSON supports json.Marshaler interface
-func (v PathRewrite) MarshalJSON() ([]byte, error) {
+func (v URLRewrite) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson8b42b748EncodeGithubComDxvgefTsingGatewayMiddlewareUrlRewrite(&w, v)
+	easyjson8b42b748EncodeLocalMiddlewareUrlRewrite(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
-func (v PathRewrite) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson8b42b748EncodeGithubComDxvgefTsingGatewayMiddlewareUrlRewrite(w, v)
+func (v URLRewrite) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson8b42b748EncodeLocalMiddlewareUrlRewrite(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
-func (v *PathRewrite) UnmarshalJSON(data []byte) error {
+func (v *URLRewrite) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson8b42b748DecodeGithubComDxvgefTsingGatewayMiddlewareUrlRewrite(&r, v)
+	easyjson8b42b748DecodeLocalMiddlewareUrlRewrite(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *PathRewrite) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson8b42b748DecodeGithubComDxvgefTsingGatewayMiddlewareUrlRewrite(l, v)
+func (v *URLRewrite) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson8b42b748DecodeLocalMiddlewareUrlRewrite(l, v)
 }
