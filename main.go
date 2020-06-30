@@ -119,7 +119,7 @@ func main() {
 				}
 			}
 			log.Info().Bool("HTTP2", global.Config.Proxy.HTTPS.HTTP2).Str("addr", proxyHttpsServer.Addr).Msg("网关HTTPS服务")
-			if err = proxyHttpsServer.ListenAndServeTLS("server.cert", "server.key"); err != nil {
+			if err = proxyHttpsServer.ListenAndServeTLS(global.Config.Proxy.HTTPS.CertFile, global.Config.Proxy.HTTPS.KeyFile); err != nil {
 				if err == http.ErrServerClosed {
 					log.Info().Msg("HTTPS代理服务已关闭")
 					return
@@ -190,7 +190,7 @@ func main() {
 					}
 				}
 				log.Info().Bool("HTTP2", global.Config.API.HTTPS.HTTP2).Str("addr", apiHttpsServer.Addr).Msg("API HTTPS服务")
-				if err = apiHttpsServer.ListenAndServeTLS("server.cert", "server.key"); err != nil {
+				if err = apiHttpsServer.ListenAndServeTLS(global.Config.API.HTTPS.CertFile, global.Config.API.HTTPS.KeyFile); err != nil {
 					if err == http.ErrServerClosed {
 						log.Info().Msg("API HTTPS服务已关闭")
 						return
