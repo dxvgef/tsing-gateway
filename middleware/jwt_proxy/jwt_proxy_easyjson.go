@@ -50,6 +50,8 @@ func easyjsonAbf2d450DecodeLocalMiddlewareJwtProxy(in *jlexer.Lexer, out *JWTPro
 			out.SendName = string(in.String())
 		case "upstream_success_body":
 			out.UpstreamSuccessBody = string(in.String())
+		case "timeout":
+			out.Timeout = int(in.Int())
 		default:
 			in.SkipRecursive()
 		}
@@ -98,6 +100,11 @@ func easyjsonAbf2d450EncodeLocalMiddlewareJwtProxy(out *jwriter.Writer, in JWTPr
 		const prefix string = ",\"upstream_success_body\":"
 		out.RawString(prefix)
 		out.String(string(in.UpstreamSuccessBody))
+	}
+	if in.Timeout != 0 {
+		const prefix string = ",\"timeout\":"
+		out.RawString(prefix)
+		out.Int(int(in.Timeout))
 	}
 	out.RawByte('}')
 }

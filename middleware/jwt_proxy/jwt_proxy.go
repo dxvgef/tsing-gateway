@@ -1,11 +1,13 @@
 package jwt_proxy
 
 import (
+	"context"
 	"errors"
 	"io/ioutil"
 	"local/global"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/rs/zerolog/log"
 )
@@ -19,11 +21,15 @@ type JWTProxy struct {
 	SendMethod          string `json:"send_method"`                     // 发送给上游校验的HTTP方法，支持GET、HEAD、OPTIONS
 	SendName            string `json:"send_name"`                       // 发送给上游校验的参数名
 	UpstreamSuccessBody string `json:"upstream_success_body,omitempty"` // 校验成功的上游响应数据，用于处理只返回200状态码的API，如果留空则不校验body
+	Timeout             int    `json:"timeout,omitempty"`               // 连接上游超时时间(秒)
 }
 
 // 新建中间件实例
 func New(config string) (*JWTProxy, error) {
 	var instance JWTProxy
+	instance.SourceType = "header"
+	instance.SourceName = "Authorization"
+	instance.Timeout = 5
 	err := instance.UnmarshalJSON(global.StrToBytes(config))
 	if err != nil {
 		log.Err(err).Caller().Send()
@@ -59,7 +65,6 @@ func (self *JWTProxy) GetName() string {
 
 // 中间件行为
 func (self *JWTProxy) Action(resp http.ResponseWriter, req *http.Request) (bool, error) {
-	log.Debug().Caller().Msg("check_jwt")
 	// 获得jwt字符串
 	jwtStr, err := self.getJWT(req)
 	if err != nil {
@@ -130,30 +135,33 @@ func (self *JWTProxy) verityJWT(jwtStr string) (int, error) {
 		resp *http.Response
 		err  error
 	)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(self.Timeout)*time.Second)
+	defer cancel()
 	// 根据发送类型准备http.Request
 	switch self.SendType {
 	case "header":
-		req, err = http.NewRequest(self.SendMethod, self.UpstreamURL, nil)
+		req, err = http.NewRequestWithContext(ctx, self.SendMethod, self.UpstreamURL, nil)
 		if err != nil {
 			log.Err(err).Caller().Send()
 			return http.StatusInternalServerError, err
 		}
 		req.Header.Set(self.SendName, jwtStr)
 	case "query":
-		endpoint, err := global.AddQueryValues(self.UpstreamURL, map[string]string{
+		var endpoint string
+		endpoint, err = global.AddQueryValues(self.UpstreamURL, map[string]string{
 			self.SendName: jwtStr,
 		})
 		if err != nil {
 			log.Err(err).Caller().Send()
 			return http.StatusInternalServerError, err
 		}
-		req, err = http.NewRequest(self.SendMethod, endpoint, nil)
+		req, err = http.NewRequestWithContext(ctx, self.SendMethod, endpoint, nil)
 		if err != nil {
 			log.Err(err).Caller().Send()
 			return http.StatusInternalServerError, err
 		}
 	case "cookie":
-		req, err = http.NewRequest(self.SendMethod, self.UpstreamURL, nil)
+		req, err = http.NewRequestWithContext(ctx, self.SendMethod, self.UpstreamURL, nil)
 		if err != nil {
 			log.Err(err).Caller().Send()
 			return http.StatusInternalServerError, err
@@ -174,6 +182,11 @@ func (self *JWTProxy) verityJWT(jwtStr string) (int, error) {
 		log.Err(err).Caller().Send()
 		return 0, err
 	}
+	defer func() {
+		if err = resp.Body.Close(); err != nil {
+			log.Warn().Err(err).Caller().Send()
+		}
+	}()
 
 	// 处理远程响应
 	body, err = ioutil.ReadAll(resp.Body)

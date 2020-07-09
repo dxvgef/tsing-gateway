@@ -1,8 +1,0 @@
-.idea/
-bin/
-
-.DS_Store
-*.iml
-*.log
-
-go.sum

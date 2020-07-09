@@ -14,16 +14,16 @@ import (
 func (self *Etcd) Watch() error {
 	ch := self.client.Watch(context.Background(), self.KeyPrefix+"/", clientv3.WithPrefix())
 	for resp := range ch {
-		for _, event := range resp.Events {
-			switch event.Type {
+		for k := range resp.Events {
+			switch resp.Events[k].Type {
 			// 更新事件
 			case clientv3.EventTypePut:
-				if err := self.watchLoadData(event.Kv.Key, event.Kv.Value); err != nil {
+				if err := self.watchLoadData(resp.Events[k].Kv.Key, resp.Events[k].Kv.Value); err != nil {
 					log.Err(err).Caller().Send()
 				}
 			// 删除事件
 			case clientv3.EventTypeDelete:
-				if err := self.watchDeleteData(event.Kv.Key); err != nil {
+				if err := self.watchDeleteData(resp.Events[k].Kv.Key); err != nil {
 					log.Err(err).Caller().Send()
 				}
 			}
