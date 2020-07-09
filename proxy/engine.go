@@ -23,6 +23,15 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	)
 	// 匹配到服务
 	hostname, service, status := matchRoute(req)
+	// 状态码为405时，自动处理OPTIONS请求
+	if status == http.StatusMethodNotAllowed && req.Method == "OPTIONS" {
+		resp.WriteHeader(http.StatusNoContent)
+		if _, err = resp.Write(global.StrToBytes(http.StatusText(http.StatusNoContent))); err != nil {
+			log.Err(err).Caller().Send()
+		}
+		return
+	}
+	// 处理其它状态码的异常
 	if status > 0 {
 		resp.WriteHeader(status)
 		if _, err = resp.Write(global.StrToBytes(http.StatusText(status))); err != nil {

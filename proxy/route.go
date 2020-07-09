@@ -71,6 +71,7 @@ func matchRoute(req *http.Request) (hostname string, service global.ServiceType,
 		status = http.StatusServiceUnavailable
 		return
 	}
+
 	if routePath == "" {
 		routePath = "/"
 	}
@@ -97,9 +98,9 @@ func matchRoute(req *http.Request) (hostname string, service global.ServiceType,
 	key.WriteString("/")
 	paths := map[string]string{}
 	global.Routes.Range(func(k, v interface{}) bool {
-		path := k.(string)
-		if strings.HasPrefix(path, key.String()) {
-			paths[path] = v.(string)
+		p := k.(string)
+		if strings.HasPrefix(p, key.String()) {
+			paths[p] = v.(string)
 		}
 		return true
 	})
@@ -119,9 +120,9 @@ func matchRoute(req *http.Request) (hostname string, service global.ServiceType,
 		key.WriteString("/")
 		// 尝试模糊匹配
 		global.Routes.Range(func(k, v interface{}) bool {
-			path := k.(string)
-			if strings.HasPrefix(path, key.String()) {
-				paths[path] = v.(string)
+			p := k.(string)
+			if strings.HasPrefix(p, key.String()) {
+				paths[p] = v.(string)
 			}
 			return true
 		})

@@ -11,16 +11,17 @@ import (
 
 // CORS
 type CORS struct {
-	AllowOrigins     []string `json:"allow_origins,omitempty"` // 允许的来源
-	ExposeHeaders    []string `json:"expose_headers,omitempty"`
-	AllowCredentials bool     `json:"allow_credentials,omitempty"` // 允许携带cookie
-	AllowMethods     []string `json:"allow_methods,omitempty"`     // 允许的方法
-	AllowHeaders     []string `json:"allow_headers,omitempty"`     // 允许的header
+	AllowOrigins     []string `json:"allow_origins,omitempty"`     // 允许客户端的来源域
+	ExposeHeaders    []string `json:"expose_headers,omitempty"`    // 允许响应的头信息
+	AllowCredentials bool     `json:"allow_credentials,omitempty"` // 允许客户端携带cookie
+	AllowMethods     []string `json:"allow_methods,omitempty"`     // 允许客户端请求的方法
+	AllowHeaders     []string `json:"allow_headers,omitempty"`     // 允许客户端请求的头信息
 }
 
 // 新建中间件实例
 func New(config string) (*CORS, error) {
 	var instance CORS
+	instance.AllowOrigins = []string{"*"}
 	instance.AllowMethods = []string{"*"}
 	err := instance.UnmarshalJSON(global.StrToBytes(config))
 	if err != nil {
@@ -75,5 +76,5 @@ func (self *CORS) Action(resp http.ResponseWriter, req *http.Request) (bool, err
 		resp.Header().Set("Access-Control-Allow-Credentials", "true")
 	}
 
-	return true, nil
+	return false, nil
 }
