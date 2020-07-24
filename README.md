@@ -12,6 +12,7 @@ Tsing Gateway是一个开源、跨平台、去中心化集群、动态配置的A
 
 ### 中间件
 - `auto_response`，根据客户端请求路径和方法，自动响应状态码以及内容
+- `cors`，自动处理CORS跨域资源共享
 - `jwt_proxy`，JWT反向代理，转发JWT到上游并返回校验结果
 - `set_header`，在HTTP会话的请求或响应头部中设置Header参数
 - `url_rewrite`，将客户端的请求URL重写后转发给上游
