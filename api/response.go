@@ -47,6 +47,9 @@ func String(ctx *tsing.Context, status int, data string) error {
 // 输出HTTP状态码，无返回数据
 func Status(ctx *tsing.Context, status int) error {
 	ctx.ResponseWriter.WriteHeader(status)
+	if status == 204 {
+		return nil
+	}
 	if _, err := ctx.ResponseWriter.Write([]byte(http.StatusText(status))); err != nil {
 		log.Err(err).Caller().Send()
 	}
