@@ -5,58 +5,58 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/pelletier/go-toml"
 	"github.com/rs/zerolog/log"
-	"gopkg.in/yaml.v3"
 )
 
-// 引擎配置
+// 参数配置
 var Config struct {
 	Logger struct {
-		Level      string      `yaml:"level"`
-		FilePath   string      `yaml:"filePath"`
-		FileMode   os.FileMode `yaml:"fileMode"`
-		Encode     string      `yaml:"encode"`
-		TimeFormat string      `yaml:"timeFormat"`
-	} `yaml:"logger"`
+		Level      string      `toml:"level"`
+		FilePath   string      `toml:"filePath"`
+		FileMode   os.FileMode `toml:"fileMode"`
+		Encode     string      `toml:"encode"`
+		TimeFormat string      `toml:"timeFormat"`
+	} `toml:"logger"`
 	Storage struct {
-		Name   string `yaml:"name"`
-		Config string `yaml:"config"`
-	} `yaml:"storage"`
+		Name   string `toml:"name"`
+		Config string `toml:"config"`
+	} `toml:"storage"`
 	Proxy struct {
-		IP                string        `yaml:"ip"`
-		QuitWaitTimeout   time.Duration `yaml:"quitWaitTimeout"`
-		ReadTimeout       time.Duration `yaml:"readTimeout"`
-		ReadHeaderTimeout time.Duration `yaml:"readHeaderTimeout"`
-		WriteTimeout      time.Duration `yaml:"writeTimeout"`
-		IdleTimeout       time.Duration `yaml:"idleTimeout"`
+		IP                string        `toml:"ip"`
+		QuitWaitTimeout   time.Duration `toml:"quitWaitTimeout"`
+		ReadTimeout       time.Duration `toml:"readTimeout"`
+		ReadHeaderTimeout time.Duration `toml:"readHeaderTimeout"`
+		WriteTimeout      time.Duration `toml:"writeTimeout"`
+		IdleTimeout       time.Duration `toml:"idleTimeout"`
 		HTTP              struct {
-			Port uint16 `yaml:"port"`
-		} `yaml:"http"`
+			Port uint16 `toml:"port"`
+		} `toml:"http"`
 		HTTPS struct {
-			Port     uint16 `yaml:"port"`
-			HTTP2    bool   `yaml:"http2"`
-			CertFile string `yaml:"certFile"`
-			KeyFile  string `yaml:"keyFile"`
-		} `yaml:"https"`
-	} `yaml:"proxy"`
+			Port     uint16 `toml:"port"`
+			HTTP2    bool   `toml:"http2"`
+			CertFile string `toml:"certFile"`
+			KeyFile  string `toml:"keyFile"`
+		} `toml:"https"`
+	} `toml:"proxy"`
 	API struct {
-		IP                string        `yaml:"ip"`
-		Secret            string        `yaml:"secret"`
-		QuitWaitTimeout   time.Duration `yaml:"quitWaitTimeout"`
-		ReadTimeout       time.Duration `yaml:"readTimeout"`
-		ReadHeaderTimeout time.Duration `yaml:"readHeaderTimeout"`
-		WriteTimeout      time.Duration `yaml:"writeTimeout"`
-		IdleTimeout       time.Duration `yaml:"idleTimeout"`
+		IP                string        `toml:"ip"`
+		Secret            string        `toml:"secret"`
+		QuitWaitTimeout   time.Duration `toml:"quitWaitTimeout"`
+		ReadTimeout       time.Duration `toml:"readTimeout"`
+		ReadHeaderTimeout time.Duration `toml:"readHeaderTimeout"`
+		WriteTimeout      time.Duration `toml:"writeTimeout"`
+		IdleTimeout       time.Duration `toml:"idleTimeout"`
 		HTTP              struct {
-			Port uint16 `yaml:"port"`
-		} `yaml:"http"`
+			Port uint16 `toml:"port"`
+		} `toml:"http"`
 		HTTPS struct {
-			Port     uint16 `yaml:"port"`
-			HTTP2    bool   `yaml:"http2"`
-			CertFile string `yaml:"certFile"`
-			KeyFile  string `yaml:"keyFile"`
-		} `yaml:"https"`
-	} `yaml:"api"`
+			Port     uint16 `toml:"port"`
+			HTTP2    bool   `toml:"http2"`
+			CertFile string `toml:"certFile"`
+			KeyFile  string `toml:"keyFile"`
+		} `toml:"https"`
+	} `toml:"api"`
 }
 
 // 加载配置文件
@@ -66,7 +66,7 @@ func LoadConfigFile(configPath string) error {
 		log.Err(err).Caller().Send()
 		return err
 	}
-	err = yaml.NewDecoder(file).Decode(&Config)
+	err = toml.NewDecoder(file).Decode(&Config)
 	if err != nil {
 		log.Err(err).Caller().Send()
 		return err

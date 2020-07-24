@@ -23,7 +23,7 @@ func New(config string) (*CORS, error) {
 	var instance CORS
 	instance.AllowOrigins = "*"
 	instance.AllowMethods = "GET,POST,PUT,DELETE,OPTIONS,PATCH"
-	instance.AllowHeaders = "Access-Control-Allow-Headers,token,Origin,X-Requested-With,Content-Type,Accept,X-Token"
+	instance.AllowHeaders = "*"
 	instance.AllowCredentials = true
 	instance.ExposeHeaders = "*"
 	err := instance.UnmarshalJSON(global.StrToBytes(config))
