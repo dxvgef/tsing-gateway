@@ -34,7 +34,7 @@ func main() {
 	setDefaultLogger()
 
 	// --------------------- 加载配置文件 ----------------------
-	flag.StringVar(&configFile, "c", "./config.yml", "配置文件路径")
+	flag.StringVar(&configFile, "c", "./config.toml", "配置文件路径")
 	flag.Parse()
 	err = global.LoadConfigFile(configFile)
 	if err != nil {
