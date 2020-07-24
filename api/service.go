@@ -57,6 +57,7 @@ func (self *Service) Add(ctx *tsing.Context) error {
 			resp["error"] = "探测器配置解析失败"
 			return JSON(ctx, 400, &resp)
 		}
+		// todo 这里应该做参数校验
 	}
 
 	if req.middleware != "" {
@@ -65,6 +66,7 @@ func (self *Service) Add(ctx *tsing.Context) error {
 			resp["error"] = "中间件配置解析失败"
 			return JSON(ctx, 400, &resp)
 		}
+		// todo 这里应该做参数校验
 	}
 
 	service.ID = req.id
