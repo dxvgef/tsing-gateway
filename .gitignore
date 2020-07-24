@@ -16,3 +16,4 @@ temp_test.go
 __debug_bin
 /*.local.yml
 *.log
+*.local.*
