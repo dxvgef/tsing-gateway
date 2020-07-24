@@ -29,7 +29,7 @@ type ServiceType struct {
 
 // 端点发现
 type DiscoverType interface {
-	Fetch(string) (*url.URL, error)
+	Fetch() (*url.URL, error)
 }
 
 // 中间件接口

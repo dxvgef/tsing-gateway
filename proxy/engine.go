@@ -111,7 +111,7 @@ func getEndpoint(service global.ServiceType) (endpoint *url.URL, err error) {
 		log.Err(err).Caller().Send()
 		return nil, err
 	}
-	endpoint, err = dc.Fetch(service.ID)
+	endpoint, err = dc.Fetch()
 	if err != nil {
 		log.Err(err).Caller().Send()
 		return nil, err

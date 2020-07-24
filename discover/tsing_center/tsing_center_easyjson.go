@@ -38,8 +38,12 @@ func easyjsonA8649303DecodeLocalDiscoverTsingCenter(in *jlexer.Lexer, out *Tsing
 		switch key {
 		case "addr":
 			out.Addr = string(in.String())
+		case "timeout":
+			out.Timeout = uint(in.Uint())
 		case "secret":
 			out.Secret = string(in.String())
+		case "service_id":
+			out.ServiceID = string(in.String())
 		default:
 			in.SkipRecursive()
 		}
@@ -59,10 +63,20 @@ func easyjsonA8649303EncodeLocalDiscoverTsingCenter(out *jwriter.Writer, in Tsin
 		out.RawString(prefix[1:])
 		out.String(string(in.Addr))
 	}
+	if in.Timeout != 0 {
+		const prefix string = ",\"timeout\":"
+		out.RawString(prefix)
+		out.Uint(uint(in.Timeout))
+	}
 	{
 		const prefix string = ",\"secret\":"
 		out.RawString(prefix)
 		out.String(string(in.Secret))
+	}
+	{
+		const prefix string = ",\"service_id\":"
+		out.RawString(prefix)
+		out.String(string(in.ServiceID))
 	}
 	out.RawByte('}')
 }
