@@ -45,7 +45,7 @@ func FormatTime(str string) string {
 }
 
 // 从键名解析路由信息
-func ParseRoute(key, keyPrefix string) (routeGroupID, routePath, routeMethod string, err error) {
+func ParseRouteFromKey(key, keyPrefix string) (routeGroupID, routePath, routeMethod string, err error) {
 	var pos int
 
 	// 裁剪前缀

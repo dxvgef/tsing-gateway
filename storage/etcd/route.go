@@ -17,7 +17,7 @@ import (
 
 // 从存储器加载路由到本地
 func (self *Etcd) LoadRoute(key string, data []byte) error {
-	routeGroupID, routePath, routeMethod, err := global.ParseRoute(key, self.KeyPrefix)
+	routeGroupID, routePath, routeMethod, err := global.ParseRouteFromKey(key, self.KeyPrefix)
 	if err != nil {
 		log.Err(err).Caller().Send()
 		return err
@@ -113,7 +113,7 @@ func (self *Etcd) SaveAllRoute() (err error) {
 	// 将内存中的数据写入到存储器中
 	var routeGroupID, routePath, routeMethod string
 	for k, v := range routes {
-		routeGroupID, routePath, routeMethod, err = global.ParseRoute(k, "")
+		routeGroupID, routePath, routeMethod, err = global.ParseRouteFromKey(k, "")
 		if err != nil {
 			log.Err(err).Caller().Send()
 			return
@@ -130,7 +130,7 @@ func (self *Etcd) SaveAllRoute() (err error) {
 
 // 删除本地路由数据
 func (self *Etcd) DeleteLocalRoute(keyStr string) error {
-	routeGroupID, routePath, routeMethod, err := global.ParseRoute(keyStr, self.KeyPrefix)
+	routeGroupID, routePath, routeMethod, err := global.ParseRouteFromKey(keyStr, self.KeyPrefix)
 	if err != nil {
 		log.Err(err).Caller().Send()
 		return err
