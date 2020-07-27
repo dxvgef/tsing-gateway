@@ -34,10 +34,7 @@ func (self *AutoResponse) GetName() string {
 }
 
 func (self *AutoResponse) Action(resp http.ResponseWriter, req *http.Request) (abort bool, err error) {
-	log.Debug().Caller().Msg("auto_response")
-	log.Debug().Str("uri", req.RequestURI).Str("method", req.Method).Caller().Send()
 	for k := range self.data {
-		log.Debug().Interface("data", self.data[k]).Caller().Send()
 		if (k != "*" && req.RequestURI != k) || (self.data[k].Method != "ANY" && req.Method != self.data[k].Method) {
 			continue
 		}
