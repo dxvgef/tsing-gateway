@@ -33,10 +33,10 @@ var Config struct {
 			Port uint16 `toml:"port"`
 		} `toml:"http"`
 		HTTPS struct {
-			Port     uint16 `toml:"port"`
-			HTTP2    bool   `toml:"http2"`
-			CertFile string `toml:"certFile"`
-			KeyFile  string `toml:"keyFile"`
+			Port  uint16 `toml:"port"`
+			HTTP2 bool   `toml:"http2"`
+			Cert  string `toml:"cert"`
+			Key   string `toml:"key"`
 		} `toml:"https"`
 	} `toml:"proxy"`
 	API struct {
@@ -51,10 +51,10 @@ var Config struct {
 			Port uint16 `toml:"port"`
 		} `toml:"http"`
 		HTTPS struct {
-			Port     uint16 `toml:"port"`
-			HTTP2    bool   `toml:"http2"`
-			CertFile string `toml:"certFile"`
-			KeyFile  string `toml:"keyFile"`
+			Port  uint16 `toml:"port"`
+			HTTP2 bool   `toml:"http2"`
+			Cert  string `toml:"cert"`
+			Key   string `toml:"key"`
 		} `toml:"https"`
 	} `toml:"api"`
 }

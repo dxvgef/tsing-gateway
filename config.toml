@@ -4,11 +4,12 @@
 # empty(不显示级别) / debug / info / warn / error
 level = "debug"
 
+
 # 日志文件的路径，如果留空则不写文件
 filePath = ""
 
-# 日志文件的权限，例如0755|0700|0600
-fileMode = 0600
+# 日志文件的权限，例如755|700|600
+fileMode = 600
 
 # 日志输出编码，支持json,console
 encode = "console"
@@ -24,8 +25,8 @@ name = "etcd"
 # 存储器配置json字符串
 config = """
 {
-  "endpoints": ["http://127.0.0.1:2379"],
-  "key_prefix": "/tsing-gateway"
+  "endpoints": ["http://12.0.0.1:2379"],
+  "key_prefix": "/test-gateway"
 }"""
 
 # 代理配置
@@ -49,23 +50,20 @@ writeTimeout = "10s"
 idleTimeout = "10s"
 
 # HTTP配置
-[proxy.http]
 # 监听端口，如果为0则禁用HTTP
-port = 80
+http.port = 80
 
 # HTTPS配置
-[proxy.https]
 # 端口号，如果为0则禁用HTTPS
-port = 0
-
+https.port = 0
 # 服务端证书文件
-certFile = ""
+https.cert = ""
 
 # 服务端私钥文件
-keyFile = ""
+https.key = ""
 
 # 启用HTTPS支持，必须先启用HTTPS
-http2 = false
+https.http2 = false
 
 # API服务
 [api]
@@ -85,17 +83,16 @@ writeTimeout = "10s"
 idleTimeout = "10s"
 
 # HTTP配置
-[api.http]
-# 监听端口，如果为0则禁用HTTP
-port = 10080
+# http端口
+http.port = 443
 
 # HTTPS配置
-[api.https]
 # 端口号，如果为0则禁用HTTPS
-port = 0
-# 服务端证书文件
-certFile = ""
-# 服务端私钥文件
-keyFile = ""
+https.port = 0
+# 服务端证书
+https.cert = ""
+# 服务端私钥
+https.key = ""
 # 启用HTTPS支持，必须先启用HTTPS
-http2 = false
+https.http2 = false
+
