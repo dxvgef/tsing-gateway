@@ -45,7 +45,7 @@ func FormatTime(str string) string {
 }
 
 // 从键名解析路由信息
-func ParseRouteFromKey(key, keyPrefix string) (routeGroupID, routePath, routeMethod string, err error) {
+func ParseRouteFromKey(key, keyPrefix string) (hostname, routePath, routeMethod string, err error) {
 	var pos int
 
 	// 裁剪前缀
@@ -63,16 +63,16 @@ func ParseRouteFromKey(key, keyPrefix string) (routeGroupID, routePath, routeMet
 		// 由于数据来自客户端，因此不记录日志
 		return
 	}
-	routeGroupID = key[:pos]
-	if routeGroupID == "" {
-		err = errors.New("路由组ID解析失败")
+	hostname = key[:pos]
+	if hostname == "" {
+		err = errors.New("主机名解析失败")
 		// 由于数据来自客户端，因此不记录日志
 		return
 	}
 
 	// 如果是解析存储器里的key，需要解码路由组ID
 	if keyPrefix != "" {
-		routeGroupID, err = DecodeKey(routeGroupID)
+		hostname, err = DecodeKey(hostname)
 		if err != nil {
 			// 由于数据来自客户端，因此不记录日志
 			return

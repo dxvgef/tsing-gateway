@@ -17,7 +17,7 @@ import (
 
 // 从存储器加载路由到本地
 func (self *Etcd) LoadRoute(key string, data []byte) error {
-	routeGroupID, routePath, routeMethod, err := global.ParseRouteFromKey(key, self.KeyPrefix)
+	routeHostname, routePath, routeMethod, err := global.ParseRouteFromKey(key, self.KeyPrefix)
 	if err != nil {
 		log.Err(err).Caller().Send()
 		return err
@@ -26,7 +26,7 @@ func (self *Etcd) LoadRoute(key string, data []byte) error {
 		return errors.New("HTTP方法无效")
 	}
 
-	if err = proxy.SetRoute(routeGroupID, routePath, routeMethod, global.BytesToStr(data)); err != nil {
+	if err = proxy.SetRoute(routeHostname, routePath, routeMethod, global.BytesToStr(data)); err != nil {
 		log.Err(err).Caller().Send()
 		return err
 	}
@@ -59,19 +59,19 @@ func (self *Etcd) LoadAllRoute() error {
 }
 
 // 保存本地路由到存储器，如果不存在则创建
-func (self *Etcd) SaveRoute(routeGroupID, routePath, routeMethod, serviceID string) error {
+func (self *Etcd) SaveRoute(routeHostname, routePath, routeMethod, serviceID string) error {
 	routeMethod = strings.ToUpper(routeMethod)
 	if !global.InStr(global.HTTPMethods, routeMethod) {
 		return errors.New("HTTP方法无效")
 	}
 
-	routeGroupID = global.EncodeKey(routeGroupID)
+	routeHostname = global.EncodeKey(routeHostname)
 	routePath = global.EncodeKey(routePath)
 
 	var key strings.Builder
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/routes/")
-	key.WriteString(routeGroupID)
+	key.WriteString(routeHostname)
 	key.WriteString("/")
 	key.WriteString(routePath)
 	key.WriteString("/")
@@ -111,14 +111,14 @@ func (self *Etcd) SaveAllRoute() (err error) {
 	}
 
 	// 将内存中的数据写入到存储器中
-	var routeGroupID, routePath, routeMethod string
+	var routeHostname, routePath, routeMethod string
 	for k, v := range routes {
-		routeGroupID, routePath, routeMethod, err = global.ParseRouteFromKey(k, "")
+		routeHostname, routePath, routeMethod, err = global.ParseRouteFromKey(k, "")
 		if err != nil {
 			log.Err(err).Caller().Send()
 			return
 		}
-		err = self.SaveRoute(routeGroupID, routePath, routeMethod, v)
+		err = self.SaveRoute(routeHostname, routePath, routeMethod, v)
 		if err != nil {
 			log.Err(err).Caller().Send()
 			return
@@ -130,12 +130,12 @@ func (self *Etcd) SaveAllRoute() (err error) {
 
 // 删除本地路由数据
 func (self *Etcd) DeleteLocalRoute(keyStr string) error {
-	routeGroupID, routePath, routeMethod, err := global.ParseRouteFromKey(keyStr, self.KeyPrefix)
+	routeHostname, routePath, routeMethod, err := global.ParseRouteFromKey(keyStr, self.KeyPrefix)
 	if err != nil {
 		log.Err(err).Caller().Send()
 		return err
 	}
-	if err = proxy.DeleteRoute(routeGroupID, routePath, routeMethod); err != nil {
+	if err = proxy.DeleteRoute(routeHostname, routePath, routeMethod); err != nil {
 		log.Err(err).Caller().Send()
 		return err
 	}
@@ -143,14 +143,14 @@ func (self *Etcd) DeleteLocalRoute(keyStr string) error {
 }
 
 // 删除存储器中路由数据
-func (self *Etcd) DeleteStorageRoute(routeGroupID, routePath, routeMethod string) error {
-	routeGroupID = global.EncodeKey(routeGroupID)
+func (self *Etcd) DeleteStorageRoute(routeHostname, routePath, routeMethod string) error {
+	routeHostname = global.EncodeKey(routeHostname)
 	routePath = global.EncodeKey(routePath)
 
 	var key strings.Builder
 	key.WriteString(self.KeyPrefix)
 	key.WriteString("/routes/")
-	key.WriteString(routeGroupID)
+	key.WriteString(routeHostname)
 	key.WriteString("/")
 	key.WriteString(routePath)
 	key.WriteString("/")

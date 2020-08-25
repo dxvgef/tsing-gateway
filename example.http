@@ -1,0 +1,101 @@
+### 获取所有数据
+GET http://127.0.0.1:8080/data/
+SECRET: 123456
+
+### 加载所有数据
+POST http://127.0.0.1:8080/data/
+SECRET: 123456
+
+### 保存所有数据
+PUT http://127.0.0.1:8080/data/
+SECRET: 123456
+
+################################################### 主机管理
+### 添加主机
+### hostname=主机名
+### config=主机配置
+####### hostname=主机名
+####### middleware=中间件参数，详见middleware源码目录中的readme.md
+POST http://127.0.0.1:8080/hosts/
+SECRET: 123456
+Content-Type: application/x-www-form-urlencoded
+
+hostname=*&config={"middleware":[{"name":"auto_response","config":"{\"*\":{\"method\":\"OPTIONS\",\"status\":204},\"/favicon.ico\":{\"method\":\"GET\",\"status\":204}}"},{"name":"cors","config":"{\"allow_origins\":\"*\",\"allow_headers\":\"*\",\"allow_credentials\":true,\"allow_methods\":\"*\",\"expose_headers\":\"*\"}"}]}
+
+### 重写或添加主机
+### 路径参数=/hosts/<目标主机名base64>
+### config=主机配置
+####### middleware=中间件参数，详见middleware源码目录中的readme.md
+PUT http://127.0.0.1:8080/hosts/Kg
+SECRET: 123456
+Content-Type: application/x-www-form-urlencoded
+
+config={"name":"*","middleware":[{"name":"auto_response","config":"{\"*\":{\"method\":\"OPTIONS\",\"status\":204},\"/favicon.ico\":{\"method\":\"GET\",\"status\":204}}"},{"name":"cors","config":"{\"allow_origins\":\"*\",\"allow_headers\":\"*\",\"allow_credentials\":true,\"allow_methods\":\"*\",\"expose_headers\":\"*\"}"}]}
+
+### 删除主机
+### 路径参数=/hosts/<目标主机名base64>
+DELETE http://127.0.0.1:8080/hosts/Kg
+SECRET: 123456
+
+################################################### 服务管理
+
+### 添加服务
+### id=服务ID，可随意填写
+### config=服务配置
+####### discover=服务实例探测器参数，详见discover源码目录中的readme.md
+####### middleware=中间件参数，详见middleware源码目录中的readme.md
+POST http://127.0.0.1:8080/services/
+SECRET: 123456
+Content-Type: application/x-www-form-urlencoded
+
+id=demo-service&discover={"name":"tsing_center","config":"{\"addr\":\"http://127.0.0.1:10080\",\"secret\":\"123456\",\"service_id\":\"demo-service\"}"}&middleware=[{"name":"url_rewrite","config":"{\"prefix\":{\"/\":\"/\"}}"}]
+
+### 重写或添加服务
+### 路径参数=/sevices/<目标服务ID base64>
+### config=服务配置
+####### discover=服务实例探测器参数，详见discover源码目录中的readme.md
+####### middleware=中间件参数，详见middleware源码目录中的readme.md
+PUT http://127.0.0.1:8080/services/ZGVtby1zZXJ2aWNl
+SECRET: 123456
+Content-Type: application/x-www-form-urlencoded
+
+discover={"name":"tsing_center","config":"{\"addr\":\"http://127.0.0.1:10080\",\"secret\":\"123456\",\"service_id\":\"demo-service\"}"}&middleware=[{"name":"url_rewrite","config":"{\"prefix\":{\"/demo/\":\"/\"}}"}]
+
+### 删除服务
+### 路径参数=/sevices/<目标服务ID base64>
+DELETE http://127.0.0.1:8080/services/Ki0vKi1zZXJ2aWNl
+SECRET: 123456
+
+################################################### 路由管理
+
+### 添加路由
+### hostname=主机名，填写之前添加的主机名
+### path=网关路径，/*表示通配所有子路径
+### method=请求方法，GET/POST/PUT/DELETE/ANY，ANY表示通配所有方法
+### service_id=服务ID，之前添加的服务ID
+POST http://127.0.0.1:8080/routes/
+SECRET: 123456
+Content-Type: application/x-www-form-urlencoded
+
+hostname=*&path=/demo/*&method=ANY&service_id=demo-service
+
+### 重写或添加路由
+### 路径参数=/routes/<目标服务ID base64>/<目标路径base64>/<目标方法>
+### service_id=服务ID，之前添加的服务ID
+PUT http://127.0.0.1:8080/routes/ZGVtby1zZXJ2aWNl/L2RlbW8vKg/ANY
+SECRET: 123456
+Content-Type: application/x-www-form-urlencoded
+
+service_id=demo-service
+
+### 删除路由
+### 路径参数=/routes/<目标服务ID base64>/<目标路径base64>/<目标方法>
+DELETE http://127.0.0.1:8080/routes/Ki0vKi1zZXJ2aWNl/Lyo/ANY
+SECRET: 123456
+
+################################################### 访问服务
+### 直接访问服务
+GET http://127.0.0.1:20080/
+
+### 通过网关访问服务
+GET http://127.0.0.1/demo/

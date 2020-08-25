@@ -31,7 +31,6 @@ func (self *SetHeader) GetName() string {
 
 // 中间件行为
 func (self *SetHeader) Action(resp http.ResponseWriter, req *http.Request) (abort bool, err error) {
-	log.Debug().Caller().Msg("set_header")
 	for k, v := range self.Request {
 		req.Header.Set(k, v)
 	}

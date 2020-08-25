@@ -84,7 +84,7 @@ idleTimeout = "10s"
 
 # HTTP配置
 # http端口
-http.port = 443
+http.port = 8080
 
 # HTTPS配置
 # 端口号，如果为0则禁用HTTPS

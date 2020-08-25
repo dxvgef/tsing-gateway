@@ -28,6 +28,7 @@ func (self *Etcd) LoadHost(key string, data []byte) error {
 		log.Err(err).Caller().Send()
 		return err
 	}
+	host.Name = hostname
 	return proxy.SetHost(hostname, host)
 }
 

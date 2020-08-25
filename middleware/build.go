@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"errors"
+	"local/middleware/cors"
 
 	"github.com/rs/zerolog/log"
 
@@ -18,6 +19,16 @@ func Build(name, config string, checkExist bool) (global.MiddlewareType, error) 
 	switch name {
 	case "auto_response":
 		f, err := auto_response.New(config)
+		if err != nil {
+			log.Err(err).Caller().Send()
+			return nil, err
+		}
+		if checkExist {
+			return nil, nil
+		}
+		return f, nil
+	case "cors":
+		f, err := cors.New(config)
 		if err != nil {
 			log.Err(err).Caller().Send()
 			return nil, err

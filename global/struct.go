@@ -13,8 +13,8 @@ type ModuleConfig struct {
 
 // 主机
 type HostType struct {
-	RouteGroupID string         `json:"route_group_id"`       // 路由分组ID
-	Middleware   []ModuleConfig `json:"middleware,omitempty"` // 中间件配置
+	Name       string         `json:"name"`                 // 主机名
+	Middleware []ModuleConfig `json:"middleware,omitempty"` // 中间件配置
 }
 
 // 服务

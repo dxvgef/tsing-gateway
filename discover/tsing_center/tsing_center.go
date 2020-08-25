@@ -57,7 +57,7 @@ func (self *TsingCenter) Fetch() (*url.URL, error) {
 	node, status, err = cli.DiscoverService(self.ServiceID)
 	if err != nil {
 		err = errors.New("服务节点发现失败")
-		log.Err(err).Str("discover", "tsing center").Int("status", status).Caller().Send()
+		log.Err(err).Str("serviceID", self.ServiceID).Str("discover", "tsing center").Int("status", status).Caller().Send()
 		return nil, err
 	}
 

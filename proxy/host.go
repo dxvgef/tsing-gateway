@@ -41,38 +41,38 @@ func DelHost(hostname string) error {
 	return nil
 }
 
-// 匹配主机名，返回对应的路由组ID
-func matchHost(reqHost string) (string, string, bool) {
-	pos := strings.LastIndex(reqHost, ":")
+// 匹配主机名
+func matchHost(hostname string) global.HostType {
+	pos := strings.LastIndex(hostname, ":")
 	if pos > -1 {
-		reqHost = reqHost[:pos]
+		hostname = hostname[:pos]
 	}
-	if v, exist := global.Hosts.Load(reqHost); exist {
+	if v, exist := global.Hosts.Load(hostname); exist {
 		host, ok := v.(global.HostType)
 		if !ok {
 			log.Error().Caller().Msg("类型断言失败")
-			return "", "", false
+			return host
 		}
-		return reqHost, host.RouteGroupID, ok
+		return host
 	}
-	reqHost = "*"
-	if v, exist := global.Hosts.Load(reqHost); exist {
+	hostname = "*"
+	if v, exist := global.Hosts.Load(hostname); exist {
 		host, ok := v.(global.HostType)
 		if !ok {
 			log.Error().Caller().Msg("类型断言失败")
-			return "", "", false
+			return host
 		}
-		return reqHost, host.RouteGroupID, ok
+		return host
 	}
 
-	v, exist := global.Hosts.Load(reqHost)
+	v, exist := global.Hosts.Load(hostname)
 	if !exist {
-		return "", "", false
+		return global.HostType{}
 	}
 	host, ok := v.(global.HostType)
 	if !ok {
 		log.Error().Caller().Msg("类型断言失败")
-		return "", "", false
+		return host
 	}
-	return reqHost, host.RouteGroupID, ok
+	return host
 }

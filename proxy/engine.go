@@ -21,7 +21,7 @@ func (*Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		abort bool
 		err   error
 	)
-	// 匹配到服务
+	// 通过路由匹配到主机名、服务
 	hostname, service, status := matchRoute(req)
 	// 状态码为405时，自动处理OPTIONS请求
 	if status == http.StatusMethodNotAllowed && req.Method == "OPTIONS" {

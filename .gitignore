@@ -11,9 +11,8 @@ go.sum
 *.pem
 *.cert
 *.bak
-*.config.local.toml
 temp_test.go
-__debug_bin
-/*.local.yml
+*.local.yml
 *.log
 *.local.*
+test.http

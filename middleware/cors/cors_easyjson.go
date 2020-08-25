@@ -37,99 +37,15 @@ func easyjsonE7f5bc6fDecodeLocalMiddlewareCors(in *jlexer.Lexer, out *CORS) {
 		}
 		switch key {
 		case "allow_origins":
-			if in.IsNull() {
-				in.Skip()
-				out.AllowOrigins = nil
-			} else {
-				in.Delim('[')
-				if out.AllowOrigins == nil {
-					if !in.IsDelim(']') {
-						out.AllowOrigins = make([]string, 0, 4)
-					} else {
-						out.AllowOrigins = []string{}
-					}
-				} else {
-					out.AllowOrigins = (out.AllowOrigins)[:0]
-				}
-				for !in.IsDelim(']') {
-					var v1 string
-					v1 = string(in.String())
-					out.AllowOrigins = append(out.AllowOrigins, v1)
-					in.WantComma()
-				}
-				in.Delim(']')
-			}
+			out.AllowOrigins = string(in.String())
 		case "expose_headers":
-			if in.IsNull() {
-				in.Skip()
-				out.ExposeHeaders = nil
-			} else {
-				in.Delim('[')
-				if out.ExposeHeaders == nil {
-					if !in.IsDelim(']') {
-						out.ExposeHeaders = make([]string, 0, 4)
-					} else {
-						out.ExposeHeaders = []string{}
-					}
-				} else {
-					out.ExposeHeaders = (out.ExposeHeaders)[:0]
-				}
-				for !in.IsDelim(']') {
-					var v2 string
-					v2 = string(in.String())
-					out.ExposeHeaders = append(out.ExposeHeaders, v2)
-					in.WantComma()
-				}
-				in.Delim(']')
-			}
+			out.ExposeHeaders = string(in.String())
 		case "allow_credentials":
 			out.AllowCredentials = bool(in.Bool())
 		case "allow_methods":
-			if in.IsNull() {
-				in.Skip()
-				out.AllowMethods = nil
-			} else {
-				in.Delim('[')
-				if out.AllowMethods == nil {
-					if !in.IsDelim(']') {
-						out.AllowMethods = make([]string, 0, 4)
-					} else {
-						out.AllowMethods = []string{}
-					}
-				} else {
-					out.AllowMethods = (out.AllowMethods)[:0]
-				}
-				for !in.IsDelim(']') {
-					var v3 string
-					v3 = string(in.String())
-					out.AllowMethods = append(out.AllowMethods, v3)
-					in.WantComma()
-				}
-				in.Delim(']')
-			}
+			out.AllowMethods = string(in.String())
 		case "allow_headers":
-			if in.IsNull() {
-				in.Skip()
-				out.AllowHeaders = nil
-			} else {
-				in.Delim('[')
-				if out.AllowHeaders == nil {
-					if !in.IsDelim(']') {
-						out.AllowHeaders = make([]string, 0, 4)
-					} else {
-						out.AllowHeaders = []string{}
-					}
-				} else {
-					out.AllowHeaders = (out.AllowHeaders)[:0]
-				}
-				for !in.IsDelim(']') {
-					var v4 string
-					v4 = string(in.String())
-					out.AllowHeaders = append(out.AllowHeaders, v4)
-					in.WantComma()
-				}
-				in.Delim(']')
-			}
+			out.AllowHeaders = string(in.String())
 		default:
 			in.SkipRecursive()
 		}
@@ -144,22 +60,13 @@ func easyjsonE7f5bc6fEncodeLocalMiddlewareCors(out *jwriter.Writer, in CORS) {
 	out.RawByte('{')
 	first := true
 	_ = first
-	if len(in.AllowOrigins) != 0 {
+	if in.AllowOrigins != "" {
 		const prefix string = ",\"allow_origins\":"
 		first = false
 		out.RawString(prefix[1:])
-		{
-			out.RawByte('[')
-			for v5, v6 := range in.AllowOrigins {
-				if v5 > 0 {
-					out.RawByte(',')
-				}
-				out.String(string(v6))
-			}
-			out.RawByte(']')
-		}
+		out.String(string(in.AllowOrigins))
 	}
-	if len(in.ExposeHeaders) != 0 {
+	if in.ExposeHeaders != "" {
 		const prefix string = ",\"expose_headers\":"
 		if first {
 			first = false
@@ -167,16 +74,7 @@ func easyjsonE7f5bc6fEncodeLocalMiddlewareCors(out *jwriter.Writer, in CORS) {
 		} else {
 			out.RawString(prefix)
 		}
-		{
-			out.RawByte('[')
-			for v7, v8 := range in.ExposeHeaders {
-				if v7 > 0 {
-					out.RawByte(',')
-				}
-				out.String(string(v8))
-			}
-			out.RawByte(']')
-		}
+		out.String(string(in.ExposeHeaders))
 	}
 	if in.AllowCredentials {
 		const prefix string = ",\"allow_credentials\":"
@@ -188,7 +86,7 @@ func easyjsonE7f5bc6fEncodeLocalMiddlewareCors(out *jwriter.Writer, in CORS) {
 		}
 		out.Bool(bool(in.AllowCredentials))
 	}
-	if len(in.AllowMethods) != 0 {
+	if in.AllowMethods != "" {
 		const prefix string = ",\"allow_methods\":"
 		if first {
 			first = false
@@ -196,18 +94,9 @@ func easyjsonE7f5bc6fEncodeLocalMiddlewareCors(out *jwriter.Writer, in CORS) {
 		} else {
 			out.RawString(prefix)
 		}
-		{
-			out.RawByte('[')
-			for v9, v10 := range in.AllowMethods {
-				if v9 > 0 {
-					out.RawByte(',')
-				}
-				out.String(string(v10))
-			}
-			out.RawByte(']')
-		}
+		out.String(string(in.AllowMethods))
 	}
-	if len(in.AllowHeaders) != 0 {
+	if in.AllowHeaders != "" {
 		const prefix string = ",\"allow_headers\":"
 		if first {
 			first = false
@@ -215,16 +104,7 @@ func easyjsonE7f5bc6fEncodeLocalMiddlewareCors(out *jwriter.Writer, in CORS) {
 		} else {
 			out.RawString(prefix)
 		}
-		{
-			out.RawByte('[')
-			for v11, v12 := range in.AllowHeaders {
-				if v11 > 0 {
-					out.RawByte(',')
-				}
-				out.String(string(v12))
-			}
-			out.RawByte(']')
-		}
+		out.String(string(in.AllowHeaders))
 	}
 	out.RawByte('}')
 }

@@ -24,13 +24,10 @@ func (self *Host) Add(ctx *tsing.Context) error {
 		return JSON(ctx, 400, &resp)
 	}
 	var host global.HostType
+	host.Name = hostname
 	if err := host.UnmarshalJSON(global.StrToBytes(config)); err != nil {
 		// 由于数据来自客户端，因此不记录日志
 		resp["error"] = "config参数解析失败"
-		return JSON(ctx, 400, &resp)
-	}
-	if host.RouteGroupID == "" {
-		resp["error"] = "config.route_group_id参数不能为空"
 		return JSON(ctx, 400, &resp)
 	}
 	hostname = global.EncodeKey(strings.ToLower(hostname))
@@ -54,10 +51,6 @@ func (self *Host) Put(ctx *tsing.Context) error {
 	if err := host.UnmarshalJSON(global.StrToBytes(config)); err != nil {
 		// 由于数据来自客户端，因此不记录日志
 		resp["error"] = "config参数解析失败"
-		return JSON(ctx, 400, &resp)
-	}
-	if host.RouteGroupID == "" {
-		resp["error"] = "config.route_group_id参数不能为空"
 		return JSON(ctx, 400, &resp)
 	}
 	if err := global.Storage.SaveHost(hostname, config); err != nil {
