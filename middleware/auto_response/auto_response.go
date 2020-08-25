@@ -38,7 +38,6 @@ func (self *AutoResponse) Action(resp http.ResponseWriter, req *http.Request) (a
 		if (k != "*" && req.RequestURI != k) || (self.data[k].Method != "ANY" && req.Method != self.data[k].Method) {
 			continue
 		}
-		log.Debug().Caller().Msg("匹配到了规则")
 		if self.data[k].Status != 0 {
 			resp.WriteHeader(self.data[k].Status)
 			abort = true
